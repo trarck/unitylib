@@ -2,18 +2,30 @@
 using System.Collections;
 using UnityEditor;
 
-public class MyEditor : Editor {
+public class FindUtil{
+	private static readonly FindUtil s_Instance =new FindUtil();
 
+	static FindUtil()
+	{
 
-	[MenuItem ("MyMenu/Find")]
-	public static void Test(){
-		Debug.Log ("test Find");
+	}
 
+	public static FindUtil Instance
+	{
+		get
+		{
+			return s_Instance;
+		}
 	}
 
 	public GameObject Search(string path,GameObject root)
 	{
-		Transform objTransform= root.transform.Find (path);
+		return Search (path, root.transform);
+	}
+
+	public GameObject Search(string path,Transform rootTransform)
+	{
+		Transform objTransform= rootTransform.Find (path);
 		
 		if (objTransform) {
 			return objTransform.gameObject;
@@ -24,25 +36,28 @@ public class MyEditor : Editor {
 			for(int i=0,l=rootTransform.childCount;i<l;++i)
 			{
 				GameObject childFind= Search(path,rootTransform.GetChild(i));
-
+				
 				if(childFind)
 				{
 					return childFind;
 				}
 			}
-
+			
 			return null;
 		}
 	}
 
 	public ArrayList SearchAll(string path,GameObject root)
 	{
+		return SearchAll (path, root.transform);
+	}
+
+	public ArrayList SearchAll(string path,Transform rootTransform)
+	{
 		ArrayList list = new ArrayList ();
 
-		Transform rootTransform = root.transform;
-
 		Transform objTransform= rootTransform.Find (path);
-
+		
 		if (objTransform) {
 			list.Add (objTransform.gameObject);
 		} 
@@ -55,7 +70,7 @@ public class MyEditor : Editor {
 				list.AddRange(childFinds);
 			}
 		}
-
+		
 		return list;
 	}
 }
