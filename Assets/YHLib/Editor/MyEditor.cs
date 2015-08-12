@@ -27,20 +27,22 @@ public class MyEditor : Editor {
 
 				AnimationCurve aniCurve=AnimationUtility.GetEditorCurve(ac,binding);
 	
-				if(binding.path.IndexOf("/")>-1){
-					//remove old
-					AnimationUtility.SetEditorCurve(ac,binding,null);
-					binding.path=binding.path.Replace("/","");
-					AnimationUtility.SetEditorCurve(ac,binding,aniCurve);
-				}
-
 				Object t=AnimationUtility.GetAnimatedObject(panel,binding);
 
 				if(t){
 					Debug.Log("test:"+t);
 				}else{
 					Debug.Log("can't find:"+binding.path);
-					t=GameObject.Find(binding.path);
+					string path=binding.path;
+
+					int pos=path.IndexOf("/");
+
+					path=path.Substring(pos+1);
+
+					Debug.Log("lookFor:"+path);
+
+					t=panel.transform.Find(path).gameObject;
+
 					string newPath=AnimationUtility.CalculateTransformPath((t as GameObject).transform,panel.transform);
 					Debug.Log("path:"+newPath);
 
@@ -48,8 +50,6 @@ public class MyEditor : Editor {
 					binding.path=newPath;
 					AnimationUtility.SetEditorCurve(ac,binding,aniCurve);
 				}
-
-
 			}
 
 			AssetDatabase.SaveAssets();
