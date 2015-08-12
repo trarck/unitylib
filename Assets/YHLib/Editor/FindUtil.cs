@@ -18,12 +18,12 @@ public class FindUtil{
 		}
 	}
 
-	public GameObject Search(string path,GameObject root)
+	public static GameObject Search(string path,GameObject root)
 	{
 		return Search (path, root.transform);
 	}
 
-	public GameObject Search(string path,Transform rootTransform)
+	public static GameObject Search(string path,Transform rootTransform)
 	{
 		Transform objTransform= rootTransform.Find (path);
 		
@@ -47,12 +47,12 @@ public class FindUtil{
 		}
 	}
 
-	public ArrayList SearchAll(string path,GameObject root)
+	public static ArrayList SearchAll(string path,GameObject root)
 	{
 		return SearchAll (path, root.transform);
 	}
 
-	public ArrayList SearchAll(string path,Transform rootTransform)
+	public static ArrayList SearchAll(string path,Transform rootTransform)
 	{
 		ArrayList list = new ArrayList ();
 
