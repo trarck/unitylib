@@ -22,16 +22,15 @@ public class MyWindow : EditorWindow {
 
 		if (GUILayout.Button ("click")) 
 		{
-			Debug.Log(m_Path);
-
 			TestFind(m_Path);
 		}
 	}
 
 	void TestFind(string path)
 	{
+		Debug.Log("look for "+ path);
 		GameObject root = Selection.activeGameObject;
-		GameObject obj = FindUtil.Instance.Search (path, root);
-		Debug.Log (obj);
+		GameObject obj = FindUtil.SearchGameObject(path, root);
+		Debug.Log ("searched:"+obj);
 	}
 }

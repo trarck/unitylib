@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityStandardAssets.CrossPlatformInput;
 
 namespace Cameras
 {
@@ -39,8 +38,8 @@ namespace Cameras
             {
                 Transform transform = GetComponent<Transform>();
 
-                float mouseX = CrossPlatformInputManager.GetAxis("Mouse X");
-                float mouseY = CrossPlatformInputManager.GetAxis("Mouse Y");
+				float mouseX = Input.GetAxis("Mouse X");
+				float mouseY = Input.GetAxis("Mouse Y");
 
                 //Vector3 eulerAngles=transform.rotation.eulerAngles;
                 float angleY = mouseX * m_TurnSpeed;
