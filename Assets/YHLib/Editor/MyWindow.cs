@@ -5,6 +5,7 @@ using UnityEditor;
 public class MyWindow : EditorWindow {
 
 	string m_Path ="";
+    AnimationClip clip;
 
 	// Add menu item named "My Window" to the Window menu
 	[MenuItem("MyMenu/My Window")]
@@ -18,11 +19,15 @@ public class MyWindow : EditorWindow {
 	{
 		GUILayout.Label ("Base Settings", EditorStyles.boldLabel);
 
+        clip = EditorGUILayout.ObjectField("Clip", clip, typeof(AnimationClip), false) as AnimationClip;
+
 		m_Path =	EditorGUILayout.TextField ("path", m_Path);
 
 		if (GUILayout.Button ("click")) 
 		{
 			TestFind(m_Path);
+
+
 		}
 	}
 
@@ -32,5 +37,15 @@ public class MyWindow : EditorWindow {
 		GameObject root = Selection.activeGameObject;
 		GameObject obj = FindUtil.SearchGameObject(path, root);
 		Debug.Log ("searched:"+obj);
+
+        if (obj)
+        {
+            EditorCurveBinding[] bindings = AnimationUtility.GetAnimatableBindings(obj, root);
+            for (int i = 0; i < bindings.Length; ++i)
+            {
+                EditorCurveBinding binding = bindings[i];
+                Debug.Log("binding path=" + binding.path + ",propName=" + binding.propertyName + ",PPtrCurve=" + binding.isPPtrCurve + ",type=" + binding.type);
+            }
+        }
 	}
 }
