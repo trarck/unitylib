@@ -5,8 +5,13 @@ using UnityEditor;
 public class AnimationEditor : EditorWindow
 {
 
-    string m_Path = "";
-    AnimationClip clip;
+    
+    AnimationClip m_Clip;
+
+    bool m_AutoFix=false;
+    bool m_ManualGroupEnabled = false;
+    string m_PathFrom = "";
+    string m_PathTo = "";
 
 	[MenuItem ("Animation/Fix Path")]
     public static void ShowWindow()
@@ -17,11 +22,18 @@ public class AnimationEditor : EditorWindow
 
     void OnGUI()
     {
-        GUILayout.Label("Base Settings", EditorStyles.boldLabel);
+        //GUILayout.Label("Base Settings", EditorStyles.boldLabel);
 
-        clip = EditorGUILayout.ObjectField("Clip", clip, typeof(AnimationClip), false) as AnimationClip;
+        m_Clip = EditorGUILayout.ObjectField("Clip", m_Clip, typeof(AnimationClip), false) as AnimationClip;
 
-        m_Path = EditorGUILayout.TextField("path", m_Path);
+
+
+        //m_ManualGroupEnabled = EditorGUILayout.BeginToggleGroup("Manual Fix", m_ManualGroupEnabled);
+        //EditorGUILayout.BeginHorizontal();
+        m_PathFrom = EditorGUILayout.TextField("from", m_PathFrom);
+        m_PathTo = EditorGUILayout.TextField("to", m_PathTo);
+        //EditorGUILayout.EndHorizontal();
+        //EditorGUILayout.EndToggleGroup();
 
         if (GUILayout.Button("fix"))
         {
@@ -31,12 +43,12 @@ public class AnimationEditor : EditorWindow
 
     void AutoFix()
     {
-        if (clip)
+        if (m_Clip)
         {
             GameObject root = Selection.activeGameObject;
             if (root)
             {
-                EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(clip);
+                EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(m_Clip);
                 for (int i = 0; i < bindings.Length; ++i)
                 {
                     EditorCurveBinding binding = bindings[i];
@@ -70,12 +82,12 @@ public class AnimationEditor : EditorWindow
                         string newPath = AnimationUtility.CalculateTransformPath(animatedObject.transform, root .transform);
                         Debug.Log("fix path:" + path+",to:"+newPath);
 
-                        AnimationCurve aniCurve = AnimationUtility.GetEditorCurve(clip, binding);
+                        AnimationCurve aniCurve = AnimationUtility.GetEditorCurve(m_Clip, binding);
                         //remove old
-                        AnimationUtility.SetEditorCurve(clip, binding, null);
+                        AnimationUtility.SetEditorCurve(m_Clip, binding, null);
                         binding.path = newPath;
                         //add new
-                        AnimationUtility.SetEditorCurve(clip, binding, aniCurve);
+                        AnimationUtility.SetEditorCurve(m_Clip, binding, aniCurve);
                     }
                 }
             }
