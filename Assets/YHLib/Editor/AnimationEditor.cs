@@ -4,11 +4,9 @@ using UnityEditor;
 
 public class AnimationEditor : EditorWindow
 {
-
-    
     AnimationClip m_Clip;
 
-    bool m_AutoFix=false;
+    bool m_ManualFix=false;
     bool m_ManualGroupEnabled = false;
     string m_PathFrom = "";
     string m_PathTo = "";
@@ -23,22 +21,40 @@ public class AnimationEditor : EditorWindow
     void OnGUI()
     {
         //GUILayout.Label("Base Settings", EditorStyles.boldLabel);
-
         m_Clip = EditorGUILayout.ObjectField("Clip", m_Clip, typeof(AnimationClip), false) as AnimationClip;
 
+        m_ManualFix = EditorGUILayout.Toggle("ManualFix", m_ManualFix);
 
 
-        //m_ManualGroupEnabled = EditorGUILayout.BeginToggleGroup("Manual Fix", m_ManualGroupEnabled);
-        //EditorGUILayout.BeginHorizontal();
-        m_PathFrom = EditorGUILayout.TextField("from", m_PathFrom);
-        m_PathTo = EditorGUILayout.TextField("to", m_PathTo);
-        //EditorGUILayout.EndHorizontal();
-        //EditorGUILayout.EndToggleGroup();
+        if (m_ManualFix) 
+        {
+            ShowManualPanel();
+        }
 
         if (GUILayout.Button("fix"))
         {
             AutoFix();
         }
+    }
+
+    void ShowManualPanel()
+    {
+        //m_ManualGroupEnabled = EditorGUILayout.BeginToggleGroup("Manual Fix", m_ManualGroupEnabled);
+
+        //title
+        EditorGUILayout.BeginHorizontal();
+        //EditorGUILayout.LabelField("", GUILayout.Width(100));
+        EditorGUILayout.LabelField("from");
+        EditorGUILayout.LabelField("to");
+        EditorGUILayout.EndHorizontal();
+
+        //content
+        EditorGUILayout.BeginHorizontal();      
+        m_PathFrom = EditorGUILayout.TextField(m_PathFrom);
+        m_PathTo = EditorGUILayout.TextField(m_PathTo);
+        EditorGUILayout.EndHorizontal();
+
+        //EditorGUILayout.EndToggleGroup();
     }
 
     void AutoFix()
