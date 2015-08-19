@@ -12,6 +12,7 @@ public class AnimationEditor : EditorWindow
     }
 
     AnimationClip m_Clip;
+    GameObject m_Root;
 
     bool m_ManualFix=false;
     bool m_ManualGroupEnabled = false;
@@ -30,6 +31,7 @@ public class AnimationEditor : EditorWindow
     {
         //GUILayout.Label("Base Settings", EditorStyles.boldLabel);
         m_Clip = EditorGUILayout.ObjectField("Clip", m_Clip, typeof(AnimationClip), false) as AnimationClip;
+        m_Root = EditorGUILayout.ObjectField("Root", m_Root, typeof(GameObject), true) as GameObject;
 
         m_FixType = (FixType)EditorGUILayout.EnumPopup("Fix Type", m_FixType);
 
@@ -63,6 +65,11 @@ public class AnimationEditor : EditorWindow
     void ShowManualBatchPanel()
     {
         //m_ManualGroupEnabled = EditorGUILayout.BeginToggleGroup("Manual Fix", m_ManualGroupEnabled);
+
+        if (GUILayout.Button("load"))
+        {
+            m_Root = Selection.activeGameObject;
+        }
 
         //title
         EditorGUILayout.BeginHorizontal();
