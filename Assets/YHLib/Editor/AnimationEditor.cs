@@ -4,12 +4,20 @@ using UnityEditor;
 
 public class AnimationEditor : EditorWindow
 {
+    public enum FixType
+    {
+        Auto = 1,
+        ManualBatch,
+        ManualSingle
+    }
+
     AnimationClip m_Clip;
 
     bool m_ManualFix=false;
     bool m_ManualGroupEnabled = false;
     string m_PathFrom = "";
     string m_PathTo = "";
+    FixType m_FixType=FixType.Auto;
 
 	[MenuItem ("Animation/Fix Path")]
     public static void ShowWindow()
@@ -23,21 +31,36 @@ public class AnimationEditor : EditorWindow
         //GUILayout.Label("Base Settings", EditorStyles.boldLabel);
         m_Clip = EditorGUILayout.ObjectField("Clip", m_Clip, typeof(AnimationClip), false) as AnimationClip;
 
-        m_ManualFix = EditorGUILayout.Toggle("ManualFix", m_ManualFix);
+        m_FixType = (FixType)EditorGUILayout.EnumPopup("Fix Type", m_FixType);
 
-
-        if (m_ManualFix) 
+        switch (m_FixType)
         {
-            ShowManualPanel();
+            case FixType.ManualBatch:
+                ShowManualBatchPanel();
+                break;
+            case FixType.ManualSingle:
+                ShowManualSinglePanel();
+                break;
         }
 
         if (GUILayout.Button("fix"))
         {
-            AutoFix();
+            switch (m_FixType)
+            {
+                case FixType.Auto:
+                    DoAutoFix();
+                    break;
+                case FixType.ManualBatch:
+                    DoManualBatch();
+                    break;
+                case FixType.ManualSingle:
+                    DoManualSingle();
+                    break;
+            }
         }
     }
 
-    void ShowManualPanel()
+    void ShowManualBatchPanel()
     {
         //m_ManualGroupEnabled = EditorGUILayout.BeginToggleGroup("Manual Fix", m_ManualGroupEnabled);
 
@@ -57,7 +80,12 @@ public class AnimationEditor : EditorWindow
         //EditorGUILayout.EndToggleGroup();
     }
 
-    void AutoFix()
+    void ShowManualSinglePanel()
+    {
+
+    }
+
+    void DoAutoFix()
     {
         if (m_Clip)
         {
@@ -116,6 +144,16 @@ public class AnimationEditor : EditorWindow
         {
             Debug.LogWarning("AnimationClip is null");
         }
+    }
+
+    void DoManualBatch()
+    {
+
+    }
+
+    void DoManualSingle()
+    {
+
     }
 
     string[] LookForExists(GameObject root,string path)
