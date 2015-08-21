@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEditor;
 
 public class AnimationEditor : EditorWindow
@@ -19,6 +20,10 @@ public class AnimationEditor : EditorWindow
     string m_PathFrom = "";
     string m_PathTo = "";
     FixType m_FixType=FixType.Auto;
+
+    Dictionary<string, ArrayList> m_WrongPathBindings;
+
+    string[] m_ToPaths;
 
 	[MenuItem ("Animation/Fix Path")]
     public static void ShowWindow()
@@ -64,39 +69,52 @@ public class AnimationEditor : EditorWindow
 
     void ShowManualBatchPanel()
     {
-        //m_ManualGroupEnabled = EditorGUILayout.BeginToggleGroup("Manual Fix", m_ManualGroupEnabled);
+        YHEditorTools.DrawSeparator();
 
         if (GUILayout.Button("load"))
         {
-            m_Root = Selection.activeGameObject;
+            m_WrongPathBindings = GetWrongPathBindings();
+            m_ToPaths = new string[m_WrongPathBindings.Count];
         }
 
+        if (m_WrongPathBindings != null && m_WrongPathBindings.Count > 0)
+        {
+            ShowWrongPaths();
+        }
+
+    }
+
+    void ShowWrongPaths()
+    {
         //title
         EditorGUILayout.BeginHorizontal();
         //EditorGUILayout.LabelField("", GUILayout.Width(100));
-        EditorGUILayout.LabelField("from");
+        EditorGUILayout.LabelField("from");        
         EditorGUILayout.LabelField("to");
         EditorGUILayout.EndHorizontal();
 
         //content
-        EditorGUILayout.BeginHorizontal();      
-        m_PathFrom = EditorGUILayout.TextField(m_PathFrom);
-        m_PathTo = EditorGUILayout.TextField(m_PathTo);
-        EditorGUILayout.EndHorizontal();
+        int i = 0;
 
-        //EditorGUILayout.EndToggleGroup();
+        foreach(KeyValuePair<string,ArrayList> it in m_WrongPathBindings){
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(it.Key);
+            m_ToPaths[i] = EditorGUILayout.TextField(m_ToPaths[i]);
+            EditorGUILayout.EndHorizontal();
+            ++i;
+        }
     }
 
     void ShowManualSinglePanel()
     {
-
+   
     }
 
     void DoAutoFix()
     {
         if (m_Clip)
         {
-            GameObject root = Selection.activeGameObject;
+            GameObject root = GetRoot();
             if (root)
             {
                 EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(m_Clip);
@@ -104,8 +122,6 @@ public class AnimationEditor : EditorWindow
                 {
                     EditorCurveBinding binding = bindings[i];
                     Debug.Log("binding path=" + binding.path + ",propName=" + binding.propertyName + ",PPtrCurve=" + binding.isPPtrCurve + ",type=" + binding.type);
-
-                    
 
                     GameObject animatedObject = AnimationUtility.GetAnimatedObject(root, binding) as GameObject;
 
@@ -155,7 +171,37 @@ public class AnimationEditor : EditorWindow
 
     void DoManualBatch()
     {
+        int i = 0;
+        string fromPath = "", toPath = "";
 
+
+        foreach (KeyValuePair<string, ArrayList> it in m_WrongPathBindings)
+        {
+            fromPath = it.Key;
+            toPath = m_ToPaths[i];
+
+            
+            ArrayList bindings = it.Value;
+
+            Debug.Log("fix from:" + fromPath + ",to:" + toPath + "," + bindings.Count);
+
+
+            for (int j = 0; j < bindings.Count; ++j)
+            {
+                EditorCurveBinding binding = (EditorCurveBinding)bindings[j];
+
+                AnimationCurve aniCurve = AnimationUtility.GetEditorCurve(m_Clip, binding);
+                //remove old
+                AnimationUtility.SetEditorCurve(m_Clip, binding, null);
+
+                binding.path = toPath;
+                //add new
+                AnimationUtility.SetEditorCurve(m_Clip, binding, aniCurve);
+            }
+
+
+            ++i;
+        }
     }
 
     void DoManualSingle()
@@ -204,7 +250,56 @@ public class AnimationEditor : EditorWindow
         return result;
     }
 
-	void FixPath(){
+    Dictionary<string, ArrayList> GetWrongPathBindings()
+    {
+        Dictionary<string, ArrayList> pathBindingMap = new Dictionary<string, ArrayList>();
 
+        if (m_Clip)
+        {
+            GameObject root = GetRoot();
+
+            if (root)
+            {
+                EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(m_Clip);
+                for (int i = 0; i < bindings.Length; ++i)
+                {
+                    EditorCurveBinding binding = bindings[i];
+                    Debug.Log("binding path=" + binding.path + ",propName=" + binding.propertyName + ",PPtrCurve=" + binding.isPPtrCurve + ",type=" + binding.type);
+
+                    GameObject animatedObject = AnimationUtility.GetAnimatedObject(root, binding) as GameObject;
+
+                    Debug.Log("tt:"+animatedObject+","+root);
+
+                    if (!animatedObject)
+                    {
+                        if (!root.transform.Find(binding.path))
+                        {
+                            //不存在，记录
+                            if (!pathBindingMap.ContainsKey(binding.path))
+                            {
+                                pathBindingMap[binding.path] = new ArrayList();
+                            }
+
+                            pathBindingMap[binding.path].Add(binding);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("root is null");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("AnimationClip is null");
+        }
+
+        return pathBindingMap;
 	}
+
+    GameObject GetRoot()
+    {
+        return m_Root!=null?m_Root:Selection.activeGameObject;
+    }
 }
