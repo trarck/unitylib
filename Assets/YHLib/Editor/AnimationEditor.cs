@@ -125,7 +125,7 @@ public class AnimationEditor : EditorWindow
 
                     GameObject animatedObject = AnimationUtility.GetAnimatedObject(root, binding) as GameObject;
 
-                    if (!animatedObject)
+                    if (!animatedObject && !root.transform.Find(binding.path))
                     {
                         //不存在则修正
                         //Debug.Log("can't find:" + binding.path);
