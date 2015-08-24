@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class TestManager : UnitySingletonKeep<TestManager> {
+public class TestManager : Singleton<TestManager> {
 
     public int a = 0;
 
