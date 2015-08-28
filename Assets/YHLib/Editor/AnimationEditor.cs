@@ -8,8 +8,8 @@ public class AnimationEditor : EditorWindow
     public enum FixType
     {
         Auto = 1,
-        ManualBatch,
-        ManualSingle
+        ManualList,
+        ManualReplace
     }
 
     AnimationClip m_Clip;
@@ -42,11 +42,11 @@ public class AnimationEditor : EditorWindow
 
         switch (m_FixType)
         {
-            case FixType.ManualBatch:
-                ShowManualBatchPanel();
+            case FixType.ManualList:
+                ShowManualListPanel();
                 break;
-            case FixType.ManualSingle:
-                ShowManualSinglePanel();
+            case FixType.ManualReplace:
+                ShowManualReplacePanel();
                 break;
         }
 
@@ -57,17 +57,17 @@ public class AnimationEditor : EditorWindow
                 case FixType.Auto:
                     DoAutoFix();
                     break;
-                case FixType.ManualBatch:
-                    DoManualBatch();
+                case FixType.ManualList:
+                    DoManualListFix();
                     break;
-                case FixType.ManualSingle:
-                    DoManualSingle();
+                case FixType.ManualReplace:
+                    DoManualReplaceFix();
                     break;
             }
         }
     }
 
-    void ShowManualBatchPanel()
+    void ShowManualListPanel()
     {
         YHEditorTools.DrawSeparator();
 
@@ -81,7 +81,6 @@ public class AnimationEditor : EditorWindow
         {
             ShowWrongPaths();
         }
-
     }
 
     void ShowWrongPaths()
@@ -105,7 +104,7 @@ public class AnimationEditor : EditorWindow
         }
     }
 
-    void ShowManualSinglePanel()
+    void ShowManualReplacePanel()
     {
    
     }
@@ -169,7 +168,7 @@ public class AnimationEditor : EditorWindow
         }
     }
 
-    void DoManualBatch()
+    void DoManualListFix()
     {
         int i = 0;
         string fromPath = "", toPath = "";
@@ -199,12 +198,11 @@ public class AnimationEditor : EditorWindow
                 AnimationUtility.SetEditorCurve(m_Clip, binding, aniCurve);
             }
 
-
             ++i;
         }
     }
 
-    void DoManualSingle()
+    void DoManualReplaceFix()
     {
 
     }
