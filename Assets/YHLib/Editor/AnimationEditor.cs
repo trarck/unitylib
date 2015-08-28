@@ -15,15 +15,15 @@ public class AnimationEditor : EditorWindow
     AnimationClip m_Clip;
     GameObject m_Root;
 
-    bool m_ManualFix=false;
-    bool m_ManualGroupEnabled = false;
-    string m_PathFrom = "";
-    string m_PathTo = "";
     FixType m_FixType=FixType.Auto;
 
+    //for manual list
     Dictionary<string, ArrayList> m_WrongPathBindings;
-
     string[] m_ToPaths;
+
+    //for manual replace
+    string m_PathFrom = "";
+    string m_PathTo = "";
 
 	[MenuItem ("Animation/Fix Path")]
     public static void ShowWindow()
@@ -106,7 +106,8 @@ public class AnimationEditor : EditorWindow
 
     void ShowManualReplacePanel()
     {
-   
+        m_PathFrom = EditorGUILayout.TextField("from",m_PathFrom);
+        m_PathTo = EditorGUILayout.TextField("to", m_PathTo);
     }
 
     void DoAutoFix()
@@ -116,7 +117,7 @@ public class AnimationEditor : EditorWindow
             GameObject root = GetRoot();
             if (root)
             {
-                EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(m_Clip);
+                EditorCurveBinding[] bindings = GetAllCurveBindings(m_Clip);
                 for (int i = 0; i < bindings.Length; ++i)
                 {
                     EditorCurveBinding binding = bindings[i];
@@ -148,12 +149,7 @@ public class AnimationEditor : EditorWindow
                         string newPath = AnimationUtility.CalculateTransformPath(animatedObject.transform, root .transform);
                         Debug.Log("fix path:" + path+",to:"+newPath);
 
-                        AnimationCurve aniCurve = AnimationUtility.GetEditorCurve(m_Clip, binding);
-                        //remove old
-                        AnimationUtility.SetEditorCurve(m_Clip, binding, null);
-                        binding.path = newPath;
-                        //add new
-                        AnimationUtility.SetEditorCurve(m_Clip, binding, aniCurve);
+                        FixCurveBinding(m_Clip,binding,newPath);                        
                     }
                 }
             }
@@ -184,18 +180,10 @@ public class AnimationEditor : EditorWindow
 
             Debug.Log("fix from:" + fromPath + ",to:" + toPath + "," + bindings.Count);
 
-
             for (int j = 0; j < bindings.Count; ++j)
             {
                 EditorCurveBinding binding = (EditorCurveBinding)bindings[j];
-
-                AnimationCurve aniCurve = AnimationUtility.GetEditorCurve(m_Clip, binding);
-                //remove old
-                AnimationUtility.SetEditorCurve(m_Clip, binding, null);
-
-                binding.path = toPath;
-                //add new
-                AnimationUtility.SetEditorCurve(m_Clip, binding, aniCurve);
+                FixCurveBinding(m_Clip, binding, toPath);
             }
 
             ++i;
@@ -204,7 +192,20 @@ public class AnimationEditor : EditorWindow
 
     void DoManualReplaceFix()
     {
+        EditorCurveBinding[] bindings= GetAllCurveBindings(m_Clip);
 
+        string from=m_PathFrom;
+        string to=m_PathTo;
+
+        for (int i = 0; i < bindings.Length; ++i)
+        {
+            EditorCurveBinding binding = bindings[i];
+
+            if (binding.path == from)
+            {
+                FixCurveBinding(m_Clip, binding, to);
+            }
+        }
     }
 
     string[] LookForExists(GameObject root,string path)
@@ -248,6 +249,37 @@ public class AnimationEditor : EditorWindow
         return result;
     }
 
+    EditorCurveBinding[] GetAllCurveBindings(AnimationClip clip)
+    {
+        EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(clip);
+        EditorCurveBinding[] objectReferenceBindings = AnimationUtility.GetObjectReferenceCurveBindings(clip);
+
+        ArrayUtility.AddRange<EditorCurveBinding>(ref bindings, objectReferenceBindings);
+        return bindings;
+    }
+
+    void FixCurveBinding(AnimationClip clip, EditorCurveBinding binding, string newPath)
+    {
+        if (binding.isPPtrCurve)
+        {
+            ObjectReferenceKeyframe[] keyFrames = AnimationUtility.GetObjectReferenceCurve(clip, binding);
+            //remove old
+            AnimationUtility.SetObjectReferenceCurve(clip, binding, null);
+            binding.path = newPath;
+            //add new
+            AnimationUtility.SetObjectReferenceCurve(clip, binding, keyFrames);
+        }
+        else
+        {
+            AnimationCurve aniCurve = AnimationUtility.GetEditorCurve(clip, binding);
+            //remove old
+            AnimationUtility.SetEditorCurve(clip, binding, null);
+            binding.path = newPath;
+            //add new
+            AnimationUtility.SetEditorCurve(clip, binding, aniCurve);
+        }
+    }
+
     Dictionary<string, ArrayList> GetWrongPathBindings()
     {
         Dictionary<string, ArrayList> pathBindingMap = new Dictionary<string, ArrayList>();
@@ -258,7 +290,7 @@ public class AnimationEditor : EditorWindow
 
             if (root)
             {
-                EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(m_Clip);
+                EditorCurveBinding[] bindings = GetAllCurveBindings(m_Clip);
                 for (int i = 0; i < bindings.Length; ++i)
                 {
                     EditorCurveBinding binding = bindings[i];
