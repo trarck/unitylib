@@ -1,0 +1,45 @@
+﻿using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+public class Parallax : MonoBehaviour
+{
+    List<ParallaxNode> m_Nodes;
+
+    Transform m_Transform;
+
+	// Use this for initialization
+	void Start () 
+    {
+        m_Nodes = new List<ParallaxNode>();
+        m_Transform = GetComponent<Transform>();
+	}
+	
+	// Update is called once per frame
+	void Update () 
+    {
+	    
+	}
+
+    public void AddNode(GameObject obj,Vector2 ratio,Vector2 offset)
+    {
+        ParallaxNode node = obj.GetComponent<ParallaxNode>();
+        if(node==null){
+            node = obj.AddComponent<ParallaxNode>();
+        }
+        
+
+
+        Vector3 pos = m_Transform.position;
+
+        
+
+        if (node.transform.parent != m_Transform)
+        {
+            node.transform.SetParent(m_Transform);
+        }
+
+        pos.x=-pos.x+pos.x*
+
+    }
+}

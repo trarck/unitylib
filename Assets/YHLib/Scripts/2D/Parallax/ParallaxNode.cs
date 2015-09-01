@@ -21,6 +21,11 @@ public class ParallaxNode : MonoBehaviour
         m_Transform.localPosition = pos;
     }
 
+    public void setPosition(float x,float y)
+    {
+        m_Transform.localPosition = new Vector3(x, y, 0);
+    }
+
     //==========================generate auto==============================//
     public Vector2 ratio
     {
