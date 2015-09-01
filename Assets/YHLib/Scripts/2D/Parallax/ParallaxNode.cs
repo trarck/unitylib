@@ -4,14 +4,14 @@ using System.Collections;
 public class ParallaxNode : MonoBehaviour 
 {
     [SerializeField]
-    Vector2 m_Ratio=Vector2.zero;
+    protected Vector2 m_Ratio=Vector2.zero;
 
     [SerializeField]
-    Vector2 m_Offset=Vector2.zero;
+    protected Vector2 m_Offset = Vector2.zero;
 
-    Transform m_Transform=null;
+    protected Transform m_Transform = null;
 
-    void Start()
+    protected void Start()
     {
         m_Transform = GetComponent<Transform>();
     }
