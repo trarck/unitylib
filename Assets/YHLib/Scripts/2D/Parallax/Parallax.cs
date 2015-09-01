@@ -7,7 +7,7 @@ public class Parallax : MonoBehaviour
     List<ParallaxNode> m_Nodes;
 
     Transform m_Transform;
-
+    Vector3 m_LastPosition=Vector3.zero;
 	// Use this for initialization
 	void Start () 
     {
@@ -21,15 +21,19 @@ public class Parallax : MonoBehaviour
 	void Update () 
     {
         Vector3 pos = m_Transform.position;
-
-        ParallaxNode node;
-        float x = 0, y = 0;
-        for (int i = 0; i < m_Nodes.Count; ++i)
+        if (m_LastPosition != pos)
         {
-            node = m_Nodes[i];
-            x = -pos.x + pos.x * node.ratio.x + node.offset.x;
-            y = -pos.y + pos.y * node.ratio.y + node.offset.y;
-            node.setPosition(x,y);
+            ParallaxNode node;
+            float x = 0, y = 0;
+            for (int i = 0; i < m_Nodes.Count; ++i)
+            {
+                node = m_Nodes[i];
+                x = -pos.x + pos.x * node.ratio.x + node.offset.x;
+                y = -pos.y + pos.y * node.ratio.y + node.offset.y;
+                node.setPosition(x, y);
+            }
+
+            m_LastPosition = pos;
         }
 	}
 
