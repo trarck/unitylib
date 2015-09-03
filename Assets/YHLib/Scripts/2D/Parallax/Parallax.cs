@@ -9,16 +9,20 @@ public class Parallax : MonoBehaviour
     Transform m_Transform;
     Vector3 m_LastPosition=Vector3.zero;
 	// Use this for initialization
+    void Awake()
+    {
+        m_Transform = GetComponent<Transform>();
+    }
+
 	void Start () 
     {
-        m_Nodes = new List<ParallaxNode>();
-        m_Transform = GetComponent<Transform>();
+        m_Nodes = new List<ParallaxNode>();     
 
         InitChidren();
 	}
 	
 	// Update is called once per frame
-	void Update () 
+	void LateUpdate () 
     {
         Vector3 pos = m_Transform.position;
         if (m_LastPosition != pos)
