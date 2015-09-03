@@ -80,6 +80,10 @@ public class VerticalRepeat : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 自动扩展用于子项内容一样的情况。
+    /// 直接使用子元素更灵活，每个子元素只要大小一样，里面的内容可以不一样。
+    /// </summary>
     void CreateElementList()
     {
         int l = m_Transform.childCount;
