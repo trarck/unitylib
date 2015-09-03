@@ -19,9 +19,11 @@ public class VerticalRepeat : MonoBehaviour
     float m_TargetHalfSize;
 
     //左边的位置
+    [SerializeField]
     float m_LeftPosition = 0;
     
     //右边的位置
+    [SerializeField]
     float m_RightPosition = 0;
 
     float m_CheckSize = 0;
@@ -70,7 +72,7 @@ public class VerticalRepeat : MonoBehaviour
 
     void Update()
     {
-        Vector3 pos = m_Target.position;
+        Vector3 pos = m_Transform.InverseTransformPoint(m_Target.position);
         if (m_LastPosition != pos)
         {
             Move(pos.x - m_LastPosition.x);
@@ -131,6 +133,9 @@ public class VerticalRepeat : MonoBehaviour
             //向右移动。比较右边
             Vector3 targetRightEdge = m_Target.transform.position + new Vector3(m_TargetHalfSize, 0, 0);
             Vector3 m_TargetRightInLocal = m_Transform.InverseTransformPoint(targetRightEdge);
+
+            Debug.Log("r:"+m_TargetRightInLocal.x + "," + m_RightPosition + "," + (m_RightPosition - m_TargetRightInLocal.x));
+
             if (m_RightPosition - m_TargetRightInLocal.x <= m_CheckSize)
             {
                 Transform ele = m_DisplayQueue[0];
@@ -142,6 +147,7 @@ public class VerticalRepeat : MonoBehaviour
                 m_DisplayQueue.Add(ele);
 
                 m_RightPosition += m_ElementSize;
+                m_LeftPosition += m_ElementSize;
             }
         }
         else
@@ -150,9 +156,11 @@ public class VerticalRepeat : MonoBehaviour
             Vector3 targetLeftEdge = m_Target.position + new Vector3(-m_TargetHalfSize, 0, 0);
             Vector3 m_TargetLeftInLocal = m_Transform.InverseTransformPoint(targetLeftEdge);
 
+            Debug.Log("l:"+m_TargetLeftInLocal.x + "," + m_LeftPosition + "," + (m_TargetLeftInLocal.x - m_LeftPosition));
             if (m_TargetLeftInLocal.x - m_LeftPosition <= m_CheckSize)
             {
                 m_LeftPosition -= m_ElementSize;
+                m_RightPosition -= m_ElementSize;
 
                 Transform ele = m_DisplayQueue[m_DisplayQueue.Count - 1];
 
