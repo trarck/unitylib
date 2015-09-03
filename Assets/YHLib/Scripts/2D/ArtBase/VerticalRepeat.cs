@@ -19,14 +19,11 @@ public class VerticalRepeat : MonoBehaviour
     float m_TargetHalfSize;
 
     //左边的位置
-    [SerializeField]
     float m_LeftPosition = 0;
     
     //右边的位置
-    [SerializeField]
     float m_RightPosition = 0;
 
-    float m_CheckSize = 0;
     float m_LeftCheckSize = 0;
     float m_RightCheckSize = 0;
 
@@ -40,16 +37,19 @@ public class VerticalRepeat : MonoBehaviour
 
     Transform m_Transform = null;
 
-	void Start () 
+    void Awake()
     {
         m_Transform = GetComponent<Transform>();
+    }
 
+	void Start () 
+    {
+        
         m_Elements = new List<Transform>();
         m_DisplayQueue = new List<Transform>();
 
-        m_CheckSize = m_ElementSize * 0.4f;
         m_LeftCheckSize = m_ElementSize * 0.4f;
-        m_RightCheckSize = m_ElementSize * 0.6f;
+        m_RightCheckSize = m_ElementSize * 0.4f;
 
         if (m_Target == null)
         {
@@ -63,7 +63,7 @@ public class VerticalRepeat : MonoBehaviour
             {
                 m_TargetHalfSize = camera.aspect * camera.orthographicSize;
             }
-        }       
+        }     
 
         CreateElementList();
 
@@ -82,11 +82,35 @@ public class VerticalRepeat : MonoBehaviour
 
     void CreateElementList()
     {
-        for (int i = 0, l = m_Transform.childCount; i < l; ++i)
-        {
-            Transform child = m_Transform.GetChild(i);
+        int l = m_Transform.childCount;
 
-            AddElement(child);
+        if (l == 1)
+        {
+            //复制
+
+            //检查要复制多少个.至少比屏幕数大1.这晨的count正好是复制的数
+            int count = (int)Mathf.Ceil(m_TargetHalfSize * 2.0f / m_ElementSize);
+            GameObject obj = m_Transform.GetChild(0).gameObject;
+
+            AddElement(obj.transform);
+
+            for (int i = 0; i < count; ++i)
+            {
+                GameObject newObj = Instantiate(obj);
+                newObj.transform.SetParent(m_Transform);
+
+                AddElement(newObj.transform);
+            }
+        }
+        else
+        {
+            //直接使用
+            for (int i = 0; i < l; ++i)
+            {
+                Transform child = m_Transform.GetChild(i);
+
+                AddElement(child);
+            }
         }
     }
 	
@@ -136,7 +160,7 @@ public class VerticalRepeat : MonoBehaviour
 
             Debug.Log("r:"+m_TargetRightInLocal.x + "," + m_RightPosition + "," + (m_RightPosition - m_TargetRightInLocal.x));
 
-            if (m_RightPosition - m_TargetRightInLocal.x <= m_CheckSize)
+            if (m_RightPosition - m_TargetRightInLocal.x <= m_RightCheckSize)
             {
                 Transform ele = m_DisplayQueue[0];
 
@@ -157,7 +181,7 @@ public class VerticalRepeat : MonoBehaviour
             Vector3 m_TargetLeftInLocal = m_Transform.InverseTransformPoint(targetLeftEdge);
 
             Debug.Log("l:"+m_TargetLeftInLocal.x + "," + m_LeftPosition + "," + (m_TargetLeftInLocal.x - m_LeftPosition));
-            if (m_TargetLeftInLocal.x - m_LeftPosition <= m_CheckSize)
+            if (m_TargetLeftInLocal.x - m_LeftPosition <= m_LeftCheckSize)
             {
                 m_LeftPosition -= m_ElementSize;
                 m_RightPosition -= m_ElementSize;
