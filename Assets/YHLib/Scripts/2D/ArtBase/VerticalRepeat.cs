@@ -207,4 +207,14 @@ public class VerticalRepeat : MonoBehaviour
         pos.x = x;
         ele.localPosition = pos;
     }
+
+    void OnDrawGizmos()
+    {
+        Vector3 size;
+        size.x = m_ElementSize;
+        size.y = 2.0f * Camera.main.orthographicSize;
+        size.z = 1.0f;
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(transform.position, size);
+    }
 }
