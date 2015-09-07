@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 public class Parallax : MonoBehaviour
 {
-    List<ParallaxNode> m_Nodes;
+    protected List<ParallaxNode> m_Nodes;
 
-    Transform m_Transform;
-    Vector3 m_LastPosition=Vector3.zero;
+    protected Transform m_Transform;
+    protected Vector3 m_LastPosition = Vector3.zero;
 	// Use this for initialization
     void Awake()
     {
@@ -27,27 +27,31 @@ public class Parallax : MonoBehaviour
         Vector3 pos = m_Transform.position;
         if (m_LastPosition != pos)
         {
-            ParallaxNode node;
-            float x = 0, y = 0;
-            for (int i = 0; i < m_Nodes.Count; ++i)
-            {
-                node = m_Nodes[i];
-                x = -pos.x + pos.x * node.ratio.x + node.offset.x;
-                y = -pos.y + pos.y * node.ratio.y + node.offset.y;
-                node.setPosition(x, y);
-            }
-
+            UpdateChidren(pos);
             m_LastPosition = pos;
         }
 	}
 
-    void InitChidren()
+    protected void InitChidren()
     {
         for (int i = 0, l = m_Transform.childCount; i<l; ++i)
         {
             Transform child = m_Transform.GetChild(i);
 
             AddNode(child.gameObject);
+        }
+    }
+
+    protected void UpdateChidren(Vector3 pos)
+    {
+        ParallaxNode node;
+        float x = 0, y = 0;
+        for (int i = 0; i < m_Nodes.Count; ++i)
+        {
+            node = m_Nodes[i];
+            x = -pos.x + pos.x * node.ratio.x + node.offset.x;
+            y = -pos.y + pos.y * node.ratio.y + node.offset.y;
+            node.setPosition(x, y);
         }
     }
 
@@ -83,7 +87,7 @@ public class Parallax : MonoBehaviour
         AddNode(obj);
     }
 
-    void SetNodePosition(ParallaxNode node)
+    protected void SetNodePosition(ParallaxNode node)
     {
         Vector3 pos = m_Transform.position;
 
