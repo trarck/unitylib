@@ -6,36 +6,36 @@ public class VerticalRepeat : MonoBehaviour
 {
 
     [SerializeField]
-    float m_ElementSize = 8.0f;
+    protected float m_ElementSize = 8.0f;
 
     //初始位置
     [SerializeField]
-    float m_ElementStart = 0;
+    protected float m_ElementStart = 0;
 
     [SerializeField]
-    Transform m_Target;
+    protected Transform m_Target;
 
     [SerializeField]
-    float m_TargetHalfSize;
+    protected float m_TargetHalfSize;
 
     //左边的位置
-    float m_LeftPosition = 0;
+    protected float m_LeftPosition = 0;
     
     //右边的位置
-    float m_RightPosition = 0;
+    protected float m_RightPosition = 0;
 
-    float m_LeftCheckSize = 0;
-    float m_RightCheckSize = 0;
+    protected float m_LeftCheckSize = 0;
+    protected float m_RightCheckSize = 0;
 
-    Vector3 m_StartPosition=Vector3.zero;
+    protected Vector3 m_StartPosition = Vector3.zero;
 
-    Vector3 m_LastPosition = Vector3.zero;
+    protected Vector3 m_LastPosition = Vector3.zero;
 
-    List<Transform> m_DisplayQueue;
+    protected List<Transform> m_DisplayQueue;
 
-    List<Transform> m_Elements;
+    protected List<Transform> m_Elements;
 
-    Transform m_Transform = null;
+    protected Transform m_Transform = null;
 
     void Awake()
     {
@@ -43,8 +43,7 @@ public class VerticalRepeat : MonoBehaviour
     }
 
 	void Start () 
-    {
-        
+    {       
         m_Elements = new List<Transform>();
         m_DisplayQueue = new List<Transform>();
 
@@ -70,14 +69,9 @@ public class VerticalRepeat : MonoBehaviour
         InitDisplayQueue();
 	}
 
-    void Update()
+    void LateUpdate()
     {
-        Vector3 pos = m_Transform.InverseTransformPoint(m_Target.position);
-        if (m_LastPosition != pos)
-        {
-            Move(pos.x - m_LastPosition.x);
-            m_LastPosition = pos;
-        }
+        CheckTarget();
     }
 
     /// <summary>
@@ -152,6 +146,16 @@ public class VerticalRepeat : MonoBehaviour
     {
         m_StartPosition = m_Target.position;
         m_LastPosition = m_Target.position;
+    }
+
+    protected void CheckTarget()
+    {
+        Vector3 pos = m_Transform.InverseTransformPoint(m_Target.position);
+        if (m_LastPosition != pos)
+        {
+            Move(pos.x - m_LastPosition.x);
+            m_LastPosition = pos;
+        }
     }
 
     void Move(float delta)
