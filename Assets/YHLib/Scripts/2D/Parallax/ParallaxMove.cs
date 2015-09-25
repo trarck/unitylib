@@ -13,7 +13,7 @@ public class ParallaxMove : Parallax
 
         Vector2 dis = m_Speed * Time.deltaTime;
 
-        Vector3 pos = m_Transform.position;
+        Vector3 pos = m_Transform.localPosition;
 
         pos.x += dis.x;
         
@@ -21,6 +21,6 @@ public class ParallaxMove : Parallax
 
         UpdateChidren(pos);
 
-        m_Transform.position = pos;
+        m_Transform.localPosition = pos;
 	}
 }

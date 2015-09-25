@@ -24,7 +24,7 @@ public class Parallax : MonoBehaviour
 	// Update is called once per frame
 	void LateUpdate () 
     {
-        Vector3 pos = m_Transform.position;
+        Vector3 pos = m_Transform.localPosition;
         if (m_LastPosition != pos)
         {
             UpdateChidren(pos);
