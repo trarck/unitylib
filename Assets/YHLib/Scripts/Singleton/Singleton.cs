@@ -9,18 +9,25 @@ public class Singleton<T> : MonoBehaviour
     {
         Debug.Log("in static construct");
 
-        GameObject singletonObj = new GameObject();
+        m_Instance = FindObjectOfType(typeof(T)) as T;
+        if (m_Instance == null)
+        {
 
-        //方法一
-        //singletonObj.name = "(singleton) " + typeof(T).ToString();
-        //DontDestroyOnLoad(singletonObj);
+            GameObject singletonObj = new GameObject();
 
-        //方法二
-        //DontSave标志表示不会在加载新场景删除，所以不用DontDestroyOnLoad
-        singletonObj.hideFlags = HideFlags.HideAndDontSave;
+            //方法一
+            //singletonObj.name = "(singleton) " + typeof(T).ToString();
+            //DontDestroyOnLoad(singletonObj);
 
-        //Debug.Log("add instance before");
-        m_Instance = singletonObj.AddComponent<T>();
+            //方法二
+            //DontSave标志表示不会在加载新场景删除，所以不用DontDestroyOnLoad
+            singletonObj.hideFlags = HideFlags.HideAndDontSave;
+
+            //Debug.Log("add instance before");
+            m_Instance = singletonObj.AddComponent<T>();
+
+            //Debug.Log("add instance after");
+        }
     }
 
     public static T Instance
