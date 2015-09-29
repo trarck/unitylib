@@ -18,14 +18,14 @@ public class FindUtil{
 //		}
 //	}
 
-	public static GameObject SearchGameObject(string path,GameObject root)
+    public static GameObject FindGameObject(string path, GameObject parent)
 	{
-		return SearchGameObject (path, root.transform);
+        return FindGameObject(path, parent.transform);
 	}
 
-	public static GameObject SearchGameObject(string path,Transform rootTransform)
+	public static GameObject FindGameObject(string path,Transform parent)
 	{
-		Transform objTransform= rootTransform.Find (path);
+		Transform objTransform= parent.Find (path);
 		
 		if (objTransform) {
 			return objTransform.gameObject;
@@ -33,9 +33,9 @@ public class FindUtil{
 		else 
 		{
 			//在子元素中查找
-			for(int i=0,l=rootTransform.childCount;i<l;++i)
+			for(int i=0,l=parent.childCount;i<l;++i)
 			{
-				GameObject childFind= SearchGameObject(path,rootTransform.GetChild(i));
+				GameObject childFind= FindGameObject(path,parent.GetChild(i));
 				
 				if(childFind)
 				{
@@ -47,9 +47,9 @@ public class FindUtil{
 		}
 	}
 
-	public static Transform SearchTransform(string path,Transform rootTransform)
+	public static Transform FindTransform(string path,Transform parent)
 	{
-		Transform objTransform= rootTransform.Find (path);
+		Transform objTransform= parent.Find (path);
 		
 		if (objTransform) {
 			return objTransform;
@@ -57,9 +57,9 @@ public class FindUtil{
 		else 
 		{
 			//在子元素中查找
-			for(int i=0,l=rootTransform.childCount;i<l;++i)
+			for(int i=0,l=parent.childCount;i<l;++i)
 			{
-				Transform childFind= SearchTransform(path,rootTransform.GetChild(i));
+				Transform childFind= FindTransform(path,parent.GetChild(i));
 				
 				if(childFind)
 				{
@@ -71,16 +71,16 @@ public class FindUtil{
 		}
 	}
 
-	public static ArrayList SearchGameObjects(string path,GameObject root)
+    public static ArrayList FindGameObjects(string path, GameObject parent)
 	{
-		return SearchGameObjects (path, root.transform);
+        return FindGameObjects(path, parent.transform);
 	}
 
-	public static ArrayList SearchGameObjects(string path,Transform rootTransform)
+	public static ArrayList FindGameObjects(string path,Transform parent)
 	{
 		ArrayList list = new ArrayList ();
 
-		Transform objTransform= rootTransform.Find (path);
+		Transform objTransform= parent.Find (path);
 		
 		if (objTransform) {
 			list.Add (objTransform.gameObject);
@@ -88,9 +88,9 @@ public class FindUtil{
 		else 
 		{
 			//在子元素中查找
-			for(int i=0,l=rootTransform.childCount;i<l;++i)
+			for(int i=0,l=parent.childCount;i<l;++i)
 			{
-				ArrayList childFinds=SearchGameObjects(path,rootTransform.GetChild(i));
+				ArrayList childFinds=FindGameObjects(path,parent.GetChild(i));
 				list.AddRange(childFinds);
 			}
 		}
@@ -98,11 +98,11 @@ public class FindUtil{
 		return list;
 	}
 
-	public static ArrayList SearchTransforms(string path,Transform rootTransform)
+	public static ArrayList FindTransforms(string path,Transform parent)
 	{
 		ArrayList list = new ArrayList ();
 		
-		Transform objTransform= rootTransform.Find (path);
+		Transform objTransform= parent.Find (path);
 		
 		if (objTransform) {
 			list.Add (objTransform);
@@ -110,13 +110,92 @@ public class FindUtil{
 		else 
 		{
 			//在子元素中查找
-			for(int i=0,l=rootTransform.childCount;i<l;++i)
+			for(int i=0,l=parent.childCount;i<l;++i)
 			{
-				ArrayList childFinds=SearchTransforms(path,rootTransform.GetChild(i));
+				ArrayList childFinds=FindTransforms(path,parent.GetChild(i));
 				list.AddRange(childFinds);
 			}
 		}
 		
 		return list;
 	}
+
+    static ArrayList GetChildren(string name,Transform parent)
+    {
+        ArrayList list = new ArrayList();
+
+        Transform child;
+        for (int i = 0, l = parent.childCount; i < l; ++i)
+        {
+            child = parent.GetChild(i);
+            if (child.name == name)
+            {
+                list.Add(child);
+            }
+        }
+
+        return list;
+    }
+
+    static void AppendChildren(Queue queue, string name, Transform parent)
+    {
+        Transform child;
+        for (int i = 0, l = parent.childCount; i < l; ++i)
+        {
+            child = parent.GetChild(i);
+            if (child.name == name)
+            {
+                queue.Enqueue(child);
+            }
+        }
+
+    }
+
+    public static ArrayList SearchTransforms(string path, Transform parent)
+    {
+
+        string[] paths=path.Split('/');
+
+        int l=paths.Length;  
+
+        ArrayList checkList=new ArrayList();
+        checkList.Add(parent);      
+
+        string name;
+        ArrayList children=null;
+
+        for (int i=0; i < l; ++i)
+        {
+            name = paths[i];
+            
+            children = new ArrayList();
+
+            for (int j = 0, len = checkList.Count; j < len; ++j)
+            {
+                children.AddRange(GetChildren(name, checkList[j] as Transform));          
+            }
+
+            checkList = children;
+        }
+
+        return checkList;
+    }
+
+    public static ArrayList SearchGameObjects(string path, Transform parent)
+    {
+        ArrayList transforms = SearchTransforms(path, parent);
+
+        ArrayList list = new ArrayList(transforms.Count);
+
+        foreach (Transform tf in transforms)
+        {
+            list.Add(tf.gameObject);
+        }
+        return list;
+    }
+
+    public static ArrayList SearchGameObjects(string path, GameObject parent)
+    {
+        return SearchGameObjects(path, parent.transform);
+    }
 }

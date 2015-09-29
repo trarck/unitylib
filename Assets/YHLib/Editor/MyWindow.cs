@@ -35,7 +35,7 @@ public class MyWindow : EditorWindow {
 	{
 		Debug.Log("look for "+ path);
 		GameObject root = Selection.activeGameObject;
-		GameObject obj = FindUtil.SearchGameObject(path, root);
+		GameObject obj = FindUtil.FindGameObject(path, root);
 		Debug.Log ("searched:"+obj);
 
         if (obj)
