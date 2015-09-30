@@ -99,6 +99,8 @@ public class VerticalRepeat : MonoBehaviour
             {
                 GameObject newObj = Instantiate(obj);
                 newObj.transform.SetParent(m_Transform);
+                //reset position
+                newObj.transform.localPosition = Vector3.zero;
 
                 AddElement(newObj.transform);
             }
