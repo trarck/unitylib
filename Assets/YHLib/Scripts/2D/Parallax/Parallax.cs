@@ -2,104 +2,108 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Parallax : MonoBehaviour
+namespace YH
 {
-    protected List<ParallaxNode> m_Nodes;
-
-    protected Transform m_Transform;
-    protected Vector3 m_LastPosition = Vector3.zero;
-	// Use this for initialization
-    void Awake()
+    public class Parallax : MonoBehaviour
     {
-        m_Transform = GetComponent<Transform>();
-    }
+        protected List<ParallaxNode> m_Nodes;
 
-	void Start () 
-    {
-        m_Nodes = new List<ParallaxNode>();     
-
-        InitChidren();
-	}
-	
-	// Update is called once per frame
-	void LateUpdate () 
-    {
-        Vector3 pos = m_Transform.localPosition;
-        if (m_LastPosition != pos)
+        protected Transform m_Transform;
+        protected Vector3 m_LastPosition = Vector3.zero;
+        // Use this for initialization
+        void Awake()
         {
-            UpdateChidren(pos);
-            m_LastPosition = pos;
+            m_Transform = GetComponent<Transform>();
         }
-	}
 
-    protected void InitChidren()
-    {
-        for (int i = 0, l = m_Transform.childCount; i<l; ++i)
+        void Start()
         {
-            Transform child = m_Transform.GetChild(i);
+            m_Nodes = new List<ParallaxNode>();
 
-            AddNode(child.gameObject);
+            InitChidren();
         }
-    }
 
-    protected void UpdateChidren(Vector3 pos)
-    {
-        ParallaxNode node;
-        float x = 0, y = 0;
-        for (int i = 0; i < m_Nodes.Count; ++i)
+        // Update is called once per frame
+        void LateUpdate()
         {
-            node = m_Nodes[i];
-            x = -pos.x + pos.x * node.ratio.x + node.offset.x;
-            y = -pos.y + pos.y * node.ratio.y + node.offset.y;
-            node.setPosition(x, y);
-        }
-    }
-
-    public void AddNode(GameObject obj)
-    {
-        if (obj.activeInHierarchy)
-        {
-            ParallaxNode node = obj.GetComponent<ParallaxNode>();
-            if (node != null)
+            Vector3 pos = m_Transform.localPosition;
+            if (m_LastPosition != pos)
             {
-                if (node.transform.parent != m_Transform)
-                {
-                    node.transform.SetParent(m_Transform);
-                }
-
-                SetNodePosition(node);
-
-                m_Nodes.Add(node);
+                UpdateChidren(pos);
+                m_LastPosition = pos;
             }
         }
-    }
 
-    public void AddNode(GameObject obj,Vector2 ratio,Vector2 offset)
-    {
-        ParallaxNode node = obj.GetComponent<ParallaxNode>();
-        if(node==null){
-            node = obj.AddComponent<ParallaxNode>();
+        protected void InitChidren()
+        {
+            for (int i = 0, l = m_Transform.childCount; i < l; ++i)
+            {
+                Transform child = m_Transform.GetChild(i);
+
+                AddNode(child.gameObject);
+            }
         }
-        
-        node.ratio=ratio;
-        node.offset=offset;
 
-        AddNode(obj);
-    }
+        protected void UpdateChidren(Vector3 pos)
+        {
+            ParallaxNode node;
+            float x = 0, y = 0;
+            for (int i = 0; i < m_Nodes.Count; ++i)
+            {
+                node = m_Nodes[i];
+                x = -pos.x + pos.x * node.ratio.x + node.offset.x;
+                y = -pos.y + pos.y * node.ratio.y + node.offset.y;
+                node.setPosition(x, y);
+            }
+        }
 
-    protected void SetNodePosition(ParallaxNode node)
-    {
-        Vector3 pos = m_Transform.position;
+        public void AddNode(GameObject obj)
+        {
+            if (obj.activeInHierarchy)
+            {
+                ParallaxNode node = obj.GetComponent<ParallaxNode>();
+                if (node != null)
+                {
+                    if (node.transform.parent != m_Transform)
+                    {
+                        node.transform.SetParent(m_Transform);
+                    }
 
-        float x = -pos.x + pos.x * node.ratio.x + node.offset.x;
-        float y = -pos.y + pos.y * node.ratio.y + node.offset.y;
+                    SetNodePosition(node);
 
-        node.setPosition(x, y);
-    }
+                    m_Nodes.Add(node);
+                }
+            }
+        }
 
-    public void RemoveNode(ParallaxNode node)
-    {
-        m_Nodes.Remove(node);
-        node.transform.SetParent(null);
+        public void AddNode(GameObject obj, Vector2 ratio, Vector2 offset)
+        {
+            ParallaxNode node = obj.GetComponent<ParallaxNode>();
+            if (node == null)
+            {
+                node = obj.AddComponent<ParallaxNode>();
+            }
+
+            node.ratio = ratio;
+            node.offset = offset;
+
+            AddNode(obj);
+        }
+
+        protected void SetNodePosition(ParallaxNode node)
+        {
+            Vector3 pos = m_Transform.position;
+
+            float x = -pos.x + pos.x * node.ratio.x + node.offset.x;
+            float y = -pos.y + pos.y * node.ratio.y + node.offset.y;
+
+            node.setPosition(x, y);
+        }
+
+        public void RemoveNode(ParallaxNode node)
+        {
+            m_Nodes.Remove(node);
+            node.transform.SetParent(null);
+        }
     }
 }

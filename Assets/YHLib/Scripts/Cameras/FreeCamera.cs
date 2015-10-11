@@ -1,89 +1,96 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace Cameras
+namespace YH
 {
-    public class FreeCamera : AbstractCamera
+    namespace Cameras
     {
-        [SerializeField] private float m_MoveSpeed = 10f;
-        [Range(0f, 10f)] [SerializeField] private float m_TurnSpeed = 1.5f;
-        [SerializeField] private bool m_LockCursor = false; 
-
-        // Update is called once per frame
-        protected override void parseInput(float deltaTime)
+        public class FreeCamera : AbstractCamera
         {
-            //处理转动
-            parseTurn(deltaTime);
-            
-            //处理移动
-            parseMove(deltaTime);
+            [SerializeField]
+            private float m_MoveSpeed = 10f;
+            [Range(0f, 10f)]
+            [SerializeField]
+            private float m_TurnSpeed = 1.5f;
+            [SerializeField]
+            private bool m_LockCursor = false;
 
-            if (m_LockCursor)
+            // Update is called once per frame
+            protected override void parseInput(float deltaTime)
             {
-                if (Input.GetMouseButtonDown(0))
+                //处理转动
+                parseTurn(deltaTime);
+
+                //处理移动
+                parseMove(deltaTime);
+
+                if (m_LockCursor)
                 {
-                    Cursor.visible = false;
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        Cursor.visible = false;
+                    }
+                    else if (Input.GetMouseButtonUp(0))
+                    {
+                        Cursor.visible = true;
+                    }
+
                 }
-                else if (Input.GetMouseButtonUp(0))
+            }
+
+            protected void parseTurn(float deltaTime)
+            {
+                if (Input.GetMouseButton(0))
                 {
-                    Cursor.visible = true;
+                    Transform transform = GetComponent<Transform>();
+
+                    float mouseX = Input.GetAxis("Mouse X");
+                    float mouseY = Input.GetAxis("Mouse Y");
+
+                    //Vector3 eulerAngles=transform.rotation.eulerAngles;
+                    float angleY = mouseX * m_TurnSpeed;
+                    float angleX = mouseY * -m_TurnSpeed;
+
+                    transform.Rotate(angleX, angleY, 0);
                 }
-                
-            }
-        }
-
-        protected void parseTurn(float deltaTime)
-        {
-            if (Input.GetMouseButton(0))
-            {
-                Transform transform = GetComponent<Transform>();
-
-				float mouseX = Input.GetAxis("Mouse X");
-				float mouseY = Input.GetAxis("Mouse Y");
-
-                //Vector3 eulerAngles=transform.rotation.eulerAngles;
-                float angleY = mouseX * m_TurnSpeed;
-                float angleX = mouseY * -m_TurnSpeed;
-
-                transform.Rotate(angleX, angleY, 0);
-            }
-        }
-
-        protected void parseMove(float deltaTime) 
-        {
-            bool haveTranslate = false;
-
-            Vector3 translate = new Vector3(0f, 0f, 0f);
-
-            if (Input.GetKey("w"))
-            {
-                translate.z += deltaTime * m_MoveSpeed;
-                haveTranslate = true;
             }
 
-            if (Input.GetKey("s"))
+            protected void parseMove(float deltaTime)
             {
-                translate.z -= deltaTime * m_MoveSpeed;
-                haveTranslate = true;
-            }
+                bool haveTranslate = false;
 
-            if (Input.GetKey("a"))
-            {
-                translate.x -= deltaTime * m_MoveSpeed;
-                haveTranslate = true;
-            }
+                Vector3 translate = new Vector3(0f, 0f, 0f);
 
-            if (Input.GetKey("d"))
-            {
-                translate.x += deltaTime * m_MoveSpeed;
-                haveTranslate = true;
-            }
+                if (Input.GetKey("w"))
+                {
+                    translate.z += deltaTime * m_MoveSpeed;
+                    haveTranslate = true;
+                }
 
-            if (haveTranslate)
-            {
-                Transform transform = GetComponent<Transform>();
+                if (Input.GetKey("s"))
+                {
+                    translate.z -= deltaTime * m_MoveSpeed;
+                    haveTranslate = true;
+                }
 
-                transform.Translate(translate);
+                if (Input.GetKey("a"))
+                {
+                    translate.x -= deltaTime * m_MoveSpeed;
+                    haveTranslate = true;
+                }
+
+                if (Input.GetKey("d"))
+                {
+                    translate.x += deltaTime * m_MoveSpeed;
+                    haveTranslate = true;
+                }
+
+                if (haveTranslate)
+                {
+                    Transform transform = GetComponent<Transform>();
+
+                    transform.Translate(translate);
+                }
             }
         }
     }

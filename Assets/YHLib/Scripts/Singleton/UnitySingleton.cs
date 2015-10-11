@@ -1,45 +1,48 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class UnitySingleton<T> : MonoBehaviour
-    where T : Component
+namespace YH
 {
-    private static T m_Instance;
-
-    public static T Instance
+    public class UnitySingleton<T> : MonoBehaviour
+        where T : Component
     {
-        get
+        private static T m_Instance;
+
+        public static T Instance
         {
-            if (m_Instance == null)
+            get
             {
-                m_Instance = FindObjectOfType(typeof(T)) as T;
                 if (m_Instance == null)
                 {
-                    //Debug.Log("create instance");
+                    m_Instance = FindObjectOfType(typeof(T)) as T;
+                    if (m_Instance == null)
+                    {
+                        //Debug.Log("create instance");
 
-                    GameObject singletonObj = new GameObject();
+                        GameObject singletonObj = new GameObject();
 
-                    //方法一
-                    //singletonObj.name = "(singleton) " + typeof(T).ToString();
-                    //DontDestroyOnLoad(singletonObj);
+                        //方法一
+                        //singletonObj.name = "(singleton) " + typeof(T).ToString();
+                        //DontDestroyOnLoad(singletonObj);
 
-                    //方法二
-                    //DontSave标志表示不会在加载新场景删除，所以不用DontDestroyOnLoad
-                    singletonObj.hideFlags = HideFlags.HideAndDontSave;
+                        //方法二
+                        //DontSave标志表示不会在加载新场景删除，所以不用DontDestroyOnLoad
+                        singletonObj.hideFlags = HideFlags.HideAndDontSave;
 
-                    //Debug.Log("add instance before");
-                    m_Instance = singletonObj.AddComponent<T>();
+                        //Debug.Log("add instance before");
+                        m_Instance = singletonObj.AddComponent<T>();
 
-                    //Debug.Log("add instance after");
+                        //Debug.Log("add instance after");
+                    }
                 }
+                return m_Instance;
             }
-            return m_Instance;
         }
-    }
 
-    public static void DestroyInstance()
-    {
-        Destroy(m_Instance);
-        m_Instance = null;
+        public static void DestroyInstance()
+        {
+            Destroy(m_Instance);
+            m_Instance = null;
+        }
     }
 }

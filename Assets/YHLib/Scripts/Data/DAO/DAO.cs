@@ -2,8 +2,9 @@ using UnityEngine;
 using System.Collections.Generic;
 
 
-
-class DAO
+namespace YH
 {
+    class DAO
+    {
+    }
 }
-

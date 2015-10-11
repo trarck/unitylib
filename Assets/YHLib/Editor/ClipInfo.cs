@@ -1,28 +1,31 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-// Editor window for listing all object reference curves in an animation clip
-public class ClipInfo : EditorWindow
+namespace YH
 {
-    private AnimationClip clip;
-
-    [MenuItem("MyMenu/Clip Info")]
-    static void Init()
+    // Editor window for listing all object reference curves in an animation clip
+    public class ClipInfo : EditorWindow
     {
-        GetWindow(typeof(ClipInfo));
-    }
+        private AnimationClip clip;
 
-    public void OnGUI()
-    {
-        clip = EditorGUILayout.ObjectField("Clip", clip, typeof(AnimationClip), false) as AnimationClip;
-
-        EditorGUILayout.LabelField("Curves:");
-        if (clip != null)
+        [MenuItem("MyMenu/Clip Info")]
+        static void Init()
         {
-            foreach (var binding in AnimationUtility.GetCurveBindings(clip))
+            GetWindow(typeof(ClipInfo));
+        }
+
+        public void OnGUI()
+        {
+            clip = EditorGUILayout.ObjectField("Clip", clip, typeof(AnimationClip), false) as AnimationClip;
+
+            EditorGUILayout.LabelField("Curves:");
+            if (clip != null)
             {
-                AnimationCurve curve = AnimationUtility.GetEditorCurve(clip, binding);
-                EditorGUILayout.LabelField(binding.path + "/" + binding.propertyName + ", Keys: " + curve.keys.Length);
+                foreach (var binding in AnimationUtility.GetCurveBindings(clip))
+                {
+                    AnimationCurve curve = AnimationUtility.GetEditorCurve(clip, binding);
+                    EditorGUILayout.LabelField(binding.path + "/" + binding.propertyName + ", Keys: " + curve.keys.Length);
+                }
             }
         }
     }

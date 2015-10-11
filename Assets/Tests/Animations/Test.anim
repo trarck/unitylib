@@ -28,7 +28,7 @@ AnimationClip:
         tangentMode: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
-    path: C/Box
+    path: Box
   m_ScaleCurves: []
   m_FloatCurves: []
   m_PPtrCurves:
@@ -46,7 +46,7 @@ AnimationClip:
     m_Extent: {x: 0, y: 0, z: 0}
   m_ClipBindingConstant:
     genericBindings:
-    - path: 4001742116
+    - path: 820252378
       attribute: 1
       script: {fileID: 0}
       classID: 4
@@ -94,7 +94,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
     attribute: m_LocalPosition.x
-    path: C/Box
+    path: Box
     classID: 4
     script: {fileID: 0}
   - curve:
@@ -113,7 +113,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
     attribute: m_LocalPosition.y
-    path: C/Box
+    path: Box
     classID: 4
     script: {fileID: 0}
   - curve:
@@ -132,7 +132,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
     attribute: m_LocalPosition.z
-    path: C/Box
+    path: Box
     classID: 4
     script: {fileID: 0}
   m_EulerEditorCurves: []

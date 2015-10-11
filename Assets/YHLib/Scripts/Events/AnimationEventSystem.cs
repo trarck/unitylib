@@ -2,50 +2,55 @@
 using System.Collections;
 using System;
 
-public enum AnimationEventType
-{
-    AnimationStart = 1,
-    AnimationComplete,
-
-
-}
-
-public class AnimationEventArgs : EventArgs 
+namespace YH
 {
 
-	private int m_Message;
-
-    public AnimationEventArgs(int message)
-	{
-        m_Message = message;
-	}
-
-	public int message
-	{
-        get { return m_Message; }
-	}
-}
-
-public class AnimationEventSystem : MonoBehaviour {
-
-    public delegate void AnimationEventHandler(AnimationEventArgs e);
-
-    public event AnimationEventHandler OnAnimationEvent;
-
-    void ReceiveEvent(int type)
+    public enum AnimationEventType
     {
-        if (OnAnimationEvent!=null)
-        {
-            OnAnimationEvent(new AnimationEventArgs(type));
-        }
-        
+        AnimationStart = 1,
+        AnimationComplete,
+
+
     }
 
-    public void TriggerCompleteEvent()
+    public class AnimationEventArgs : EventArgs
     {
-        if (OnAnimationEvent != null)
+
+        private int m_Message;
+
+        public AnimationEventArgs(int message)
         {
-            OnAnimationEvent(new AnimationEventArgs((int)AnimationEventType.AnimationComplete));
+            m_Message = message;
+        }
+
+        public int message
+        {
+            get { return m_Message; }
+        }
+    }
+
+    public class AnimationEventSystem : MonoBehaviour
+    {
+
+        public delegate void AnimationEventHandler(AnimationEventArgs e);
+
+        public event AnimationEventHandler OnAnimationEvent;
+
+        void ReceiveEvent(int type)
+        {
+            if (OnAnimationEvent != null)
+            {
+                OnAnimationEvent(new AnimationEventArgs(type));
+            }
+
+        }
+
+        public void TriggerCompleteEvent()
+        {
+            if (OnAnimationEvent != null)
+            {
+                OnAnimationEvent(new AnimationEventArgs((int)AnimationEventType.AnimationComplete));
+            }
         }
     }
 }

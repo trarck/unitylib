@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using YH;
 
 public class TestManager : Singleton<TestManager> {
 

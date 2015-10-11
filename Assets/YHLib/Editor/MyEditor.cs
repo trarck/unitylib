@@ -2,102 +2,113 @@
 using System.Collections;
 using UnityEditor;
 
-public class MyEditor : Editor {
+namespace YH
+{
+    public class MyEditor : Editor
+    {
 
 
-	[MenuItem ("MyMenu/My Test")]
-	public static void Test(){
-		Debug.Log ("test");
+        [MenuItem("MyMenu/My Test")]
+        public static void Test()
+        {
+            Debug.Log("test");
 
 
-		Debug.Log (Selection.activeObject);
-		AnimationClip ac = Selection.activeObject as AnimationClip;
+            Debug.Log(Selection.activeObject);
+            AnimationClip ac = Selection.activeObject as AnimationClip;
 
-		GameObject panel = GameObject.Find("panel");
-	
+            GameObject panel = GameObject.Find("panel");
 
-		if (ac is AnimationClip) {
 
-			Debug.Log("****************---->");
-			EditorCurveBinding[] bindings=AnimationUtility.GetCurveBindings (ac);
-			for (int i=0;i<bindings.Length;++i)
-			{
-				EditorCurveBinding binding=bindings[i];
-				Debug.Log("binding path="+binding.path+",propName="+binding.propertyName+",PPtrCurve="+binding.isPPtrCurve+",type="+binding.type);
+            if (ac is AnimationClip)
+            {
 
-				AnimationCurve aniCurve=AnimationUtility.GetEditorCurve(ac,binding);
-	
-				Object t=AnimationUtility.GetAnimatedObject(panel,binding);
+                Debug.Log("****************---->");
+                EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(ac);
+                for (int i = 0; i < bindings.Length; ++i)
+                {
+                    EditorCurveBinding binding = bindings[i];
+                    Debug.Log("binding path=" + binding.path + ",propName=" + binding.propertyName + ",PPtrCurve=" + binding.isPPtrCurve + ",type=" + binding.type);
 
-				if(t){
-					Debug.Log("test:"+t);
-				}else{
-					Debug.Log("can't find:"+binding.path);
-					string path=binding.path;
+                    AnimationCurve aniCurve = AnimationUtility.GetEditorCurve(ac, binding);
 
-					int pos=path.IndexOf("/");
+                    Object t = AnimationUtility.GetAnimatedObject(panel, binding);
 
-					path=path.Substring(pos+1);
+                    if (t)
+                    {
+                        Debug.Log("test:" + t);
+                    }
+                    else
+                    {
+                        Debug.Log("can't find:" + binding.path);
+                        string path = binding.path;
 
-					Debug.Log("lookFor:"+path);
+                        int pos = path.IndexOf("/");
 
-					t=panel.transform.Find(path).gameObject;
+                        path = path.Substring(pos + 1);
 
-					string newPath=AnimationUtility.CalculateTransformPath((t as GameObject).transform,panel.transform);
-					Debug.Log("path:"+newPath);
+                        Debug.Log("lookFor:" + path);
 
-					AnimationUtility.SetEditorCurve(ac,binding,null);
-					binding.path=newPath;
-					AnimationUtility.SetEditorCurve(ac,binding,aniCurve);
-				}
-			}
+                        t = panel.transform.Find(path).gameObject;
 
-			AssetDatabase.SaveAssets();
+                        string newPath = AnimationUtility.CalculateTransformPath((t as GameObject).transform, panel.transform);
+                        Debug.Log("path:" + newPath);
 
-			Debug.Log("****************<----");
-			/*
-			Debug.Log("****************---->");
-			AnimationClipCurveData[] curves= AnimationUtility.GetAllCurves(ac);
+                        AnimationUtility.SetEditorCurve(ac, binding, null);
+                        binding.path = newPath;
+                        AnimationUtility.SetEditorCurve(ac, binding, aniCurve);
+                    }
+                }
 
-			Debug.Log("l:"+curves.Length);
-			for(int i=0;i<curves.Length;++i){
-				Debug.Log(curves[i].path);
+                AssetDatabase.SaveAssets();
 
-				AnimationMode.StartAnimationMode();
-				curves[i].path="Cuve";
-				AnimationMode.StopAnimationMode();
-			}
+                Debug.Log("****************<----");
+                /*
+                Debug.Log("****************---->");
+                AnimationClipCurveData[] curves= AnimationUtility.GetAllCurves(ac);
 
-			Debug.Log("****************<----");
-			*/
-			/*
-			AnimationEvent[] events=AnimationUtility.GetAnimationEvents(ac);
+                Debug.Log("l:"+curves.Length);
+                for(int i=0;i<curves.Length;++i){
+                    Debug.Log(curves[i].path);
 
-			Debug.Log("****************---->");
-			Debug.Log(events[0].functionName);
-			Debug.Log("****************<----");
+                    AnimationMode.StartAnimationMode();
+                    curves[i].path="Cuve";
+                    AnimationMode.StopAnimationMode();
+                }
 
-			events[0].functionName ="Test";
+                Debug.Log("****************<----");
+                */
+                /*
+                AnimationEvent[] events=AnimationUtility.GetAnimationEvents(ac);
 
-			AnimationUtility.SetAnimationEvents(ac,events);
-			*/
-		}else{
-			Debug.Log("not AnimationClip");
-			Debug.Log((Selection.activeObject));
-		}
-		
-//		AnimationUtility.onCurveWasModified = OnCurveWasModified;
-		/*
-		AnimationClipCurveData[] datas = AnimationUtility.GetAllCurves ();
-		for (int i=0; i<datas.Length; ++i) {
-			Debug.Log(datas[i].ToString());
-		}
-		*/
-	}
+                Debug.Log("****************---->");
+                Debug.Log(events[0].functionName);
+                Debug.Log("****************<----");
 
-	public static void OnCurveWasModified(AnimationClip clip, EditorCurveBinding binding, AnimationUtility.CurveModifiedType deleted)
-	{
-		Debug.Log("onEvent:"+binding.path+","+deleted);
-		binding.path = "Cube";
-	}
+                events[0].functionName ="Test";
+
+                AnimationUtility.SetAnimationEvents(ac,events);
+                */
+            }
+            else
+            {
+                Debug.Log("not AnimationClip");
+                Debug.Log((Selection.activeObject));
+            }
+
+            //		AnimationUtility.onCurveWasModified = OnCurveWasModified;
+            /*
+            AnimationClipCurveData[] datas = AnimationUtility.GetAllCurves ();
+            for (int i=0; i<datas.Length; ++i) {
+                Debug.Log(datas[i].ToString());
+            }
+            */
+        }
+
+        public static void OnCurveWasModified(AnimationClip clip, EditorCurveBinding binding, AnimationUtility.CurveModifiedType deleted)
+        {
+            Debug.Log("onEvent:" + binding.path + "," + deleted);
+            binding.path = "Cube";
+        }
+    }
 }

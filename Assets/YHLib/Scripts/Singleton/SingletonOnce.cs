@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+namespace YH
+{ }
 public class SingletonOnce<T> : MonoBehaviour 
     where T : Component
 {
