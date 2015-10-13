@@ -8,7 +8,7 @@ namespace YH
     /// <summary>
     /// 任意类型数据访问
     /// </summary>
-    class DataDAO:DAO
+    class DataDAO : DAO
     {
         object m_Data;
 
@@ -77,9 +77,16 @@ namespace YH
                 }
             }
 
-            if (TryGetValue(data, column, out tempData))
+            if (column != null)
             {
-                return (T)tempData;
+                if (TryGetValue(data, column, out tempData))
+                {
+                    return (T)tempData;
+                }
+            }
+            else
+            {
+                return (T)data;
             }
 
             //没找到，返回默认值
@@ -151,20 +158,28 @@ namespace YH
                 }
             }
 
-            //直接取值
-            if (data is IDictionary)
+            if (columnName != null)
             {
-                Dictionary<string, object> dict = data as Dictionary<string, object>;
-
-                if (dict != null)
+                //直接取值
+                if (data is IDictionary)
                 {
-                    object value;
-                    if (dict.TryGetValue(columnName, out value))
+                    Dictionary<string, object> dict = data as Dictionary<string, object>;
+
+                    if (dict != null)
                     {
-                        return (T)value;
+                        object value;
+                        if (dict.TryGetValue(columnName, out value))
+                        {
+                            return (T)value;
+                        }
                     }
                 }
             }
+            else
+            {
+                return (T)data;
+            }
+
             //出现错误，返回默认值
             return default(T);
         }
@@ -187,7 +202,7 @@ namespace YH
     {
         Dictionary<string, object> m_Data;
 
-        public T Fetch<T>(string columnName,string keyValue)
+        public T Fetch<T>(string columnName, string keyValue)
         {
             if (m_Data.ContainsKey(keyValue))
             {
@@ -221,25 +236,25 @@ namespace YH
 
         string m_PrimaryKey;
 
-        public T Fetch<T>(string columnName,string keyValue )
+        public T Fetch<T>(string columnName, string keyValue)
         {
             foreach (Dictionary<string, object> record in m_Data)
             {
                 if (record[m_PrimaryKey] == keyValue && record.ContainsKey(columnName))
                 {
-                    return (T)record[columnName]; 
+                    return (T)record[columnName];
                 }
             }
             return default(T);
         }
 
-        public T Fetch<T>(string columnName,int keyValue)
+        public T Fetch<T>(string columnName, int keyValue)
         {
             foreach (Dictionary<string, object> record in m_Data)
             {
                 if ((int)record[m_PrimaryKey] == keyValue && record.ContainsKey(columnName))
                 {
-                    return (T)record[columnName]; 
+                    return (T)record[columnName];
                 }
             }
             return default(T);
