@@ -8,7 +8,7 @@ namespace YH
     /// <summary>
     /// 任意类型数据访问
     /// </summary>
-    class DataDAO
+    class DataDAO:DAO
     {
         object m_Data;
 
