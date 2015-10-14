@@ -92,7 +92,7 @@ namespace YH
 
         protected void SetNodePosition(ParallaxNode node)
         {
-            Vector3 pos = m_Transform.position;
+            Vector3 pos = m_Transform.localPosition;
 
             float x = -pos.x + pos.x * node.ratio.x + node.offset.x;
             float y = -pos.y + pos.y * node.ratio.y + node.offset.y;
