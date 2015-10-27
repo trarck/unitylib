@@ -9,6 +9,9 @@ public class TestSingleton : MonoBehaviour {
     {
         Debug.Log("in a");
 
+        //Debug.Log(MyTest.Instance);
+
+
         TestManager.Instance.DoSome();
         TestManager.Instance.a = 2;
 
