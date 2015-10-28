@@ -6,20 +6,36 @@ namespace YH
 {
     /// <summary>
     /// Json格式数据读取
+    /// 通常用于客户端的数据文件，所以带个缓存。
     /// </summary>
-    public class JsonDataDriver : DataDriver
+    public class JsonCacheDataDriver : DataDriver
     {
+        Dictionary<string, object> m_Cache;
 
-        public JsonDataDriver()
+        public JsonCacheDataDriver()
         {
+            m_Cache = new Dictionary<string, object>();
         }
 
-        public JsonDataDriver(string dataPath)
+        public JsonCacheDataDriver(string dataPath)
         {
+            m_Cache = new Dictionary<string, object>();
             m_DataPath = dataPath;
             m_DataFileExt = ".json";
         }
-        
+
+        public override object FetchData(string name)
+        {
+            if (m_Cache.ContainsKey(name))
+            {
+                return m_Cache[name];
+            }
+
+            object data = LoadDataFromFile(m_DataPath + "/" + name + m_DataFileExt);
+            m_Cache[name] = data;
+            return data;
+        }
+
         public override object LoadDataFromFile(string file)
         {
             if (File.Exists(file))
