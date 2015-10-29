@@ -37,7 +37,7 @@ namespace YH
             if (File.Exists(file))
             {
                 string content = File.ReadAllText(file);
-                object dataTable = null;// fastJSON.JSON.ToObject(content);
+                object dataTable = null;// fastJSON.JSON.Parse(content);
                 return dataTable;
             }
             else
