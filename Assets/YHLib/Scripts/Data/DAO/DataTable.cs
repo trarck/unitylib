@@ -33,7 +33,7 @@ namespace YH
 
         public DataTable()
         {
-            m_DataDriver = new DataDriver("Assets/Resources/Data");
+            m_DataDriver = new DataDriver("Data");
             m_DataDriver.dataFileExt = ".json";
         }
 

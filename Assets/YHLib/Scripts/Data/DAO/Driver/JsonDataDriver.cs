@@ -28,8 +28,16 @@ namespace YH
                 object dataTable = fastJSON.JSON.Parse(content);
                 return dataTable;
             }
-            else
+			else
             {
+                string ext = Path.GetExtension(file);
+                TextAsset text = (TextAsset)Resources.Load(file.Replace(ext, ""));
+                if (text)
+                {
+                    string content = text.text;
+                    object dataTable = fastJSON.JSON.Parse(content);
+                    return dataTable;
+                }
                 return null;
             }
         }
