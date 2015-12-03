@@ -45,6 +45,12 @@ namespace YH
         public override void SaveDataToFile(string file, object data)
         {
             string content = fastJSON.JSON.ToJSON(data);
+			//check Directory
+            string dirPath = Path.GetDirectoryName(file);
+            if (!Directory.Exists(dirPath))
+            {
+                Directory.CreateDirectory(dirPath);
+            }
             File.WriteAllText(file, content);
         }
     }
