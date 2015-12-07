@@ -321,6 +321,8 @@ PlayerSettings:
   spritePackerPolicy: 
   scriptingDefineSymbols:
     1: SILVERLIGHT
+    4: SILVERLIGHT;MOBILE_INPUT
+    7: SILVERLIGHT;MOBILE_INPUT
   metroPackageName: unitylib
   metroPackageLogo: 
   metroPackageLogo140: 
