@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace YH
 {
+    /// <summary>
+    /// Scene的名字放入栈。
+    /// 用到Scene时会重新创建，没办法记住Scene的状态。通常Scene没有状态，都是创建的时候加载数据显示。
+    /// </summary>
     public class SceneDirector : UnitySingleton<SceneDirector>, ISceneDirector
     {
         public static string sceneDir = "Scenes/";
@@ -47,7 +51,9 @@ namespace YH
                 rectTransform.offsetMin = Vector2.zero;
                 rectTransform.offsetMax = Vector2.zero;
 
-                return sceneObj.GetComponent<Scene>();
+                Scene scene = sceneObj.GetComponent<Scene>();
+                scene.name = name;
+                return scene;
             }
 
             return null;
@@ -103,7 +109,7 @@ namespace YH
             {
                 scene.Show();
 
-                m_RunningScene.OnHide();
+                m_RunningScene.Hide();
                 Destroy(m_RunningScene.gameObject);
 
                 m_RunningScene = scene;
@@ -121,7 +127,7 @@ namespace YH
             {
                 scene.Show();
 
-                m_RunningScene.OnHide();
+                m_RunningScene.Hide();
                 Destroy(m_RunningScene.gameObject);
 
                 m_RunningScene = scene;
@@ -147,7 +153,7 @@ namespace YH
             {
                 scene.Show();
 
-                m_RunningScene.OnHide();
+                m_RunningScene.Hide();
                 Destroy(m_RunningScene.gameObject);
 
                 m_RunningScene = scene;

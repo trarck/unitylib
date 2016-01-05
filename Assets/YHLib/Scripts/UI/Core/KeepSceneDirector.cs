@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace YH
 {
+    /// <summary>
+    /// 把Scene的实体放入栈，会从外部创建Scene。
+    /// 如果栈中有多个同名的Scene,同名的Scene只有一个实体,这样保持Scene的一致性。
+    /// </summary>
     public class KeepSceneDirector : UnitySingleton<KeepSceneDirector>, ISceneDirector
     {
         public static string sceneDir = "Scenes/";
@@ -37,6 +41,8 @@ namespace YH
             if (scenePrefab != null)
             {
                 GameObject sceneObj = Instantiate(scenePrefab);
+                //sceneObj.name = name;
+
                 RectTransform rectTransform = sceneObj.GetComponent<RectTransform>();
                 rectTransform.SetParent(transform);
                 rectTransform.localScale = new Vector3(1, 1, 1);
@@ -44,7 +50,10 @@ namespace YH
 
                 rectTransform.offsetMin = Vector2.zero;
                 rectTransform.offsetMax = Vector2.zero;
-                return sceneObj.GetComponent<Scene>();
+
+                Scene scene = sceneObj.GetComponent<Scene>();
+                scene.name = name;
+                return scene;
             }
 
             return null;
@@ -52,16 +61,22 @@ namespace YH
 
         public void RunWithScene(Scene scene)
         {
-            m_SceneStack.Push(scene);
-            scene.Show();
+            if (scene != null)
+            {
+                m_SceneStack.Push(scene);
+                scene.Show();
+            }
         }
 
         public void PushScene(Scene scene)
         {
-            Scene old = m_SceneStack.Peek();
-            m_SceneStack.Push(scene);
-            scene.Show();
-            old.Hide();
+            if (scene != null)
+            {
+                Scene old = m_SceneStack.Peek();
+                m_SceneStack.Push(scene);
+                scene.Show();
+                old.Hide();
+            }
         }
 
         public void PopScene()
@@ -71,21 +86,32 @@ namespace YH
                 Debug.Log("At root scene");
                 return;
             }
+
             Scene old = m_SceneStack.Pop();
             Scene current = m_SceneStack.Peek();
             current.Show();
-            old.OnHide();
-            Destroy(old.gameObject);
+            old.Hide();
 
+            if (!IsUsing(old))
+            {
+                Destroy(old.gameObject);
+            }
         }
 
         public void ReplaceScene(Scene scene)
         {
-            Scene old = m_SceneStack.Pop();
-            m_SceneStack.Push(scene);
-            scene.Show();
-            old.OnHide();
-            Destroy(old.gameObject);
+            if (scene != null)
+            {
+                Scene old = m_SceneStack.Pop();
+                m_SceneStack.Push(scene);
+                scene.Show();
+                old.Hide();
+
+                if (!IsUsing(old))
+                {
+                    Destroy(old.gameObject);
+                }                
+            }
         }
 
         public void PopToSceneStackLevel(int level)
@@ -99,8 +125,11 @@ namespace YH
             while (c-- > level)
             {
                 Scene scene = m_SceneStack.Pop();
-                scene.OnHide();
-                Destroy(scene);
+                scene.Hide();
+                if (!IsUsing(scene))
+                {
+                    Destroy(scene);
+                }
             }
 
             Scene current = m_SceneStack.Peek();
@@ -112,22 +141,54 @@ namespace YH
             PopToSceneStackLevel(1);
         }
 
+        bool IsUsing(Scene scene)
+        {
+            foreach (Scene iter in m_SceneStack)
+            {
+                if (iter == scene)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 获得Scene
+        /// 从当前栈中找，找到返回，否则创建一个新的。
+        /// </summary>
+        /// <param name="sceneName"></param>
+        /// <returns></returns>
+        Scene GetScene(string sceneName)
+        {
+            //look in stack
+            foreach (Scene scene in m_SceneStack)
+            {
+                if (scene.name == sceneName)
+                {
+                    return scene;
+                }
+            }
+
+            return LoadSceneFromAssets(sceneName);
+        }
+
         public void RunWithScene(string sceneName)
         {
-            Scene scene = LoadSceneFromAssets(sceneName);
+            Scene scene = GetScene(sceneName);
             RunWithScene(scene);
         }
 
         public void PushScene(string sceneName)
         {
-            Debug.Log("push:" + sceneName);
-            Scene scene = LoadSceneFromAssets(sceneName);
+            Scene scene = GetScene(sceneName);
             PushScene(scene);
         }
 
         public void ReplaceScene(string sceneName)
         {
-            Scene scene = LoadSceneFromAssets(sceneName);
+            Scene scene = GetScene(sceneName);
             ReplaceScene(scene);
         }
 

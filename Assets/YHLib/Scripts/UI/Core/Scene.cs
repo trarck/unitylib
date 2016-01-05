@@ -7,13 +7,13 @@ namespace YH
     {
 
 
-        public void Show()
+        public virtual void Show()
         {
             gameObject.SetActive(true);
             OnShow();
         }
 
-        public void Hide()
+        public virtual void Hide()
         {
             OnHide();
             gameObject.SetActive(false);

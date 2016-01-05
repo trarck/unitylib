@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace YH
 {
+    /// <summary>
+    /// Scene已经放在游戏里，不需创建。
+    /// 栈中同名的Scene，都是同一个。可以保存状态。
+    /// </summary>
     public class SimpleSceneDirector : UnitySingleton<SimpleSceneDirector>, ISceneDirector
     {
         Dictionary<string, Scene> m_SceneMap;
