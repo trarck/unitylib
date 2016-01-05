@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace YH
+namespace YH.UI
 {
     public class Scene : MonoBehaviour
     {
-
 
         public virtual void Show()
         {

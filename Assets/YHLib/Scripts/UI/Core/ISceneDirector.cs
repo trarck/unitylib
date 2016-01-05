@@ -1,4 +1,4 @@
-﻿namespace YH
+﻿namespace YH.UI
 {
     public interface ISceneDirector
     {

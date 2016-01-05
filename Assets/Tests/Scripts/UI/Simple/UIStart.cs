@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
-
 using YH;
+using YH.UI;
 
 namespace Simple
 {

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace YH
+namespace YH.UI
 {
     /// <summary>
     /// 把Scene的实体放入栈，会从外部创建Scene。
