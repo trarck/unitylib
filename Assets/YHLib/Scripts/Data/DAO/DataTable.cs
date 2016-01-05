@@ -31,10 +31,16 @@ namespace YH
 
         DataDriver m_DataDriver;
 
+		string m_DataPath="Data";
+
         public DataTable()
         {
-            m_DataDriver = new DataDriver("Data");
-            m_DataDriver.dataFileExt = ".json";
+            m_DataDriver = new JsonCacheDataDriver(m_DataPath);
+        }
+
+        public DataTable(string dataPath)
+        {
+            m_DataDriver = new JsonCacheDataDriver(dataPath);
         }
 
         public Dictionary<string, object> GetDictionaryData(string tableName,object key)
