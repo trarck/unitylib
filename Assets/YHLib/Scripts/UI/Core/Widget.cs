@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace YH
+namespace YH.UI
 {
     public class Widget : MonoBehaviour
     {

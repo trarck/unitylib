@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace YH
 {
-    public class DAO
+    public class Dao
     {
         public virtual bool Init()
         {

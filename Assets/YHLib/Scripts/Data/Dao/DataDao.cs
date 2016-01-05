@@ -10,23 +10,23 @@ namespace YH
     /// 任意类型数据访问
     /// 目前只有查询功能
     /// </summary>
-    public class DataDAO : DAO
+    public class DataDao : Dao
     {
         protected DataDriver m_DataDriver;
 
         protected string m_DataName;
 
-        public DataDAO()
+        public DataDao()
         {
 
         }
 
-        public DataDAO(DataDriver dataDriver)
+        public DataDao(DataDriver dataDriver)
         {
             m_DataDriver = dataDriver;
         }
 
-        public DataDAO(DataDriver dataDriver,string dataName)
+        public DataDao(DataDriver dataDriver,string dataName)
         {
             m_DataDriver = dataDriver;
             m_DataName = dataName;

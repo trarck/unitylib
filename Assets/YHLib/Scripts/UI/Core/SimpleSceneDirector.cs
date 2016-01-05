@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace YH
+namespace YH.UI
 {
     /// <summary>
     /// Scene已经放在游戏里，不需创建。

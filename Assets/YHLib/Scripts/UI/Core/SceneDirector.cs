@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace YH
+namespace YH.UI
 {
     /// <summary>
     /// Scene的名字放入栈。
