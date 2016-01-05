@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using YH;
 
-public class UserDao : DataDAO
+public class UserDao : DataDao
 {
     Dictionary<string,object> m_Data;
 
