@@ -27,17 +27,35 @@ namespace YH
             ALPHA = 3
         }
 
+        static void ShowBuffer(byte[] buff,int col,int row)
+        {
+            Debug.Log("show:" + col + "," + row+":"+buff.Length);
+            string lines= "";
+            for(int i = row-1; i>=0; --i)
+            {
+                for(int j = 0; j < col; ++j)
+                {
+                    lines += (buff[i * col + j]>0?"1":"0")+" ";
+                }
+                lines += "\n";
+            }
+
+            Debug.Log(lines);
+        }
+
         public static Texture2D CreateDistanceFieldTexture(Texture2D inputTexture, TextureChannel channel, int outSize)
         {
             //Extract channel from input texture
             byte[] inputBuffer = GetTextureChannel(inputTexture, channel);
+
+            ShowBuffer(inputBuffer, inputTexture.width, inputTexture.height);
 
             //Create distance field
             byte[] outputBuffer = render(inputBuffer, inputTexture.width, inputTexture.height, outSize);
 
             //Put distance field into output texture
             Texture2D outputTexture = new Texture2D(outSize, outSize, TextureFormat.RGBA32, false);
-            SetTextureChannel(outputTexture, TextureChannel.ALPHA, outputBuffer);
+            SetTextureChannel(outputTexture, TextureChannel.ALPHA, inputBuffer);
 
             return outputTexture;
         }
@@ -68,6 +86,8 @@ namespace YH
             {
                 Color pix = new Color();
                 pix[(int)channel] = channelData[i] / 255f;
+                //pix[0] = channelData[i] / 255f;
+                //pix.a = 1;
                 pixels[i] = pix;
             }
 

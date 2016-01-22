@@ -57,6 +57,7 @@ namespace YH.Font
                 inputTextureImp.textureType = TextureImporterType.Advanced;
                 inputTextureImp.isReadable = true;
                 inputTextureImp.maxTextureSize = 4096;
+                inputTextureImp.mipmapEnabled = false;
                 AssetDatabase.ImportAsset(imagePath, ImportAssetOptions.ForceSynchronousImport);
 
                 //Create distance field from texture
@@ -64,12 +65,22 @@ namespace YH.Font
                 if (fnt.packed)
                 {
                     Texture2D distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.RED, inputTexture.width);
+
+                    byte[] bytes = distanceField.EncodeToPNG();
+                    File.WriteAllBytes(Path.GetDirectoryName(fontFile) + "/index_" + index + ".png", bytes);
+
                     texturePages[index++] = distanceField;
                     distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.GREEN, inputTexture.width);
+                    bytes = distanceField.EncodeToPNG();
+                    File.WriteAllBytes(Path.GetDirectoryName(fontFile) + "/index_" + index + ".png", bytes);
                     texturePages[index++] = distanceField;
                     distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.BLUE, inputTexture.width);
+                    bytes = distanceField.EncodeToPNG();
+                    File.WriteAllBytes(Path.GetDirectoryName(fontFile) + "/index_" + index + ".png", bytes);
                     texturePages[index++] = distanceField;
                     distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.ALPHA, inputTexture.width);
+                    bytes = distanceField.EncodeToPNG();
+                    File.WriteAllBytes(Path.GetDirectoryName(fontFile) + "/index_" + index + ".png", bytes);
                     texturePages[index] = distanceField;
                 }
                 else
