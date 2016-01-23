@@ -97,6 +97,10 @@ namespace YH.Font
             {
                 Texture2D pageAtlas = new Texture2D(0, 0);
                 fnt.pageOffsets = pageAtlas.PackTextures(texturePages, 0);
+                foreach(Rect r in fnt.pageOffsets)
+                {
+                    Debug.Log(r);
+                }
 
                 //Save atlas as png
                 byte[] pngData = pageAtlas.EncodeToPNG();

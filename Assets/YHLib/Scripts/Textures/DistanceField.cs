@@ -21,9 +21,9 @@ namespace YH
 
         public enum TextureChannel
         {
-            RED = 0,
+            BLUE = 0,
             GREEN = 1,
-            BLUE = 2,
+            RED = 2,
             ALPHA = 3
         }
 
@@ -48,14 +48,14 @@ namespace YH
             //Extract channel from input texture
             byte[] inputBuffer = GetTextureChannel(inputTexture, channel);
 
-            ShowBuffer(inputBuffer, inputTexture.width, inputTexture.height);
+            //ShowBuffer(inputBuffer, inputTexture.width, inputTexture.height);
 
             //Create distance field
-            byte[] outputBuffer = render(inputBuffer, inputTexture.width, inputTexture.height, outSize);
+            byte[] outputBuffer = inputBuffer;//render(inputBuffer, inputTexture.width, inputTexture.height, outSize);
 
             //Put distance field into output texture
             Texture2D outputTexture = new Texture2D(outSize, outSize, TextureFormat.RGBA32, false);
-            SetTextureChannel(outputTexture, TextureChannel.ALPHA, inputBuffer);
+            SetTextureChannel(outputTexture, TextureChannel.ALPHA, outputBuffer);
 
             return outputTexture;
         }

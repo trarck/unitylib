@@ -27,14 +27,13 @@ public static class BitmapFontImporter2 {
     } 
  
     private static void Work(BitmapFont bitmapFont, string exportPath)
-    {    
- 
+    {
+
         Font font = new Font();
 
         Texture2D texture = bitmapFont.pageAtlas;
         float texW = texture.width;
         float texH = texture.height;
-
 
         CharacterInfo[] charInfos = new CharacterInfo[bitmapFont.chars.Length];
         Rect r;
@@ -50,10 +49,10 @@ public static class BitmapFontImporter2 {
             
 
             r = new Rect();
-            r.x = charNode.position.x / texW;
-            r.y = charNode.position.y / texH;
-            r.width = charNode.size.x / texW;
-            r.height = charNode.size.y / texH;
+            r.x = charNode.position.x / bitmapFont.scaleW;
+            r.y = charNode.position.y / bitmapFont.scaleH;
+            r.width = charNode.size.x / bitmapFont.scaleW;
+            r.height = charNode.size.y / bitmapFont.scaleH;
             r.y = 1f - r.y - r.height;
 
             if (bitmapFont.pageOffsets != null)
@@ -65,15 +64,19 @@ public static class BitmapFontImporter2 {
                 }
                 else
                 {
-                    Rect pageOffset = bitmapFont.pageOffsets[charNode.page*4+charNode.page<<2];
-                    r.position += pageOffset.position;
+                    Rect pageOffset = bitmapFont.pageOffsets[charNode.page*4+charNode.chnl>>1];
+
+                    r.x = r.x * pageOffset.width + pageOffset.xMin;
+                    r.y=  r.y * pageOffset.height + pageOffset.yMin;
+                    r.width *= pageOffset.width;
+                    r.height *= pageOffset.height;
                 }                
             }
 
-            charInfo.uvBottomLeft = new Vector2(r.xMin, r.yMax);
-            charInfo.uvBottomRight = new Vector2(r.xMax, r.yMax);
-            charInfo.uvTopLeft = new Vector2(r.xMin, r.yMin);
-            charInfo.uvTopRight = new Vector2(r.xMax, r.yMin);
+            charInfo.uvBottomLeft = new Vector2(r.xMin, r.yMin);
+            charInfo.uvBottomRight = new Vector2(r.xMax, r.yMin);
+            charInfo.uvTopLeft = new Vector2(r.xMin, r.yMax);
+            charInfo.uvTopRight = new Vector2(r.xMax, r.yMax);
 
 
 
@@ -85,10 +88,18 @@ public static class BitmapFontImporter2 {
             r.y = -r.y;
             r.height = -r.height;
 
-            charInfo.minX = (int)r.xMin;
-            charInfo.minY = (int)r.yMin;
-            charInfo.maxX = (int)r.xMax;
-            charInfo.maxY = (int)r.yMax;
+            //charInfo.minX = (int)r.xMin;
+            //charInfo.minY = -(int)r.yMin;
+            //charInfo.maxX = (int)r.xMax;
+            //charInfo.maxY = -(int)r.yMax;
+            charInfo.vert = r;
+            //Rect t = new Rect();
+            //t.xMin = r.xMin;
+            //t.xMax = r.xMax;
+            //t.yMin = r.yMin;
+            //t.yMax = r.yMax;
+
+            //Debug.Log(charNode.id+","+ t.x + "," + t.y + "," + t.width + "," + t.height);
 
             charInfos[i] = charInfo;
         }
