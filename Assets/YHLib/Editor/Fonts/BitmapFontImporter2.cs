@@ -57,20 +57,25 @@ public static class BitmapFontImporter2 {
 
             if (bitmapFont.pageOffsets != null)
             {
+                Rect pageOffset;
                 if (charNode.chnl == 15)
                 {
-                    Rect pageOffset = bitmapFont.pageOffsets[charNode.page];
-                    r.position += pageOffset.position;
+                    pageOffset = bitmapFont.pageOffsets[charNode.page];      
                 }
                 else
                 {
-                    Rect pageOffset = bitmapFont.pageOffsets[charNode.page*4+charNode.chnl>>1];
+                    pageOffset = bitmapFont.pageOffsets[charNode.page*4+charNode.chnl>>1];
+                    //r.x = r.x * pageOffset.width + pageOffset.xMin;
+                    //r.y = r.y * pageOffset.height + pageOffset.yMin;
+                    //r.width *= pageOffset.width;
+                    //r.height *= pageOffset.height;
+                }
 
-                    r.x = r.x * pageOffset.width + pageOffset.xMin;
-                    r.y=  r.y * pageOffset.height + pageOffset.yMin;
-                    r.width *= pageOffset.width;
-                    r.height *= pageOffset.height;
-                }                
+                r.x = r.x * pageOffset.width + pageOffset.xMin;
+                r.y = r.y * pageOffset.height + pageOffset.yMin;
+                r.width *= pageOffset.width;
+                r.height *= pageOffset.height;
+
             }
 
             charInfo.uvBottomLeft = new Vector2(r.xMin, r.yMin);
