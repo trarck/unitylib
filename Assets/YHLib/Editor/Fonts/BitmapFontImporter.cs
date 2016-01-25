@@ -110,7 +110,7 @@ public static class BitmapFontImporter {
         }
  
         // Create material
-        Shader shader = Shader.Find("UI/Default");
+        Shader shader = Shader.Find("GUI/Text Shader");
         Material material = new Material(shader);
         material.mainTexture = texture;
         AssetDatabase.CreateAsset(material, exportPath + ".mat");
@@ -120,8 +120,35 @@ public static class BitmapFontImporter {
         font.name = bitmapFont.face;
         font.characterInfo = charInfos;
         AssetDatabase.CreateAsset(font, exportPath + ".fontsettings");
+
+        SetFontPrivateProperty(font, bitmapFont);
     }
- 
+
+    static void SetFontPrivateProperty(Font font,BitmapFont bitmapFont)
+    {
+        Editor editor = Editor.CreateEditor(font);
+
+        //lineSpacing
+        SerializedProperty lineSpacing = editor.serializedObject.FindProperty("m_LineSpacing");
+        lineSpacing.floatValue = bitmapFont.lineHeight;
+
+        //fontSize
+        SerializedProperty fontSize = editor.serializedObject.FindProperty("m_FontSize");
+        fontSize.floatValue = bitmapFont.size;
+        editor.serializedObject.ApplyModifiedProperties();
+
+        AssetDatabase.SaveAssets();
+    }
+
+    static void SetFontKerning(Font font,BitmapFont bitmapFont)
+    {
+        Editor editor = Editor.CreateEditor(font);
+
+        //lineSpacing
+        SerializedProperty kerningValues = editor.serializedObject.FindProperty("m_KerningValues");
+        kerningValues.floatValue = bitmapFont.lineHeight;
+    }
+
     private static int ToInt(XmlNode node, string name)
     {
         return Convert.ToInt32(node.Attributes.GetNamedItem(name).InnerText);

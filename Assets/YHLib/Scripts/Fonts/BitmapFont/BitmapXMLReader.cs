@@ -48,7 +48,7 @@ namespace YH.Font
         void ReadInfo(BitmapFont fnt, XmlNode info)
         {
             fnt.face = info.Attributes["face"].Value;
-            fnt.size = ReadFloatAttribute(info, "size");
+            fnt.size = Mathf.Abs(ReadFloatAttribute(info, "size"));
             fnt.bold = ReadBoolAttribute(info, "bold");
             fnt.italic = ReadBoolAttribute(info, "italic");
             fnt.charset = ReadIntAttribute(info, "charset");
