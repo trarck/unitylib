@@ -27,7 +27,7 @@ public class TestTexture : MonoBehaviour {
         byte[] buff = new byte[pixes.Length];
         for(int i=0;i<pixes.Length;++i)
         {
-            buff[i] = (byte)(255*pixes[i].b);
+            buff[i] = (byte)(255*pixes[i].a);
         }
         return buff;
     }
@@ -37,7 +37,7 @@ public class TestTexture : MonoBehaviour {
         byte[] buff = new byte[pixes.Length];
         for (int i = 0; i < pixes.Length; ++i)
         {
-            buff[i] =  pixes[i].b;
+            buff[i] =  pixes[i].a;
         }
         return buff;
     }
@@ -47,7 +47,7 @@ public class TestTexture : MonoBehaviour {
         //Color[] pixes = m_Texture.GetPixels();
         //Debug.Log(pixes.Length);
 
-        byte[] buff = GetBuff(m_Texture.GetPixels());
+        byte[] buff = GetBuff(m_Texture.GetPixels32());
         ShowBuffer(buff, m_Texture.width, m_Texture.height);
 	}
 	

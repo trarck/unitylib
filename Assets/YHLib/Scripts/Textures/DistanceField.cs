@@ -43,7 +43,7 @@ namespace YH
             Debug.Log(lines);
         }
 
-        public static Texture2D CreateDistanceFieldTexture(Texture2D inputTexture, TextureChannel channel, int outSize)
+        public static Texture2D CreateDistanceFieldTexture(Texture2D inputTexture, TextureChannel channel, int outSize,Color defaultColor)
         {
             //Extract channel from input texture
             byte[] inputBuffer = GetTextureChannel(inputTexture, channel);
@@ -55,25 +55,43 @@ namespace YH
 
             //Put distance field into output texture
             Texture2D outputTexture = new Texture2D(outSize, outSize, TextureFormat.RGBA32, false);
-            SetTextureChannel(outputTexture, TextureChannel.ALPHA, outputBuffer);
+            SetTextureChannel(outputTexture, TextureChannel.ALPHA, outputBuffer, defaultColor);
 
             return outputTexture;
         }
 
         private static byte[] GetTextureChannel(Texture2D tex, TextureChannel channel)
         {
-            Color[] pixels = tex.GetPixels();
+            //GetPixels在unity5.3.x中有bug,每一行的前4个像素被放到后面了。
+            //Color[] pixels = tex.GetPixels();
+
+            Color32[] pixels = tex.GetPixels32();
             byte[] channelData = new byte[pixels.Length];
 
             for (int i = 0; i < pixels.Length; i++)
             {
-                channelData[i] = (byte)(255 * pixels[i][(int)channel]);
+                //channelData[i] = (byte)(255 * pixels[i][(int)channel]);
+                switch (channel)
+                {
+                    case TextureChannel.RED:
+                        channelData[i] = pixels[i].r;
+                        break;
+                    case TextureChannel.GREEN:
+                        channelData[i] = pixels[i].g;
+                        break;
+                    case TextureChannel.BLUE:
+                        channelData[i] = pixels[i].b;
+                        break;
+                    case TextureChannel.ALPHA:
+                        channelData[i] = pixels[i].a;
+                        break;
+                }
             }
 
             return channelData;
         }
 
-        private static void SetTextureChannel(Texture2D tex, TextureChannel channel, byte[] channelData)
+        private static void SetTextureChannel(Texture2D tex, TextureChannel channel, byte[] channelData,Color defaultColor)
         {
             if (tex.height * tex.width != channelData.Length)
             {
@@ -84,7 +102,7 @@ namespace YH
             Color[] pixels = new Color[channelData.Length];
             for (int i = 0; i < pixels.Length; i++)
             {
-                Color pix = new Color();
+                Color pix = new Color(defaultColor.r,defaultColor.g,defaultColor.b,defaultColor.a);
                 pix[(int)channel] = channelData[i] / 255f;
                 //pix[0] = channelData[i] / 255f;
                 //pix.a = 1;

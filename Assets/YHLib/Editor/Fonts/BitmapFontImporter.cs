@@ -4,74 +4,107 @@ using System;
 using UnityEditor;
 using System.IO;
 using System.Xml;
- 
+
+using YH.Font;
+
 public static class BitmapFontImporter {
  
-    [MenuItem("Assets/Generate Bitmap Font")]
+    [MenuItem("Assets/BitmapFont/Import Font")]
     public static void GenerateFont()
     {
         TextAsset selected = (TextAsset)Selection.activeObject;
-        string rootPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(selected));
- 
-        Texture2D texture = AssetDatabase.LoadAssetAtPath(rootPath + "/" + selected.name + ".png", typeof(Texture2D)) as Texture2D;
-        if (!texture) throw new UnityException("Texture2d asset doesn't exist for " + selected.name);
- 
+
+        if (!selected) throw new UnityException(selected.name + "is not a valid font-xml file");
+        string fontFile = AssetDatabase.GetAssetPath(selected);
+        string rootPath = Path.GetDirectoryName(fontFile);
+
+        BitmapParser bitmapParser = new BitmapParser();
+        BitmapFont bitmapFont= bitmapParser.Parse(fontFile);
+
         string exportPath = rootPath + "/" + Path.GetFileNameWithoutExtension(selected.name);
 
-        Debug.Log(selected.text);
-
-        Work(selected, exportPath, texture);
-    }
+        Work(bitmapFont, exportPath);
+    } 
  
- 
-    private static void Work(TextAsset import, string exportPath, Texture2D texture)
+    private static void Work(BitmapFont bitmapFont, string exportPath)
     {
-        if (!import) throw new UnityException(import.name + "is not a valid font-xml file");
- 
+
         Font font = new Font();
 
-        //CharacterInfo[] charInfos = new CharacterInfo[chars.Count];
-        //Rect r;
-
-        XmlDocument xml = new XmlDocument();
-        xml.LoadXml(import.text);
-
-        XmlNode info = xml.GetElementsByTagName("info")[0];
-        XmlNode common = xml.GetElementsByTagName("common")[0];
-        XmlNodeList chars = xml.GetElementsByTagName("chars")[0].ChildNodes;
-
+        Texture2D texture = bitmapFont.pageAtlas;
         float texW = texture.width;
         float texH = texture.height;
 
-        CharacterInfo[] charInfos = new CharacterInfo[chars.Count];
+        CharacterInfo[] charInfos = new CharacterInfo[bitmapFont.chars.Length];
         Rect r;
 
-        for (int i = 0; i < chars.Count; i++)
+        for (int i = 0; i < bitmapFont.chars.Length; i++)
         {
-            XmlNode charNode = chars[i];
+            BitmapChar charNode = bitmapFont.chars[i];
             CharacterInfo charInfo = new CharacterInfo();
 
-            charInfo.index = ToInt(charNode, "id");
-            charInfo.width = ToInt(charNode, "xadvance");
-            charInfo.flipped = false;
+            charInfo.index = charNode.id;
+            charInfo.advance = (int)charNode.xAdvance;
+
+            
 
             r = new Rect();
-            r.x = ((float)ToInt(charNode, "x")) / texW;
-            r.y = ((float)ToInt(charNode, "y")) / texH;
-            r.width = ((float)ToInt(charNode, "width")) / texW;
-            r.height = ((float)ToInt(charNode, "height")) / texH;
+            r.x = charNode.position.x / bitmapFont.scaleW;
+            r.y = charNode.position.y / bitmapFont.scaleH;
+            r.width = charNode.size.x / bitmapFont.scaleW;
+            r.height = charNode.size.y / bitmapFont.scaleH;
             r.y = 1f - r.y - r.height;
-            charInfo.uv = r;
+
+            if (bitmapFont.pageOffsets != null)
+            {
+                Rect pageOffset;
+                if (charNode.chnl == 15)
+                {
+                    pageOffset = bitmapFont.pageOffsets[charNode.page];      
+                }
+                else
+                {
+                    pageOffset = bitmapFont.pageOffsets[charNode.page*4+charNode.chnl>>1];
+                    //r.x = r.x * pageOffset.width + pageOffset.xMin;
+                    //r.y = r.y * pageOffset.height + pageOffset.yMin;
+                    //r.width *= pageOffset.width;
+                    //r.height *= pageOffset.height;
+                }
+
+                r.x = r.x * pageOffset.width + pageOffset.xMin;
+                r.y = r.y * pageOffset.height + pageOffset.yMin;
+                r.width *= pageOffset.width;
+                r.height *= pageOffset.height;
+
+            }
+
+            charInfo.uvBottomLeft = new Vector2(r.xMin, r.yMin);
+            charInfo.uvBottomRight = new Vector2(r.xMax, r.yMin);
+            charInfo.uvTopLeft = new Vector2(r.xMin, r.yMax);
+            charInfo.uvTopRight = new Vector2(r.xMax, r.yMax);
+
 
 
             r = new Rect();
-            r.x = (float)ToInt(charNode, "xoffset");
-            r.y = (float)ToInt(charNode, "yoffset");
-            r.width = (float)ToInt(charNode, "width");
-            r.height = (float)ToInt(charNode, "height");
+            r.x = charNode.offset.x;
+            r.y = charNode.offset.y;
+            r.width = charNode.size.x;
+            r.height = charNode.size.y;
             r.y = -r.y;
             r.height = -r.height;
+
+            //charInfo.minX = (int)r.xMin;
+            //charInfo.minY = -(int)r.yMin;
+            //charInfo.maxX = (int)r.xMax;
+            //charInfo.maxY = -(int)r.yMax;
             charInfo.vert = r;
+            //Rect t = new Rect();
+            //t.xMin = r.xMin;
+            //t.xMax = r.xMax;
+            //t.yMin = r.yMin;
+            //t.yMax = r.yMax;
+
+            //Debug.Log(charNode.id+","+ t.x + "," + t.y + "," + t.width + "," + t.height);
 
             charInfos[i] = charInfo;
         }
@@ -84,7 +117,7 @@ public static class BitmapFontImporter {
  
         // Create font
         font.material = material;
-        font.name = info.Attributes.GetNamedItem("face").InnerText;
+        font.name = bitmapFont.face;
         font.characterInfo = charInfos;
         AssetDatabase.CreateAsset(font, exportPath + ".fontsettings");
     }

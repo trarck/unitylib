@@ -46,6 +46,9 @@ namespace YH.Font
             string[] pages = fnt.pages;
             Texture2D[] texturePages = new Texture2D[pages.Length *  (fnt.packed?4:1)];
             int index = 0;
+            //用在带通道的字体上，提取通道值后的颜色应该是白色的
+            Color defaultColor = Color.white;
+
             foreach (string pageImagePath in pages)
             {
                 //Find original font texture
@@ -58,22 +61,32 @@ namespace YH.Font
                 inputTextureImp.isReadable = true;
                 inputTextureImp.maxTextureSize = 4096;
                 inputTextureImp.mipmapEnabled = false;
+                inputTextureImp.textureFormat = TextureImporterFormat.RGBA32;
+
                 AssetDatabase.ImportAsset(imagePath, ImportAssetOptions.ForceSynchronousImport);
 
                 //Create distance field from texture
                 //处理通道
                 if (fnt.packed)
                 {
-                    Texture2D distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.RED, inputTexture.width);
+                    Texture2D distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.BLUE, inputTexture.width,defaultColor);
+                    //byte[] buff = distanceField.EncodeToPNG();
+                    //File.WriteAllBytes(Path.GetDirectoryName(fontFile) + "/index_" + index + ".png", buff);
+                    texturePages[index++] = distanceField;     
+
+                    distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.GREEN, inputTexture.width, defaultColor);
+                    //buff = distanceField.EncodeToPNG();
+                    //File.WriteAllBytes(Path.GetDirectoryName(fontFile) + "/index_" + index + ".png", buff);
+                    texturePages[index++] = distanceField;
+                    
+                    distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.RED, inputTexture.width, defaultColor);
+                    //buff = distanceField.EncodeToPNG();
+                    //File.WriteAllBytes(Path.GetDirectoryName(fontFile) + "/index_" + index + ".png", buff);
                     texturePages[index++] = distanceField;
 
-                    distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.GREEN, inputTexture.width);
-                    texturePages[index++] = distanceField;
-
-                    distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.BLUE, inputTexture.width);
-                    texturePages[index++] = distanceField;
-
-                    distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.ALPHA, inputTexture.width);
+                    distanceField = DistanceField.CreateDistanceFieldTexture(inputTexture, DistanceField.TextureChannel.ALPHA, inputTexture.width, defaultColor);
+                    //buff = distanceField.EncodeToPNG();
+                    //File.WriteAllBytes(Path.GetDirectoryName(fontFile) + "/index_" + index + ".png", buff);
                     texturePages[index] = distanceField;
                 }
                 else
@@ -91,6 +104,11 @@ namespace YH.Font
                 Texture2D pageAtlas = new Texture2D(0, 0);
                 fnt.pageOffsets = pageAtlas.PackTextures(texturePages, 0);
 
+                //foreach(Rect r in fnt.pageOffsets)
+                //{
+                //    Debug.Log(r);
+                //}
+
                 //Save atlas as png
                 byte[] pngData = pageAtlas.EncodeToPNG();
                 string outputPath = fontFile.Substring(0, fontFile.LastIndexOf('.')) + "_pak.png";
@@ -101,7 +119,8 @@ namespace YH.Font
                 TextureImporter texImp = (TextureImporter)TextureImporter.GetAtPath(outputPath);
                 texImp.textureType = TextureImporterType.Advanced;
                 texImp.isReadable = true;
-                texImp.textureFormat = TextureImporterFormat.Alpha8;
+                texImp.textureFormat = TextureImporterFormat.RGBA32;
+                texImp.mipmapEnabled = false;
                 AssetDatabase.ImportAsset(outputPath, ImportAssetOptions.ForceSynchronousImport);
 
                 //Load the saved texture atlas
