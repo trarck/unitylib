@@ -5,7 +5,7 @@ using UnityEditor;
 using System.IO;
 using System.Xml;
 
-using YH.Font;
+using YH.Fonts;
 
 public static class BitmapFontImporter {
  
@@ -135,18 +135,94 @@ public static class BitmapFontImporter {
         //fontSize
         SerializedProperty fontSize = editor.serializedObject.FindProperty("m_FontSize");
         fontSize.floatValue = bitmapFont.size;
-        editor.serializedObject.ApplyModifiedProperties();
 
+        //font names
+        SerializedProperty fontNamesValue= editor.serializedObject.FindProperty("m_FontNames");
+        SetFontNames(fontNamesValue, bitmapFont);
+
+        //KerningValues
+        SerializedProperty kerningValues = editor.serializedObject.FindProperty("m_KerningValues");
+        SetFontKernings(kerningValues, bitmapFont);
+
+        editor.serializedObject.ApplyModifiedProperties();
         AssetDatabase.SaveAssets();
     }
 
-    static void SetFontKerning(Font font,BitmapFont bitmapFont)
+    static void SetFontNames(SerializedProperty fontNamesValue, BitmapFont bitmapFont)
     {
-        Editor editor = Editor.CreateEditor(font);
+        fontNamesValue.InsertArrayElementAtIndex(0);
+        //array
+        fontNamesValue.Next(true);
+        //Debug.Log(fontNamesValue.name + "[" + fontNamesValue.depth + "]" + "," + fontNamesValue.type + "," + fontNamesValue.hasChildren);
+        //size
+        fontNamesValue.Next(true);
+       // Debug.Log(fontNamesValue.name + "[" + fontNamesValue.depth + "]" + "," + fontNamesValue.type + "," + fontNamesValue.hasChildren);
 
-        //lineSpacing
-        SerializedProperty kerningValues = editor.serializedObject.FindProperty("m_KerningValues");
-        kerningValues.floatValue = bitmapFont.lineHeight;
+        //item
+        fontNamesValue.Next(true);
+        //Debug.Log(fontNamesValue.name + "[" + fontNamesValue.depth + "]" + "," + fontNamesValue.type + "," + fontNamesValue.hasChildren);
+        fontNamesValue.stringValue = bitmapFont.face;
+    }
+
+    static void SetFontKernings(SerializedProperty kerningValues, BitmapFont bitmapFont)
+    {
+        if (kerningValues.arraySize > bitmapFont.kernings.Length)
+        {
+            //Debug.Log("remove:" + (kerningValues.arraySize - bitmapFont.kernings.Length));
+            //移除多的key
+            for (int i = kerningValues.arraySize - 1; i >= bitmapFont.kernings.Length - 1; --i)
+            {
+                kerningValues.DeleteArrayElementAtIndex(i);
+            }
+        }
+        else if (kerningValues.arraySize < bitmapFont.kernings.Length)
+        {
+            //Debug.Log("add:" + (bitmapFont.kernings.Length-kerningValues.arraySize));
+            //添加key
+            for (int i = kerningValues.arraySize; i < bitmapFont.kernings.Length; ++i)
+            {
+                kerningValues.InsertArrayElementAtIndex(i);
+            }
+        }
+
+        //设置每个元素值
+        SerializedProperty prop = kerningValues;
+
+        //array prop
+        prop.Next(true);
+        //size prop;
+        prop.Next(true);
+
+        for (int i = 0; i < bitmapFont.kernings.Length; ++i)
+        {
+            SetFontKerningItem(prop, bitmapFont.kernings[i]);
+        }
+    }
+
+    static void SetFontKerningItem(SerializedProperty item,BitmapCharKerning kerning)
+    {
+        //data prop map< pair<ushort,ushort>,float >
+        item.Next(true);
+        //Debug.Log(item.name + "[" + item.depth + "]" + "," + item.type + "," + item.hasChildren);
+        //key pair <ushort,ushort> first,second
+        item.Next(true);
+        //前面都是内部数据，跳过
+        //Debug.Log(item.name + "[" + item.depth + "]" + "," + item.type + "," + item.hasChildren);
+        //key first
+        item.Next(true);
+        //Debug.Log(item.name + "[" + item.depth + "]" + "," + item.type + "," + item.hasChildren);
+
+        item.intValue = kerning.firstChar;
+        //key second
+        item.Next(true);
+        //Debug.Log(item.name + "[" + item.depth + "]" + "," + item.type + "," + item.hasChildren);
+
+        item.intValue = kerning.secondChar;
+        //second
+        item.Next(true);
+        //Debug.Log(item.name + "[" + item.depth + "]" + "," + item.type + "," + item.hasChildren);
+
+        item.floatValue = kerning.amount;
     }
 
     private static int ToInt(XmlNode node, string name)

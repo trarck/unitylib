@@ -3,7 +3,7 @@ using System.Collections;
 using System.Xml;
 using System.IO;
 
-namespace YH.Font
+namespace YH.Fonts
 {
 
     [System.Serializable]

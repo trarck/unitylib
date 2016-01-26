@@ -176,12 +176,16 @@ Font:
     advance: 18
     flipped: 0
   m_Texture: {fileID: 0}
-  m_KerningValues: []
+  m_KerningValues:
+  - first:
+      49: 49
+    second: -2
   m_PixelScale: 0.1
   m_FontData: 
   m_FontSize: 32
   m_Ascent: 0
   m_DefaultStyle: 0
-  m_FontNames: []
+  m_FontNames:
+  - Arial
   m_FallbackFonts: []
   m_FontRenderingMode: 0

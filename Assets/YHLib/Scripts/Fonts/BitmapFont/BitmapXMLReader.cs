@@ -2,7 +2,7 @@
 using System.Xml;
 using System.IO;
 
-namespace YH.Font
+namespace YH.Fonts
 {
     public class BitmapXMLReader
     {

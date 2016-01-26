@@ -12,7 +12,7 @@ TrueTypeFontImporter:
   use2xBehaviour: 0
   fontNames: []
   fallbackFontReferences: []
-  customCharacters: 0123456789
+  customCharacters: 0123456789abcdefghijklmnopqrstuvwxyz
   fontRenderingMode: 0
   userData: 
   assetBundleName: 
