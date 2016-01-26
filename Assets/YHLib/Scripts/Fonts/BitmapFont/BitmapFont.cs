@@ -1,7 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Xml;
-using System.IO;
 
 namespace YH.Fonts
 {
@@ -68,7 +65,7 @@ namespace YH.Fonts
 
         bool m_Italic;
 
-        int m_Charset;
+        string m_Charset;
 
         bool m_Unicode;
 
@@ -345,7 +342,7 @@ namespace YH.Fonts
             }
         }
 
-        public int charset
+        public string charset
         {
             set
             {

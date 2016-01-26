@@ -51,7 +51,7 @@ namespace YH.Fonts
             fnt.size = Mathf.Abs(ReadFloatAttribute(info, "size"));
             fnt.bold = ReadBoolAttribute(info, "bold");
             fnt.italic = ReadBoolAttribute(info, "italic");
-            fnt.charset = ReadIntAttribute(info, "charset");
+            fnt.charset = info.Attributes["charset"].Value;
             fnt.unicode = ReadBoolAttribute(info, "unicode");
             fnt.stretchH = ReadFloatAttribute(info, "stretchH");
             fnt.smooth = ReadBoolAttribute(info, "smooth");

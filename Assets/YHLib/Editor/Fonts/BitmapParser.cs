@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
 using System.Xml;
 using System.IO;
 
@@ -8,37 +7,9 @@ namespace YH.Fonts
 {
     public class BitmapParser
     {
-        public BitmapFont Parse(string fontFile)
+        public void Parse(BitmapFont fnt, string fontFile)
         {
-            XmlDocument doc = new XmlDocument();
-            if (File.Exists(fontFile))
-            {
-                doc.Load(fontFile);
-            }
-            else
-            {
-                TextAsset text = AssetDatabase.LoadAssetAtPath<TextAsset>(fontFile);
-                if (text)
-                {
-                    doc.LoadXml(text.text);
-                }
-                else
-                {
-                    Debug.LogError("No font file find. " + fontFile);
-                }
-            }
-
-            return Parse(doc, fontFile);
-        }
-
-        public BitmapFont Parse(XmlDocument doc, string fontFile)
-        {
-            BitmapXMLReader bitmapXmlReader = new BitmapXMLReader();
-
-            BitmapFont fnt = bitmapXmlReader.Load(doc);
-            
             ParsePages(fnt, fontFile);
-            return fnt;
         }
 
         public void ParsePages(BitmapFont fnt,string fontFile)
@@ -54,7 +25,6 @@ namespace YH.Fonts
                 //Find original font texture
                 string imagePath = Path.GetDirectoryName(fontFile) + "/" + pageImagePath;
                 Texture2D inputTexture = (Texture2D)AssetDatabase.LoadAssetAtPath(imagePath, typeof(Texture2D));
-
                 //Make sure font texture is readable
                 TextureImporter inputTextureImp = (TextureImporter)AssetImporter.GetAtPath(imagePath);
                 inputTextureImp.textureType = TextureImporterType.Advanced;

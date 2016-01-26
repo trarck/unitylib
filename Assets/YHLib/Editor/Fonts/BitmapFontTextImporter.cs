@@ -7,9 +7,9 @@ using System.Xml;
 
 using YH.Fonts;
 
-public static class BitmapFontImporter {
+public static class BitmapFontTextImporter {
  
-    [MenuItem("Assets/BitmapFont/Import Font")]
+    [MenuItem("Assets/BitmapFont/Import Text Font")]
     public static void GenerateFont()
     {
         TextAsset selected = (TextAsset)Selection.activeObject;
@@ -17,7 +17,7 @@ public static class BitmapFontImporter {
         if (!selected) throw new UnityException(selected.name + "is not a valid font-xml file");
         string fontFile = AssetDatabase.GetAssetPath(selected);
         string rootPath = Path.GetDirectoryName(fontFile);
-        
+
         BitmapFont bitmapFont= Load(fontFile);
 
         string exportPath = rootPath + "/" + Path.GetFileNameWithoutExtension(selected.name);
@@ -27,35 +27,12 @@ public static class BitmapFontImporter {
 
     public static BitmapFont Load(string fontFile)
     {
-        XmlDocument doc = new XmlDocument();
-        if (File.Exists(fontFile))
-        {
-            doc.Load(fontFile);
-        }
-        else
-        {
-            TextAsset text = AssetDatabase.LoadAssetAtPath<TextAsset>(fontFile);
-            if (text)
-            {
-                doc.LoadXml(text.text);
-            }
-            else
-            {
-                Debug.LogError("No font file find. " + fontFile);
-            }
-        }
+        BitmapTxtReader bitmapTxtReader = new BitmapTxtReader();
 
-        return Load(doc, fontFile);
-    }
-
-    public static BitmapFont Load(XmlDocument doc, string fontFile)
-    {
-        BitmapXMLReader bitmapXmlReader = new BitmapXMLReader();
-
-        BitmapFont fnt = bitmapXmlReader.Load(doc);
+        BitmapFont fnt = bitmapTxtReader.Load(fontFile);
 
         BitmapParser bitmapParser = new BitmapParser();
         bitmapParser.Parse(fnt, fontFile);
         return fnt;
-    }   
+    }
 }
