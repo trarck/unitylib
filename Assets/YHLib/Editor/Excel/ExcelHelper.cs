@@ -3,7 +3,7 @@ using NPOI.SS.UserModel;
 using NPOI.HSSF.UserModel;
 using NPOI.XSSF.UserModel;
 
-namespace YH
+namespace YH.Excel
 {
     public class ExcelHelper
     {
