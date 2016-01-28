@@ -30,5 +30,29 @@ namespace YH
 
             return workbook;
         }
+
+        public static void Save(string fileName, IWorkbook workbook)
+        {
+            string ext = Path.GetExtension(fileName);
+
+            if (workbook is HSSFWorkbook)
+            {
+                if (ext.ToLower() != ".xls")
+                {
+                    fileName = Path.GetDirectoryName(fileName) + Path.GetFileNameWithoutExtension(fileName) + ".xls";
+                }
+            }
+            else if (workbook is XSSFWorkbook)
+            {
+                if (ext.ToLower() != ".xlsx")
+                {
+                    fileName = Path.GetDirectoryName(fileName) + Path.GetFileNameWithoutExtension(fileName) + ".xlsx";
+                }
+            }
+
+            FileStream fs = File.Create(fileName);
+            workbook.Write(fs);
+            fs.Close();
+        }
     }
 }

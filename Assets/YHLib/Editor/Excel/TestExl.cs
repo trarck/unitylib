@@ -66,5 +66,9 @@ public static class TextExl {
         {
             Debug.Log("no file:" + fileName);
         }
+
+        string ext=Path.GetExtension(fileName);
+        string f = Path.GetFileNameWithoutExtension(fileName);
+        Debug.Log(f+","+Path.GetFullPath(fileName)+","+Path.GetDirectoryName(fileName));
     }   
 }
