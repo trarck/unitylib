@@ -19,6 +19,23 @@ namespace YH.Excel.Data
             m_Type = type;
         }
 
+        public static ExcelDataType Parse(string type)
+        {
+            int pos = type.IndexOf("(");
+            if (pos>-1)
+            {
+                string baseType = type.Substring(0, pos);
+                int posEnd = type.IndexOf(")");
+                string extType = type.Substring(pos+1,posEnd);
+
+                return EnumUtil.ParseEnum<ExcelDataType>(baseType, ExcelDataType.Object);
+            }
+            else
+            {
+                return EnumUtil.ParseEnum<ExcelDataType>(type, ExcelDataType.Object);
+            }            
+        }
+
         public ExcelDataType type
         {
             set

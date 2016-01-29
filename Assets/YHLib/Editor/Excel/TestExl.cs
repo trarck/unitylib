@@ -61,6 +61,16 @@ public static class TextExl {
                 workbook = new HSSFWorkbook(fs);
             }
 
+            ISheet sheet = workbook.GetSheetAt(0);
+
+            IRow row = sheet.GetRow(0);
+
+            IEnumerator<ICell> iter = row.GetEnumerator();
+            while (iter.MoveNext())
+            {
+                Debug.Log(iter.Current.StringCellValue);
+            }
+
             Debug.Log(fs.CanRead);
         }
         else

@@ -3,6 +3,7 @@ namespace YH.Excel.Data
 {
     public enum ExcelDataType
     {
+        Object,//未知
         Int,
         Float,
         String,
