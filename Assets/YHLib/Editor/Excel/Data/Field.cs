@@ -26,14 +26,18 @@ namespace YH.Excel.Data
             {
                 string baseType = type.Substring(0, pos);
                 int posEnd = type.IndexOf(")");
-                string extType = type.Substring(pos+1,posEnd);
-
+                string extData = type.Substring(pos+1,posEnd);
                 return EnumUtil.ParseEnum<ExcelDataType>(baseType, ExcelDataType.Object);
             }
             else
             {
                 return EnumUtil.ParseEnum<ExcelDataType>(type, ExcelDataType.Object);
             }            
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Field[{0}]--{1}",m_Name ,m_Type);
         }
 
         public ExcelDataType type

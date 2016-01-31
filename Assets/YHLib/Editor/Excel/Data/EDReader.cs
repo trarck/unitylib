@@ -2,6 +2,7 @@
 using NPOI.SS.UserModel;
 using NPOI.HSSF.UserModel;
 using NPOI.XSSF.UserModel;
+using UnityEngine;
 
 namespace YH.Excel.Data
 {
@@ -24,7 +25,7 @@ namespace YH.Excel.Data
             Schema schema = new Schema();
 
             //first row is name
-            IRow headerRow = sheet.GetRow(sheet.FirstRowNum + m_SchemaDataTypeRow);
+            IRow headerRow = sheet.GetRow(sheet.FirstRowNum + m_SchemaNameRow);
 
             //second row is data type
             IRow typeRow = sheet.GetRow(sheet.FirstRowNum + m_SchemaDataTypeRow);

@@ -7,6 +7,11 @@ namespace YH.Excel.Data
     {
         List<Field> m_Fields;
 
+        public Schema()
+        {
+            m_Fields = new List<Field>();
+        }
+
         public void AddField(string name, ExcelDataType type)
         {
             if (!Exists(name))
