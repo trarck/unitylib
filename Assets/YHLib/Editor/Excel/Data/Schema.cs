@@ -21,6 +21,15 @@ namespace YH.Excel.Data
             }
         }
 
+        public void AddField(string name, ExcelDataType type,string extType)
+        {
+            if (!Exists(name))
+            {
+                Field field = new Field(name, type,extType);
+                m_Fields.Add(field);
+            }
+        }
+
         public void RemoveField(string name,ExcelDataType type)
         {
             for (int i=0,l=m_Fields.Count;i< l;++i)

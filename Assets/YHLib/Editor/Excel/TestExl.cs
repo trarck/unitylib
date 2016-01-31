@@ -27,6 +27,9 @@ namespace YH.Excel.Data
             {
                 Debug.Log(field);
             }
+
+            CodeGen gen = new CodeGen();
+            gen.GenClass(schema);
         }
     }
 }

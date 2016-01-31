@@ -37,13 +37,14 @@ namespace YH.Excel.Data
             {
                 string name = headerIter.Current.StringCellValue;
                 ExcelDataType dataType = ExcelDataType.Object;
+                string extType="";
 
                 if (typeIter.MoveNext())
                 {
-                    dataType = Field.Parse(typeIter.Current.StringCellValue);
+                    dataType = Field.Parse(typeIter.Current.StringCellValue,out extType);
                 }
 
-                schema.AddField(name, dataType);
+                schema.AddField(name, dataType, extType);
             }
 
             return schema;
