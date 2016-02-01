@@ -29,7 +29,11 @@ namespace YH.Excel.Data
             }
 
             CodeGen gen = new CodeGen();
-            gen.GenClass(schema);
+
+            gen.ns = "YH.Test.Data";
+
+            string outputPath=Application.dataPath+ "/Tests/Scripts/Data/Beans/";
+            gen.GenClass(schema, outputPath);
         }
     }
 }

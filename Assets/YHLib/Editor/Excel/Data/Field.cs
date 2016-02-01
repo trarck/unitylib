@@ -14,6 +14,9 @@ namespace YH.Excel.Data
         //扩展类型
         string m_ExtType;
 
+        //注释
+        string m_Comment;
+
         public Field()
         {
 
@@ -24,11 +27,16 @@ namespace YH.Excel.Data
 
         }
 
-        public Field(string name, ExcelDataType type,string extType)
+        public Field(string name, ExcelDataType type,string extType):this(name,type,extType,"")
+        {
+        }
+
+        public Field(string name, ExcelDataType type, string extType,string comment)
         {
             m_Name = name;
             m_Type = type;
             m_ExtType = extType;
+            m_Comment = comment;
         }
 
         public static ExcelDataType Parse(string type)
@@ -96,6 +104,19 @@ namespace YH.Excel.Data
             get
             {
                 return m_ExtType;
+            }
+        }
+
+        public string comment
+        {
+            set
+            {
+                m_Comment = value;
+            }
+
+            get
+            {
+                return m_Comment;
             }
         }
     }

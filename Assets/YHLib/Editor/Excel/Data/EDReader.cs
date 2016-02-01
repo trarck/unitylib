@@ -23,6 +23,7 @@ namespace YH.Excel.Data
         public Schema ReadSchema(ISheet sheet)
         {
             Schema schema = new Schema();
+            schema.name = sheet.SheetName;
 
             //first row is name
             IRow headerRow = sheet.GetRow(sheet.FirstRowNum + m_SchemaNameRow);
@@ -44,12 +45,18 @@ namespace YH.Excel.Data
                     dataType = Field.Parse(typeIter.Current.StringCellValue,out extType);
                 }
 
-                schema.AddField(name, dataType, extType);
+                string comment = "";
+                if (headerIter.Current.CellComment != null)
+                {
+                    comment = headerIter.Current.CellComment.String.String;
+                }
+
+                Field field = new Field(name, dataType, extType, comment);
+                schema.AddField(field);
             }
 
             return schema;
         }
-
 
         public Schema GetSchema()
         {
