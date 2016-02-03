@@ -5,6 +5,8 @@ namespace YH.Excel.Data
 
     public class Schema
     {
+        string m_Name;
+
         List<Field> m_Fields;
 
         public Schema()
@@ -26,6 +28,14 @@ namespace YH.Excel.Data
             if (!Exists(name))
             {
                 Field field = new Field(name, type,extType);
+                m_Fields.Add(field);
+            }
+        }
+
+        public void AddField(Field field)
+        {
+            if (!Exists(field.name))
+            {
                 m_Fields.Add(field);
             }
         }
@@ -63,8 +73,20 @@ namespace YH.Excel.Data
                     return true;
                 }
             }
-
             return false;
+        }
+
+        public string name
+        {
+            set
+            {
+                m_Name = value;
+            }
+
+            get
+            {
+                return m_Name;
+            }
         }
 
         public List<Field> fields

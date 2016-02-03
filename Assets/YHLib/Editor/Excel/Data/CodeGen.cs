@@ -1,16 +1,38 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.IO;
 
 namespace YH.Excel.Data
 {
     public class CodeGen
     {
-        public void GenClass(Schema schema)
+        static int PropertyPad = 4;
+        string m_Ns;
+
+        public void GenClass(Schema schema,string outputPath)
         {
             string template = System.IO.File.ReadAllText(Application.dataPath + "/YHLib/Editor/Excel/Data/CodeDataTemplate.ts");
+            template = template.Replace("{CLASS}", schema.name);
             template=template.Replace("{PROPERTIES}", CreateProperties(schema));
-            Debug.Log(template);
+            if (string.IsNullOrEmpty(m_Ns))
+            {
+                template = template.Replace("{NAMESPACE_START}","");
+                template = template.Replace("{NAMESPACE_END}", "");
+            }
+            else
+            {
+                template = template.Replace("{NAMESPACE_START}", "namespace "+m_Ns+"\n{");
+                template = template.Replace("{NAMESPACE_END}", "}");
+            }
+
+            //check path is exists
+            if (!Directory.Exists(outputPath))
+            {
+                Directory.CreateDirectory(outputPath);
+            }
+            string codeFile = Path.Combine(outputPath , schema.name + ".cs");
+            File.WriteAllText(codeFile, template);
         }
 
         string GetFieldTypeDefine(Field field)
@@ -53,7 +75,16 @@ namespace YH.Excel.Data
 
         string CreateProperty(Field field)
         {
-            return "public " + GetFieldTypeDefine(field) + " " + field.name+";\n";
+            string pad = Pad(PropertyPad);
+
+            string comment = "";
+            if (field.comment != "")
+            {
+                comment = pad + "/*" + field.comment + "\n"  
+                          + pad + "*/\n";
+            }
+            return comment
+                + pad+"public " + GetFieldTypeDefine(field) + " " + field.name+";\n";
         }
 
         string CreateProperties(Schema shema)
@@ -64,6 +95,30 @@ namespace YH.Excel.Data
                 properties += CreateProperty(field);
             }
             return properties;
+        }
+
+        public static string Pad(int num)
+        {
+            string p = "";
+            for(int i = 0; i < num; ++i)
+            {
+                p += " ";
+            }
+
+            return p;
+        }
+
+        public string ns
+        {
+            set
+            {
+                m_Ns = value;
+            }
+
+            get
+            {
+                return m_Ns;
+            }
         }
     }
 }
