@@ -8,6 +8,7 @@ namespace YH.Excel.Data
     public class CodeGen
     {
         static int PropertyPad = 4;
+        static string CRLF = "\r\n";
         string m_Ns;
 
         public void GenClass(Schema schema,string outputPath)
@@ -80,11 +81,10 @@ namespace YH.Excel.Data
             string comment = "";
             if (field.comment != "")
             {
-                comment = pad + "/*" + field.comment + "\n"  
-                          + pad + "*/\n";
+                comment = pad + "/*" + field.comment + "*/"+ CRLF;
             }
             return comment
-                + pad+"public " + GetFieldTypeDefine(field) + " " + field.name+";\n";
+                + pad+"public " + GetFieldTypeDefine(field) + " " + field.name+";"+ CRLF;
         }
 
         string CreateProperties(Schema shema)
