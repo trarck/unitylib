@@ -7,6 +7,6 @@ using System.Collections.Generic;
 [System.Serializable]
 public class {CLASS}
 {
-    {PROPERTIES}
+{PROPERTIES}
 }
 {NAMESPACE_END}
