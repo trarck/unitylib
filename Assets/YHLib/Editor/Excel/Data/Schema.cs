@@ -76,6 +76,18 @@ namespace YH.Excel.Data
             return false;
         }
 
+        public Field GetField(string name)
+        {
+            foreach (Field field in m_Fields)
+            {
+                if (field.name == name)
+                {
+                    return field;
+                }
+            }
+            return null;
+        }
+
         public string name
         {
             set

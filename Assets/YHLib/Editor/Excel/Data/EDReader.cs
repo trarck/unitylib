@@ -17,7 +17,7 @@ namespace YH.Excel.Data
 
         public EDReader(IWorkbook workbook)
         {
-
+            m_Workbook = workbook;
         }
 
         public Schema ReadSchema(ISheet sheet)
@@ -58,9 +58,17 @@ namespace YH.Excel.Data
             return schema;
         }
 
-        public Schema GetSchema()
+        public Schema schema
         {
-            return m_Schema;
+            set
+            {
+                m_Schema = value;
+            }
+
+            get
+            {
+                return m_Schema;
+            }
         }
 
         public IWorkbook workbook
