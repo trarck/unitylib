@@ -7,6 +7,7 @@ namespace YH.Excel.Data
         Int,
         Float,
         String,
+        Boolean,
         Array,
         Dictionary,
         List,

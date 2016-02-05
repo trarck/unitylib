@@ -34,15 +34,18 @@ namespace YH.Excel.Data
             IEnumerator<ICell> headerIter = headerRow.GetEnumerator();
             IEnumerator<ICell> typeIter = typeRow.GetEnumerator();
 
-            while (headerIter.MoveNext())
+            for(int i = headerRow.FirstCellNum; i < headerRow.LastCellNum; ++i)
             {
-                string name = headerIter.Current.StringCellValue;
-                ExcelDataType dataType = ExcelDataType.Object;
-                string extType="";
+                string name = headerRow.GetCell(i).StringCellValue;
+                
 
-                if (typeIter.MoveNext())
+                ExcelDataType dataType = ExcelDataType.Object;
+                string extType = "";
+
+                ICell typeCell = typeRow.GetCell(i);
+                if (typeCell!=null)
                 {
-                    dataType = Field.Parse(typeIter.Current.StringCellValue,out extType);
+                    dataType = Field.Parse(typeCell.StringCellValue, out extType);
                 }
 
                 string comment = "";
