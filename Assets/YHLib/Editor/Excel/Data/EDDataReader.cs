@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using NPOI.SS.UserModel;
 
 namespace YH.Excel.Data
@@ -12,63 +11,74 @@ namespace YH.Excel.Data
 
         }
 
-        List<string> ReadHeader(ISheet sheet)
+        public static List<object> ReadList(ISheet sheet, Schema schema)
         {
-            List<string> header = new List<string>();
-
-            //first fow is header
-            IRow headerRow = sheet.GetRow(sheet.FirstRowNum);
-            IEnumerator<ICell> iter = headerRow.GetEnumerator();
-            while (iter.MoveNext())
-            {
-                header.Add(iter.Current.StringCellValue);
-            }
-            return header;
+            return ReadList(sheet, schema, 2, null);
         }
 
-        List<Field> PrepareHeaderFields(List<string> header, Schema schema)
+        public static List<object> ReadList(ISheet sheet, Schema schema, int dataStartOffset)
         {
-            List<Field> headerFields = new List<Field>();
-            foreach (string name in header)
-            {
-                headerFields.Add(schema.GetField(name));
-            }
-
-            return headerFields;
+            return ReadList(sheet, schema, dataStartOffset, null);
         }
 
-        public Dictionary<string, object> ReadDictionary(ISheet sheet, Schema schema)
-        {
-            return ReadDictionary(sheet, schema, 0, null);
-        }
-
-        public Dictionary<string, object> ReadDictionary(ISheet sheet, Schema schema, int dataStartOffset)
-        {
-            return ReadDictionary(sheet, schema, dataStartOffset, null);
-        }
-
-        public Dictionary<string, object> ReadDictionary(ISheet sheet, Schema schema, int dataStartOffset, List<string> header)
+        public static List<object> ReadList(ISheet sheet, Schema schema, int dataStartOffset, List<string> header)
         {
 
             if (header == null || header.Count == 0)
             {
-                header = ReadHeader(sheet);
+                header = EDDataHelper.GetHeader(sheet);
             }
 
-            List<Field> headerFields = PrepareHeaderFields(header, schema);
+            List<Field> headerFields = EDDataHelper.PrepareHeaderFields(header, schema);
 
-            Dictionary<string, object> data = new Dictionary<string, object>();
+            List<object> list = new List<object>();
 
-            for (int i = sheet.FirstRowNum + dataStartOffset; i < sheet.LastRowNum; ++i)
+            for (int i = sheet.FirstRowNum + dataStartOffset; i <= sheet.LastRowNum; ++i)
             {
-
+                Dictionary<string, object> record = ReadRowData(sheet.GetRow(i), headerFields);
+                list.Add(record);
             }
-
-            return data;
-
+            return list;
         }
 
-        Dictionary<string, object> ReadRowData(IRow row, List<Field> headerFields)
+        public static Dictionary<string, object> ReadDictionary(ISheet sheet, Schema schema)
+        {
+            return ReadDictionary(sheet, schema, "", 2, null);
+        }
+
+        public static Dictionary<string, object> ReadDictionary(ISheet sheet, Schema schema, string keyField)
+        {
+            return ReadDictionary(sheet, schema, keyField, 2, null);
+        }
+
+        public static Dictionary<string, object> ReadDictionary(ISheet sheet, Schema schema, string keyField, int dataStartOffset, List<string> header)
+        {
+
+            if (header == null || header.Count == 0)
+            {
+                header = EDDataHelper.GetHeader(sheet);
+            }
+
+            List<Field> headerFields = EDDataHelper.PrepareHeaderFields(header, schema);
+
+            //如果没指定key,则默认使用第一个
+            if (string.IsNullOrEmpty(keyField))
+            {
+                keyField = header[0];
+            }
+
+            Dictionary<string, object> dict = new Dictionary<string, object>();
+
+            for (int i = sheet.FirstRowNum + dataStartOffset; i <= sheet.LastRowNum; ++i)
+            {
+                Dictionary<string, object> record = ReadRowData(sheet.GetRow(i), headerFields);
+                string key = record[keyField].ToString();
+                dict[key] = record;
+            }
+            return dict;
+        }
+
+        static Dictionary<string, object> ReadRowData(IRow row, List<Field> headerFields)
         {
             Dictionary<string, object> data = new Dictionary<string, object>();
             IEnumerator<ICell> iter = row.GetEnumerator();
@@ -79,136 +89,36 @@ namespace YH.Excel.Data
             while (iter.MoveNext())
             {
                 field = headerFields[index];
-
-                switch (field.type)
-                {
-                    case ExcelDataType.Int:
-                        data[field.name] = GetIntValue(iter.Current);
-                        break;
-                    case ExcelDataType.Float:
-                        data[field.name] = GetFloatValue(iter.Current);
-                        break;
-                    case ExcelDataType.Long:
-                        data[field.name] = GetLongValue(iter.Current);
-                        break;
-                    case ExcelDataType.Double:
-                        data[field.name] = GetDoubleValue(iter.Current);
-                        break;
-                    case ExcelDataType.Boolean:
-                        data[field.name] = GetBoolValue(iter.Current);
-                        break;
-                    case ExcelDataType.String:
-                        data[field.name] = GetStringValue(iter.Current);
-                        break;
-                    case ExcelDataType.Array:
-                    default:
-                        break;
-                }
-
+                data[field.name] = GetCellValue(iter.Current, field);
                 ++index;
             }
 
             return data;
         }
 
-        int GetIntValue(ICell cell)
+        public static object GetCellValue(ICell cell, Field field)
         {
-            switch (cell.CellType)
+            switch (field.type)
             {
-                case CellType.Numeric:
-                    return (int)cell.NumericCellValue;
-                case CellType.String:
-                    return int.Parse(cell.StringCellValue);
-                case CellType.Boolean:
-                    return cell.BooleanCellValue ? 1 : 0;
+                case ExcelDataType.Int:
+                    return EDDataHelper.GetIntValue(cell);
+                case ExcelDataType.Float:
+                    return EDDataHelper.GetFloatValue(cell);
+                case ExcelDataType.Long:
+                    return EDDataHelper.GetLongValue(cell);
+                case ExcelDataType.Double:
+                    return EDDataHelper.GetDoubleValue(cell);
+                case ExcelDataType.Boolean:
+                    return EDDataHelper.GetBoolValue(cell);
+                case ExcelDataType.String:
+                    return EDDataHelper.GetStringValue(cell);
+                case ExcelDataType.Array:
+                    return EDLinkDataReader.GetLinkData<>
                 default:
-                    throw new System.Exception("can't convert to int from " + cell.CellType);
+                    break;
             }
+            return null;
         }
-
-        long GetLongValue(ICell cell)
-        {
-            switch (cell.CellType)
-            {
-                case CellType.Numeric:
-                    return (long)cell.NumericCellValue;
-                case CellType.String:
-                    return long.Parse(cell.StringCellValue);
-                default:
-                    throw new System.Exception("can't convert to long from " + cell.CellType);
-            }
-        }
-
-        float GetFloatValue(ICell cell)
-        {
-            switch (cell.CellType)
-            {
-                case CellType.Numeric:
-                    return (float)cell.NumericCellValue;
-                case CellType.String:
-                    return float.Parse(cell.StringCellValue);
-                default:
-                    throw new System.Exception("can't convert to float from " + cell.CellType);
-            }
-        }
-
-        double GetDoubleValue(ICell cell)
-        {
-            switch (cell.CellType)
-            {
-                case CellType.Numeric:
-                    return cell.NumericCellValue;
-                case CellType.String:
-                    return double.Parse(cell.StringCellValue);
-                default:
-                    throw new System.Exception("can't convert to double from " + cell.CellType);
-            }
-        }
-
-        bool GetBoolValue(ICell cell)
-        {
-            switch (cell.CellType)
-            {
-                case CellType.Numeric:
-                    return cell.NumericCellValue != 0;
-                case CellType.String:
-                    return bool.Parse(cell.StringCellValue);
-                case CellType.Boolean:
-                    return cell.BooleanCellValue;
-                default:
-                    throw new System.Exception("can't convert to bool from " + cell.CellType);
-            }
-        }
-
-        string GetStringValue(ICell cell)
-        {
-            switch (cell.CellType)
-            {
-                case CellType.Numeric:
-                    return cell.NumericCellValue.ToString();
-                case CellType.Boolean:
-                    return cell.BooleanCellValue.ToString();
-                default:
-                    return cell.StringCellValue;
-            }
-        }
-
-        T[] GetArrayValue<T>(ICell cell)
-        {
-            List<T> list = new List<T>();
-
-            string linkWhere = cell.StringCellValue;
-
-            int pos = linkWhere.IndexOf("!");
-            if (pos > -1)
-            {
-                string linkCell = linkWhere.Substring(pos + 1);
-                string linkSheetName = linkWhere.Substring(0, pos);
-
-                ISheet linkSheet = cell.Sheet.Workbook.GetSheet(linkSheetName);
-            }
-
-            return list.ToArray();
-        }
+        
     }
 }

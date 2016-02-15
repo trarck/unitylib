@@ -10,8 +10,6 @@ namespace YH.Excel.Data
     {
         IWorkbook m_Workbook;
 
-        Schema m_Schema;
-
         int m_SchemaNameRow = 0;
         int m_SchemaDataTypeRow = 1;
 
@@ -20,58 +18,12 @@ namespace YH.Excel.Data
             m_Workbook = workbook;
         }
 
-        public Schema ReadSchema(ISheet sheet)
+        public List<object> ReadList(ISheet sheet)
         {
-            Schema schema = new Schema();
-            schema.name = sheet.SheetName;
+            Schema schema = EDSchemaReader.ReadSchema(sheet);
+            EDDataReader reader = new EDDataReader();
 
-            //first row is name
-            IRow headerRow = sheet.GetRow(sheet.FirstRowNum + m_SchemaNameRow);
-
-            //second row is data type
-            IRow typeRow = sheet.GetRow(sheet.FirstRowNum + m_SchemaDataTypeRow);
-
-            IEnumerator<ICell> headerIter = headerRow.GetEnumerator();
-            IEnumerator<ICell> typeIter = typeRow.GetEnumerator();
-
-            for(int i = headerRow.FirstCellNum; i < headerRow.LastCellNum; ++i)
-            {
-                string name = headerRow.GetCell(i).StringCellValue;
-                
-
-                ExcelDataType dataType = ExcelDataType.Object;
-                string extType = "";
-
-                ICell typeCell = typeRow.GetCell(i);
-                if (typeCell!=null)
-                {
-                    dataType = Field.Parse(typeCell.StringCellValue, out extType);
-                }
-
-                string comment = "";
-                if (headerIter.Current.CellComment != null)
-                {
-                    comment = headerIter.Current.CellComment.String.String;
-                }
-
-                Field field = new Field(name, dataType, extType, comment);
-                schema.AddField(field);
-            }
-
-            return schema;
-        }
-
-        public Schema schema
-        {
-            set
-            {
-                m_Schema = value;
-            }
-
-            get
-            {
-                return m_Schema;
-            }
+            return reader.ReadList(sheet, schema);
         }
 
         public IWorkbook workbook
@@ -84,6 +36,32 @@ namespace YH.Excel.Data
             get
             {
                 return m_Workbook;
+            }
+        }
+
+        public int schemaNameRow
+        {
+            set
+            {
+                m_SchemaNameRow = value;
+            }
+
+            get
+            {
+                return m_SchemaNameRow;
+            }
+        }
+
+        public int schemaDataTypeRow
+        {
+            set
+            {
+                m_SchemaDataTypeRow = value;
+            }
+
+            get
+            {
+                return m_SchemaDataTypeRow;
             }
         }
     }

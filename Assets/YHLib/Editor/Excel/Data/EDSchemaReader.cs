@@ -1,0 +1,58 @@
+﻿using System.Collections.Generic;
+using NPOI.SS.UserModel;
+using NPOI.HSSF.UserModel;
+using NPOI.XSSF.UserModel;
+using UnityEngine;
+
+namespace YH.Excel.Data
+{
+    public class EDSchemaReader
+    {
+
+        public EDSchemaReader()
+        {
+
+        }
+
+        public static Schema ReadSchema(ISheet sheet, int schemaNameRow=0, int schemaDataTypeRow=1)
+        {
+            Schema schema = new Schema();
+            schema.name = sheet.SheetName;
+
+            //first row is name
+            IRow headerRow = sheet.GetRow(sheet.FirstRowNum + schemaNameRow);
+
+            //second row is data type
+            IRow typeRow = sheet.GetRow(sheet.FirstRowNum + schemaDataTypeRow);
+
+            IEnumerator<ICell> headerIter = headerRow.GetEnumerator();
+            IEnumerator<ICell> typeIter = typeRow.GetEnumerator();
+
+            for(int i = headerRow.FirstCellNum; i < headerRow.LastCellNum; ++i)
+            {
+                string name = headerRow.GetCell(i).StringCellValue;
+                
+
+                ExcelDataType dataType = ExcelDataType.Object;
+                string extType = "";
+
+                ICell typeCell = typeRow.GetCell(i);
+                if (typeCell!=null)
+                {
+                    dataType = Field.Parse(typeCell.StringCellValue, out extType);
+                }
+
+                string comment = "";
+                if (headerIter.Current.CellComment != null)
+                {
+                    comment = headerIter.Current.CellComment.String.String;
+                }
+
+                Field field = new Field(name, dataType, extType, comment);
+                schema.AddField(field);
+            }
+
+            return schema;
+        }
+    }
+}
