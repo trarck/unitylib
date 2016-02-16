@@ -9,11 +9,12 @@ namespace YH.Excel.Data
     {
         static int PropertyPad = 4;
         static string CRLF = "\r\n";
+        static string TemplateFile = "/YHLib/Editor/Excel/Data/Code/CodeDataTemplate.ts";
         string m_Ns;
 
         public void GenClass(Schema schema,string outputPath)
         {
-            string template = System.IO.File.ReadAllText(Application.dataPath + "/YHLib/Editor/Excel/Data/CodeDataTemplate.ts");
+            string template = System.IO.File.ReadAllText(Application.dataPath + TemplateFile);
             template = template.Replace("{CLASS}", schema.name);
             template=template.Replace("{PROPERTIES}", CreateProperties(schema));
             if (string.IsNullOrEmpty(m_Ns))

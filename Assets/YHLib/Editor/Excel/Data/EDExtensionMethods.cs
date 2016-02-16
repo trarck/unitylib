@@ -31,8 +31,14 @@ namespace YH.Excel.Data
                     t = typeof(object);
                     break;
             }
-
             return t;
+        }
+
+        public static Type ExtTypeToSystemType(this Field field)
+        {
+            //现在还不支持复杂类型
+            ExcelDataType dataType = EnumUtil.ParseEnum<ExcelDataType>(field.extType, ExcelDataType.String);
+            return dataType.ToSystemType();
         }
     }
 }

@@ -26,10 +26,10 @@ namespace YH.Excel.Data
 
             if (header == null || header.Count == 0)
             {
-                header = EDDataHelper.GetHeader(sheet);
+                header = EDReadHelper.GetHeader(sheet);
             }
 
-            List<Field> headerFields = EDDataHelper.PrepareHeaderFields(header, schema);
+            List<Field> headerFields = EDReadHelper.PrepareHeaderFields(header, schema);
 
             List<object> list = new List<object>();
 
@@ -56,10 +56,10 @@ namespace YH.Excel.Data
 
             if (header == null || header.Count == 0)
             {
-                header = EDDataHelper.GetHeader(sheet);
+                header = EDReadHelper.GetHeader(sheet);
             }
 
-            List<Field> headerFields = EDDataHelper.PrepareHeaderFields(header, schema);
+            List<Field> headerFields = EDReadHelper.PrepareHeaderFields(header, schema);
 
             //如果没指定key,则默认使用第一个
             if (string.IsNullOrEmpty(keyField))
@@ -101,19 +101,19 @@ namespace YH.Excel.Data
             switch (field.type)
             {
                 case ExcelDataType.Int:
-                    return EDDataHelper.GetIntValue(cell);
+                    return EDReadHelper.GetIntValue(cell);
                 case ExcelDataType.Float:
-                    return EDDataHelper.GetFloatValue(cell);
+                    return EDReadHelper.GetFloatValue(cell);
                 case ExcelDataType.Long:
-                    return EDDataHelper.GetLongValue(cell);
+                    return EDReadHelper.GetLongValue(cell);
                 case ExcelDataType.Double:
-                    return EDDataHelper.GetDoubleValue(cell);
+                    return EDReadHelper.GetDoubleValue(cell);
                 case ExcelDataType.Boolean:
-                    return EDDataHelper.GetBoolValue(cell);
+                    return EDReadHelper.GetBoolValue(cell);
                 case ExcelDataType.String:
-                    return EDDataHelper.GetStringValue(cell);
+                    return EDReadHelper.GetStringValue(cell);
                 case ExcelDataType.Array:
-                    return EDLinkDataReader.GetLinkData(cell,EDDataHelper.FieldExtTypeToSystemType(field.extType));
+                    return EDLinkDataReader.GetLinkData(cell,field.ExtTypeToSystemType());
                 default:
                     break;
             }

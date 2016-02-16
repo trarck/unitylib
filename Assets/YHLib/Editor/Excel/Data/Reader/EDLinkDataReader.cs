@@ -65,7 +65,7 @@ namespace YH.Excel.Data
             {
                 IRow row = sheet.GetRow(i);
                 ICell cell = row.GetCell(row.FirstCellNum + colIndex);
-                list.Add(EDDataHelper.GetIntValue(cell));
+                list.Add(EDReadHelper.GetIntValue(cell));
             }
             return list;
         }
@@ -78,7 +78,7 @@ namespace YH.Excel.Data
             {
                 IRow row = sheet.GetRow(i);
                 ICell cell = row.GetCell(row.FirstCellNum + colIndex);
-                list.Add(EDDataHelper.GetLongValue(cell));
+                list.Add(EDReadHelper.GetLongValue(cell));
             }
             return list;
         }
@@ -91,7 +91,7 @@ namespace YH.Excel.Data
             {
                 IRow row = sheet.GetRow(i);
                 ICell cell = row.GetCell(row.FirstCellNum + colIndex);
-                list.Add(EDDataHelper.GetFloatValue(cell));
+                list.Add(EDReadHelper.GetFloatValue(cell));
             }
             return list;
         }
@@ -104,7 +104,7 @@ namespace YH.Excel.Data
             {
                 IRow row = sheet.GetRow(i);
                 ICell cell = row.GetCell(row.FirstCellNum + colIndex);
-                list.Add(EDDataHelper.GetDoubleValue(cell));
+                list.Add(EDReadHelper.GetDoubleValue(cell));
             }
             return list;
         }
@@ -117,7 +117,7 @@ namespace YH.Excel.Data
             {
                 IRow row = sheet.GetRow(i);
                 ICell cell = row.GetCell(row.FirstCellNum + colIndex);
-                list.Add(EDDataHelper.GetStringValue(cell));
+                list.Add(EDReadHelper.GetStringValue(cell));
             }
             return list;
         }
@@ -130,7 +130,7 @@ namespace YH.Excel.Data
             {
                 IRow row = sheet.GetRow(i);
                 ICell cell = row.GetCell(row.FirstCellNum + colIndex);
-                list.Add(EDDataHelper.GetBoolValue(cell));
+                list.Add(EDReadHelper.GetBoolValue(cell));
             }
             return list;
         }
@@ -143,7 +143,7 @@ namespace YH.Excel.Data
             {
                 IRow row = sheet.GetRow(i);
                 ICell cell = row.GetCell(row.FirstCellNum + colIndex);
-                list.Add((T)EDDataHelper.GetCellValue(cell, dataType));
+                list.Add((T)EDReadHelper.GetCellValue(cell, dataType));
             }
             return list;
         }

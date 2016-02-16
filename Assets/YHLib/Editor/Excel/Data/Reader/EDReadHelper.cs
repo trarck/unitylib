@@ -5,9 +5,8 @@ using System;
 
 namespace YH.Excel.Data
 {
-    public class EDDataHelper
+    public class EDReadHelper
     {
-
         public static List<string> GetHeader(ISheet sheet, int headerOffset = 0)
         {
             List<string> header = new List<string>();
@@ -38,17 +37,17 @@ namespace YH.Excel.Data
             switch (dataType)
             {
                 case ExcelDataType.Int:
-                    return EDDataHelper.GetIntValue(cell);
+                    return EDReadHelper.GetIntValue(cell);
                 case ExcelDataType.Float:
-                    return EDDataHelper.GetFloatValue(cell);
+                    return EDReadHelper.GetFloatValue(cell);
                 case ExcelDataType.Long:
-                    return EDDataHelper.GetLongValue(cell);
+                    return EDReadHelper.GetLongValue(cell);
                 case ExcelDataType.Double:
-                    return EDDataHelper.GetDoubleValue(cell);
+                    return EDReadHelper.GetDoubleValue(cell);
                 case ExcelDataType.Boolean:
-                    return EDDataHelper.GetBoolValue(cell);
+                    return EDReadHelper.GetBoolValue(cell);
                 case ExcelDataType.String:
-                    return EDDataHelper.GetStringValue(cell);
+                    return EDReadHelper.GetStringValue(cell);
                 case ExcelDataType.Array:
                 default:
                     break;
@@ -136,13 +135,6 @@ namespace YH.Excel.Data
                 default:
                     return cell.StringCellValue;
             }
-        }
-
-        public static Type FieldExtTypeToSystemType(string extType)
-        {
-            //现在还不支持复杂类型
-            ExcelDataType dataType=EnumUtil.ParseEnum<ExcelDataType>(extType, ExcelDataType.String);
-            return dataType.ToSystemType();
-        }
+        }       
     }
 }
