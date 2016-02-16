@@ -121,6 +121,35 @@ namespace YH.Excel.Data
             }
         }
 
+        [MenuItem("Assets/Exl/Read Dict")]
+        public static void TestReadDict()
+        {
+            string fileName = Application.dataPath + "/Tests/Editor/Gacha.xlsx";
+
+            IWorkbook workbook = ExcelHelper.Load(fileName);
+            ISheet sheet = workbook.GetSheetAt(0);
+            Schema schema = EDSchemaReader.ReadSchema(sheet);
+            EDDataReader reader = new EDDataReader();
+
+            Dictionary<string,object> dataList = EDDataReader.ReadDictionary(sheet, schema);
+            Debug.Log(dataList.Count);
+
+            foreach (KeyValuePair<string, object> iter in dataList)
+            {
+                Dictionary<string,object> item = iter.Value as Dictionary<string, object>;
+
+                Debug.LogFormat("{0},{1},{2}", item["name"], item["probability"], item["items"]);
+                List<string> items = item["items"] as List<string>;
+                string o = "";
+                foreach (string s in items)
+                {
+                    o += s + ",";
+                }
+
+                Debug.Log(o);
+            }
+        }
+
         static void Test<T>()
         {
             System.Type t = typeof(T);
