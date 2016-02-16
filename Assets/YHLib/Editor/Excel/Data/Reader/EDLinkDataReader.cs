@@ -185,10 +185,10 @@ namespace YH.Excel.Data
             }
         }
 
-        public static object GetLinkData(ICell cell, Type t)
+        static string ParseLinkCell(ICell cell,out CellPosition cp)
         {
             string linkWhere = cell.StringCellValue;
-            CellPosition cp;
+            
             string linkSheetName = "";
 
             int pos = linkWhere.IndexOf("!");
@@ -209,21 +209,76 @@ namespace YH.Excel.Data
 
                 linkSheetName = linkWhere;
             }
+            return linkSheetName;
+        }
+
+        public static object GetLinkData(ICell cell, Type t)
+        {
+            string linkWhere = cell.StringCellValue;
+            CellPosition cp;
+            string linkSheetName = ParseLinkCell(cell, out cp);            
 
             ISheet linkSheet = cell.Sheet.Workbook.GetSheet(linkSheetName);
 
             return GetListData(linkSheet, cp.row, cp.col, t);
         }
 
-        static List<T> GetListData<T>(ISheet sheet, int rowIndex, int colIndex)
-        {
-            Type t = typeof(T);
-            return GetListData(sheet, rowIndex, colIndex, t) as List<T>;
-        }
-
         public static List<T> GetLinkData<T>(ICell cell)
         {
             return GetLinkData(cell, typeof(T)) as List<T>;
-        }        
+        }
+
+        //获取数组数据
+        static object GetArrayData(ISheet sheet, int rowIndex, int colIndex, Type t)
+        {
+            if (t == typeof(int) || t == typeof(int?))
+            {
+                return GetListInt(sheet, rowIndex, colIndex).ToArray();
+            }
+            else if (t == typeof(long) || t == typeof(long?))
+            {
+                return GetListLong(sheet, rowIndex, colIndex).ToArray();
+            }
+            else if (t == typeof(float) || t == typeof(float?))
+            {
+                return GetListFloat(sheet, rowIndex, colIndex).ToArray();
+            }
+            else if (t == typeof(double) || t == typeof(double?))
+            {
+                return GetListDouble(sheet, rowIndex, colIndex).ToArray();
+            }
+            else if (t == typeof(string))
+            {
+                return GetListString(sheet, rowIndex, colIndex).ToArray();
+            }
+            else if (t == typeof(bool) || t == typeof(bool?))
+            {
+                return GetListBool(sheet, rowIndex, colIndex).ToArray();
+            }
+            else if (t == typeof(object))
+            {
+                Schema schema = EDSchemaReader.ReadSchema(sheet);
+                return EDDataReader.ReadList(sheet, schema).ToArray();
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static object GetLinkArray(ICell cell, Type t)
+        {
+            string linkWhere = cell.StringCellValue;
+            CellPosition cp;
+            string linkSheetName = ParseLinkCell(cell, out cp);
+
+            ISheet linkSheet = cell.Sheet.Workbook.GetSheet(linkSheetName);
+            return GetArrayData(linkSheet, cp.row, cp.col, t);
+        }
+
+        public static T[] GetLinkArray<T>(ICell cell)
+        {
+            return GetLinkArray(cell, typeof(T)) as T[];
+        }
     }
 }

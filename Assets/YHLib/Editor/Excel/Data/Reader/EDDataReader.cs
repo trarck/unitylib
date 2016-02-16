@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using NPOI.SS.UserModel;
 
 namespace YH.Excel.Data
@@ -112,8 +113,10 @@ namespace YH.Excel.Data
                     return EDReadHelper.GetBoolValue(cell);
                 case ExcelDataType.String:
                     return EDReadHelper.GetStringValue(cell);
+                case ExcelDataType.List:
+                    return EDLinkDataReader.GetLinkData(cell, field.ExtTypeToSystemType());
                 case ExcelDataType.Array:
-                    return EDLinkDataReader.GetLinkData(cell,field.ExtTypeToSystemType());
+                    return EDLinkDataReader.GetLinkArray(cell, field.ExtTypeToSystemType());
                 default:
                     break;
             }

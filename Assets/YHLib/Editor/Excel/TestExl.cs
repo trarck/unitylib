@@ -29,7 +29,7 @@ namespace YH.Excel.Data
             foreach(Dictionary<string, object> iter in dataList)
             {
                 Debug.LogFormat("{0},{1},{2}", iter["name"], iter["probability"], iter["items"]);
-                List<string> items = iter["items"] as List<string>;
+                string[] items = iter["items"] as string[];
                 string o = "";
                 foreach(string s in items)
                 {
