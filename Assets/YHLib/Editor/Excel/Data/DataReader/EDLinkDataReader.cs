@@ -148,77 +148,7 @@ namespace YH.Excel.Data
             return list;
         }
 
-        static List<T> GetListData<T>(ISheet sheet, int rowIndex, int colIndex)
-        {
-            Type t = typeof(T);
-            return GetListData(sheet, rowIndex, colIndex, t) as List<T>;
-            //if (t == typeof(int) || t == typeof(int?))
-            //{
-            //    return GetListInt(sheet, rowIndex, colIndex) as List<T>;// GetPrimitiveList<T>(sheet, rowIndex, colIndex, ExcelDataType.Int);
-            //}
-            //else if (t == typeof(long) || t == typeof(long?))
-            //{
-            //    return GetPrimitiveList<T>(sheet, rowIndex, colIndex, ExcelDataType.Long);
-            //}
-            //else if (t == typeof(float) || t == typeof(float?))
-            //{
-            //    return GetPrimitiveList<T>(sheet, rowIndex, colIndex, ExcelDataType.Float);
-            //}
-            //else if (t == typeof(double) || t == typeof(double?))
-            //{
-            //    return GetPrimitiveList<T>(sheet, rowIndex, colIndex, ExcelDataType.Double);
-            //}
-            //else if (t == typeof(string))
-            //{
-            //    return GetListString(sheet, rowIndex, colIndex) as List<T>; //GetPrimitiveList<T>(sheet, rowIndex, colIndex, ExcelDataType.String);
-            //}
-            //else if (t == typeof(bool) || t == typeof(bool?))
-            //{
-            //    return GetPrimitiveList<T>(sheet, rowIndex, colIndex, ExcelDataType.Boolean);
-            //}
-            //else if (t == typeof(object))
-            //{
-            //    Schema schema = EDSchemaReader.ReadSchema(sheet);
-            //    return EDDataReader.ReadList(sheet, schema) as List<T>;
-            //}
-            //else
-            //{
-            //    return null;
-            //}
-        }
-
-        public static List<T> GetLinkData<T>(ICell cell)
-        {
-            string linkWhere = cell.StringCellValue;
-            CellPosition cp;
-            string linkSheetName = "";
-
-            int pos = linkWhere.IndexOf("!");
-            if (pos > -1)
-            {
-                //表的开始位置
-                string linkCellPosition = linkWhere.Substring(pos + 1);
-                cp = GetCellPosition(linkCellPosition);
-
-                linkSheetName = linkWhere.Substring(0, pos);
-            }
-            else
-            {
-                //第一列，第一行
-                cp = new CellPosition();
-                cp.row = 0;
-                cp.col = 0;
-
-                linkSheetName = linkWhere;
-            }
-
-            ISheet linkSheet = cell.Sheet.Workbook.GetSheet(linkSheetName);
-
-            return GetListData<T>(linkSheet, cp.row, cp.col);
-        }
-
-
-        static object GetListData(ISheet sheet, int rowIndex, int colIndex,Type t)
+        static object GetListData(ISheet sheet, int rowIndex, int colIndex, Type t)
         {
             if (t == typeof(int) || t == typeof(int?))
             {
@@ -242,7 +172,7 @@ namespace YH.Excel.Data
             }
             else if (t == typeof(bool) || t == typeof(bool?))
             {
-                return GetListFloat(sheet, rowIndex, colIndex);
+                return GetListBool(sheet, rowIndex, colIndex);
             }
             else if (t == typeof(object))
             {
@@ -255,7 +185,7 @@ namespace YH.Excel.Data
             }
         }
 
-        public static object GetLinkData(ICell cell,Type t)
+        public static object GetLinkData(ICell cell, Type t)
         {
             string linkWhere = cell.StringCellValue;
             CellPosition cp;
@@ -282,7 +212,18 @@ namespace YH.Excel.Data
 
             ISheet linkSheet = cell.Sheet.Workbook.GetSheet(linkSheetName);
 
-            return GetListData(linkSheet, cp.row, cp.col,t);
+            return GetListData(linkSheet, cp.row, cp.col, t);
         }
+
+        static List<T> GetListData<T>(ISheet sheet, int rowIndex, int colIndex)
+        {
+            Type t = typeof(T);
+            return GetListData(sheet, rowIndex, colIndex, t) as List<T>;
+        }
+
+        public static List<T> GetLinkData<T>(ICell cell)
+        {
+            return GetLinkData(cell, typeof(T)) as List<T>;
+        }        
     }
 }

@@ -23,7 +23,7 @@ namespace YH.Excel.Data
             Schema schema = EDSchemaReader.ReadSchema(sheet);
             EDDataReader reader = new EDDataReader();
 
-            return reader.ReadList(sheet, schema);
+            return EDDataReader.ReadList(sheet, schema);
         }
 
         public IWorkbook workbook

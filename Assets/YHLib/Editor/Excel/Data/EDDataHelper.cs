@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using NPOI.SS.UserModel;
+using System;
 
 namespace YH.Excel.Data
 {
@@ -135,6 +136,13 @@ namespace YH.Excel.Data
                 default:
                     return cell.StringCellValue;
             }
+        }
+
+        public static Type FieldExtTypeToSystemType(string extType)
+        {
+            //现在还不支持复杂类型
+            ExcelDataType dataType=EnumUtil.ParseEnum<ExcelDataType>(extType, ExcelDataType.String);
+            return dataType.ToSystemType();
         }
     }
 }

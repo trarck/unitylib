@@ -25,13 +25,10 @@ namespace YH.Excel.Data
             //second row is data type
             IRow typeRow = sheet.GetRow(sheet.FirstRowNum + schemaDataTypeRow);
 
-            IEnumerator<ICell> headerIter = headerRow.GetEnumerator();
-            IEnumerator<ICell> typeIter = typeRow.GetEnumerator();
-
             for(int i = headerRow.FirstCellNum; i < headerRow.LastCellNum; ++i)
             {
-                string name = headerRow.GetCell(i).StringCellValue;
-                
+                ICell headCell = headerRow.GetCell(i);
+                string name = headCell.StringCellValue;                
 
                 ExcelDataType dataType = ExcelDataType.Object;
                 string extType = "";
@@ -43,9 +40,9 @@ namespace YH.Excel.Data
                 }
 
                 string comment = "";
-                if (headerIter.Current.CellComment != null)
+                if (headCell.CellComment != null)
                 {
-                    comment = headerIter.Current.CellComment.String.String;
+                    comment = headCell.CellComment.String.String;
                 }
 
                 Field field = new Field(name, dataType, extType, comment);

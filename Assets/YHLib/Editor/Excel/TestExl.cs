@@ -16,12 +16,109 @@ namespace YH.Excel.Data
         [MenuItem("Assets/Exl/Test")]
         public static void TestData()
         {
-            string fileName = Application.dataPath + "/Tests/Editor/Test.xlsx";
+            string fileName = Application.dataPath + "/Tests/Editor/Gacha.xlsx";
 
             IWorkbook workbook = ExcelHelper.Load(fileName);
             ISheet sheet = workbook.GetSheetAt(0);
-            Debug.Log(sheet.FirstRowNum + "," + sheet.LastRowNum);
-            Test<object>();
+            Schema schema = EDSchemaReader.ReadSchema(sheet);
+            EDDataReader reader = new EDDataReader();
+
+            List<object> dataList= EDDataReader.ReadList(sheet, schema);
+            Debug.Log(dataList.Count);
+
+            foreach(Dictionary<string, object> iter in dataList)
+            {
+                Debug.LogFormat("{0},{1},{2}", iter["name"], iter["probability"], iter["items"]);
+                List<string> items = iter["items"] as List<string>;
+                string o = "";
+                foreach(string s in items)
+                {
+                    o += s + ",";
+                }
+
+                Debug.Log(o);
+            }
+        }
+
+        [MenuItem("Assets/Exl/Test1")]
+        public static void TestData1()
+        {
+            string fileName = Application.dataPath + "/Tests/Editor/Gacha1.xlsx";
+
+            IWorkbook workbook = ExcelHelper.Load(fileName);
+            ISheet sheet = workbook.GetSheetAt(0);
+            Schema schema = EDSchemaReader.ReadSchema(sheet);
+            EDDataReader reader = new EDDataReader();
+
+            List<object> dataList = EDDataReader.ReadList(sheet, schema);
+            Debug.Log(dataList.Count);
+
+            foreach (Dictionary<string, object> iter in dataList)
+            {
+                Debug.LogFormat("{0},{1},{2}", iter["name"], iter["probability"], iter["items"]);
+                List<int> items = iter["items"] as List<int>;
+                string o = "";
+                foreach (int s in items)
+                {
+                    o += s + ",";
+                }
+
+                Debug.Log(o);
+            }
+        }
+
+        [MenuItem("Assets/Exl/Test2")]
+        public static void TestData2()
+        {
+            string fileName = Application.dataPath + "/Tests/Editor/Gacha2.xlsx";
+
+            IWorkbook workbook = ExcelHelper.Load(fileName);
+            ISheet sheet = workbook.GetSheetAt(0);
+            Schema schema = EDSchemaReader.ReadSchema(sheet);
+            EDDataReader reader = new EDDataReader();
+
+            List<object> dataList = EDDataReader.ReadList(sheet, schema);
+            Debug.Log(dataList.Count);
+
+            foreach (Dictionary<string, object> iter in dataList)
+            {
+                Debug.LogFormat("{0},{1},{2}", iter["name"], iter["probability"], iter["items"]);
+                List<bool> items = iter["items"] as List<bool>;
+                string o = "";
+                foreach (bool s in items)
+                {
+                    o += s + ",";
+                }
+
+                Debug.Log(o);
+            }
+        }
+
+        [MenuItem("Assets/Exl/Test3")]
+        public static void TestData3()
+        {
+            string fileName = Application.dataPath + "/Tests/Editor/Gacha3.xlsx";
+
+            IWorkbook workbook = ExcelHelper.Load(fileName);
+            ISheet sheet = workbook.GetSheetAt(0);
+            Schema schema = EDSchemaReader.ReadSchema(sheet);
+            EDDataReader reader = new EDDataReader();
+
+            List<object> dataList = EDDataReader.ReadList(sheet, schema);
+            Debug.Log(dataList.Count);
+
+            foreach (Dictionary<string, object> iter in dataList)
+            {
+                Debug.LogFormat("{0},{1},{2}", iter["name"], iter["probability"], iter["items"]);
+                List<float> items = iter["items"] as List<float>;
+                string o = "";
+                foreach (float s in items)
+                {
+                    o += s + ",";
+                }
+
+                Debug.Log(o);
+            }
         }
 
         static void Test<T>()
@@ -68,6 +165,7 @@ namespace YH.Excel.Data
             }
         }
 
+        [MenuItem("Assets/Exl/Code gen")]
         public static void TestCodeGen()
         {
             string fileName = Application.dataPath + "/Tests/Editor/Gacha.xlsx";

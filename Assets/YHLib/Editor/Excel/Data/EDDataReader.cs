@@ -113,7 +113,7 @@ namespace YH.Excel.Data
                 case ExcelDataType.String:
                     return EDDataHelper.GetStringValue(cell);
                 case ExcelDataType.Array:
-                    return EDLinkDataReader.GetLinkData<>
+                    return EDLinkDataReader.GetLinkData(cell,EDDataHelper.FieldExtTypeToSystemType(field.extType));
                 default:
                     break;
             }

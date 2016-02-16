@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace YH.Excel.Data
 {
@@ -52,7 +53,9 @@ namespace YH.Excel.Data
             {
                 string baseType = type.Substring(0, pos);
                 int posEnd = type.IndexOf(">");
-                extType = type.Substring(pos + 1, posEnd);
+                
+                extType = type.Substring(pos + 1, posEnd-pos-1);
+                Debug.Log(pos + "," + posEnd+","+extType);
                 return EnumUtil.ParseEnum<ExcelDataType>(baseType, ExcelDataType.Object);
             }
             else
