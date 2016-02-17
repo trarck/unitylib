@@ -32,24 +32,27 @@ namespace YH.Excel.Data
         public static void ShowWindow()
         {
             //Show existing window instance. If one doesn't exist, make one.
-            EditorWindow.GetWindow< ConvertToJson>(false,"Convert To Json");
+            EditorWindow.GetWindow<ConvertToJson>(false,"Convert To Json");
         }
 
         void OnGUI()
         {
             m_ScrollViewPos = EditorGUILayout.BeginScrollView(m_ScrollViewPos);
 
-            if (GUILayout.Button("Load"))
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Load",GUILayout.Width(100)))
             {
                 DoLoad();
             }
 
-            ShowSheetGUI();
-
-            if (GUILayout.Button("Convert"))
+            if (GUILayout.Button("Convert", GUILayout.Width(100)))
             {
                 DoConvert();
             }
+
+            EditorGUILayout.EndHorizontal();
+
+            ShowSheetGUI();
 
             EditorGUILayout.EndScrollView();
         }
@@ -136,11 +139,13 @@ namespace YH.Excel.Data
                         else if (m_SheetConverts[i].dataType == ConvertSheetDataType.Dictionary)
                         {
                             ConvertSheet(sheet, savePath,m_SheetConverts[i].dictKey);
-                        }                        
+                        }
+                        EditorUtility.DisplayProgressBar("Convert Sheet", n + "/" + m_SheetConverts.Length, 1.0f*n / m_SheetConverts.Length);                   
                     }
                 }
             }
 
+            EditorUtility.ClearProgressBar();
             EditorUtility.DisplayDialog("Convert To Json", "Convert " + n + " Sheets","ok");
         }
 
@@ -158,10 +163,10 @@ namespace YH.Excel.Data
         {
             Schema schema = EDSchemaReader.ReadSchema(sheet);
             EDDataReader reader = new EDDataReader();
-            object list = EDDataReader.ReadDictionary(sheet, schema,keyName);
+            object dict = EDDataReader.ReadDictionary(sheet, schema,keyName);
 
             string filename = Path.Combine(savePath, schema.name + ".json");
-            SaveToJsonFile(filename, list);
+            SaveToJsonFile(filename, dict);
         }
 
         void SaveToJsonFile(string jsonfile, object data)
