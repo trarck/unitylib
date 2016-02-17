@@ -81,6 +81,8 @@ namespace YH.Excel.Data
 
         static Dictionary<string, object> ReadRowData(IRow row, List<Field> headerFields)
         {
+            if (headerFields == null || headerFields.Count == 0) return null;
+
             Dictionary<string, object> data = new Dictionary<string, object>();
             IEnumerator<ICell> iter = row.GetEnumerator();
             int index = 0;
@@ -122,6 +124,6 @@ namespace YH.Excel.Data
             }
             return null;
         }
-        
+
     }
 }
