@@ -15,6 +15,7 @@ namespace YH
         static Texture2D mGradientTex;
         static GameObject mPrevious;
 
+        static Stack<float> mLabelWidths;
         /// <summary>
         /// Returns a blank usable 1x1 white texture.
         /// </summary>
@@ -884,6 +885,27 @@ namespace YH
             GUILayout.Space(3f);
             GUILayout.EndHorizontal();
             GUILayout.Space(3f);
+        }
+
+        static public void PushLabelWidth(float width)
+        {
+            if (mLabelWidths == null)
+            {
+                mLabelWidths = new Stack<float>();
+                //Root
+                mLabelWidths.Push(EditorGUIUtility.labelWidth);
+            }
+            mLabelWidths.Push(width);
+            EditorGUIUtility.labelWidth = width;
+        }
+
+        static public void PopLabelWidth()
+        {
+            if (mLabelWidths.Count > 1)
+            {
+                mLabelWidths.Pop();
+                EditorGUIUtility.labelWidth = mLabelWidths.Peek();
+            }            
         }
     }
 }
