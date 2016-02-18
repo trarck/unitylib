@@ -89,7 +89,7 @@ namespace YH.Excel.Data
 
             Field field;
 
-            while (iter.MoveNext())
+            while (iter.MoveNext() && index<headerFields.Count)
             {
                 field = headerFields[index];
                 data[field.name] = GetCellValue(iter.Current, field);

@@ -16,6 +16,7 @@ namespace YH
         static GameObject mPrevious;
 
         static Stack<float> mLabelWidths;
+        static Stack<float> mFieldWidths;
         /// <summary>
         /// Returns a blank usable 1x1 white texture.
         /// </summary>
@@ -906,6 +907,63 @@ namespace YH
                 mLabelWidths.Pop();
                 EditorGUIUtility.labelWidth = mLabelWidths.Peek();
             }            
+        }
+
+        static public void PushFieldWidth(float width)
+        {
+            if (mFieldWidths == null)
+            {
+                mFieldWidths = new Stack<float>();
+                //Root
+                mFieldWidths.Push(EditorGUIUtility.fieldWidth);
+            }
+            mFieldWidths.Push(width);
+            EditorGUIUtility.fieldWidth = width;
+        }
+
+        static public void PopFieldWidth()
+        {
+            if (mFieldWidths.Count > 1)
+            {
+                mFieldWidths.Pop();
+                EditorGUIUtility.fieldWidth = mFieldWidths.Peek();
+            }
+        }
+
+        static public void PushLabelFieldWidth(float labelWidth,float fieldWidth)
+        {
+            if (mLabelWidths == null)
+            {
+                mLabelWidths = new Stack<float>();
+                //Root
+                mLabelWidths.Push(EditorGUIUtility.labelWidth);
+            }
+
+            if (mFieldWidths == null)
+            {
+                mFieldWidths = new Stack<float>();
+                //Root
+                mFieldWidths.Push(EditorGUIUtility.fieldWidth);
+            }
+            mLabelWidths.Push(labelWidth);
+            mFieldWidths.Push(fieldWidth);
+            EditorGUIUtility.labelWidth = labelWidth;
+            EditorGUIUtility.fieldWidth = fieldWidth;
+        }
+
+        static public void PopLabelFieldWidth()
+        {
+            if (mLabelWidths.Count > 1)
+            {
+                mLabelWidths.Pop();
+                EditorGUIUtility.labelWidth = mLabelWidths.Peek();
+            }
+
+            if (mFieldWidths.Count > 1)
+            {
+                mFieldWidths.Pop();
+                EditorGUIUtility.fieldWidth = mFieldWidths.Peek();
+            }
         }
     }
 }

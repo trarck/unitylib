@@ -8,27 +8,22 @@ namespace YH.Excel.Data
 {
     public class ConvertToLocalization : EditorWindow
     {
-        enum ConvertSheetDataType
-        {
-            List,
-            Dictionary
-        }
-
-        struct SheetConvertItem
+        struct LangItem
         {
             public string name;
             public bool convertable;
-            public ConvertSheetDataType dataType;
-            public string dictKey;
         }
 
         IWorkbook m_Workbook;
+        Schema m_Schema;
 
         Vector2 m_ScrollViewPos = Vector2.zero;
 
-        SheetConvertItem[] m_SheetConverts;
+        LangItem[] m_LangItems;
 
         bool m_AllInOne = false;
+        bool m_BeautifyJson = false;
+        string m_KeyField = "";
 
         [MenuItem("Assets/ExcelData/Convert To Localization")]
         public static void ShowWindow()
@@ -52,44 +47,42 @@ namespace YH.Excel.Data
                 DoConvert();
             }
 
-            EditorGUILayout.EndHorizontal();
-
-            YHEditorTools.PushLabelWidth(80);
-            m_AllInOne = EditorGUILayout.Toggle("All In One", m_AllInOne);
+            YHEditorTools.PushLabelWidth(70);
+            m_AllInOne = EditorGUILayout.Toggle("All In One", m_AllInOne,GUILayout.Width(100));
             YHEditorTools.PopLabelWidth();
 
-            ShowSheetGUI();
+            YHEditorTools.PushLabelWidth(60);
+            m_BeautifyJson = EditorGUILayout.Toggle("Beautify", m_BeautifyJson, GUILayout.Width(100));
+            YHEditorTools.PopLabelWidth();
+
+            YHEditorTools.PushLabelWidth(40);
+            m_KeyField = EditorGUILayout.TextField("Key", m_KeyField, GUILayout.Width(100));
+            YHEditorTools.PopLabelWidth();
+
+            EditorGUILayout.EndHorizontal();          
+
+            ShowLangGUI();
 
             EditorGUILayout.EndScrollView();
         }
 
-        void ShowSheetGUI()
+        void ShowLangGUI()
         {
             if (m_Workbook != null)
             {
-                for (int i = 0; i < m_SheetConverts.Length; ++i)
+                if (!m_AllInOne)
                 {
-                    EditorGUILayout.BeginHorizontal();
-
-                    EditorGUILayout.LabelField( "table:"+m_SheetConverts[i].name,GUILayout.Width(100));
-                    m_SheetConverts[i].convertable = EditorGUILayout.Toggle(m_SheetConverts[i].convertable, GUILayout.Width(50));
-
-                    float oldWidth = EditorGUIUtility.labelWidth;
-                    EditorGUIUtility.labelWidth= 40;
-                    m_SheetConverts[i].dataType=(ConvertSheetDataType)EditorGUILayout.EnumPopup("type", m_SheetConverts[i].dataType,GUILayout.MaxWidth(180));
-
-                    if (m_SheetConverts[i].dataType == ConvertSheetDataType.Dictionary)
+                    for (int i = 0; i < m_LangItems.Length; ++i)
                     {
-                        m_SheetConverts[i].dictKey=EditorGUILayout.TextField("key",m_SheetConverts[i].dictKey);
+                        EditorGUILayout.BeginHorizontal();
+
+                        EditorGUILayout.LabelField("lang:" + m_LangItems[i].name, GUILayout.Width(100));
+                        m_LangItems[i].convertable = EditorGUILayout.Toggle(m_LangItems[i].convertable, GUILayout.Width(50));
+                        EditorGUILayout.EndHorizontal();
                     }
-
-                    EditorGUIUtility.labelWidth = oldWidth;
-
-                    EditorGUILayout.EndHorizontal();
-                }
+                }               
             }
         }
-
 
         void DoLoad()
         {
@@ -97,82 +90,99 @@ namespace YH.Excel.Data
             if (xlsFile.Length != 0)
             {
                 m_Workbook = ExcelHelper.Load(xlsFile);
+                //第一张表
+                ISheet sheet = m_Workbook.GetSheetAt(0);
 
-                List < SheetConvertItem > list = new List<SheetConvertItem>();
+                m_Schema = EDSchemaReader.ReadSchema(sheet);
 
-                for (int i = 0; i < m_Workbook.NumberOfSheets; ++i)
+                //第一列为Key，其它为语言
+                List<LangItem> list = new List<LangItem>();
+
+                for(int i = 1; i < m_Schema.fields.Count; ++i)
                 {
-                    ISheet sheet = m_Workbook.GetSheetAt(i);
-                    if (IsTableSheet(sheet))
-                    {
-                        SheetConvertItem item = new SheetConvertItem();
-                        item.name = sheet.SheetName;
-                        item.convertable = true;
-                        item.dataType = ConvertSheetDataType.Dictionary;
-                        item.dictKey = "";
-
-                        list.Add(item);
-                    }
+                    LangItem item = new LangItem();
+                    item.name = m_Schema.fields[i].name;
+                    item.convertable = true;
+                    list.Add(item);
                 }
-                m_SheetConverts = list.ToArray();
+
+                m_LangItems = list.ToArray();
             }
         }
 
         void DoConvert()
         {
-            var savePath = EditorUtility.SaveFolderPanel("Save json file directory", "", "");
-            if (savePath.Length != 0)
+            if (m_AllInOne)
             {
-                DonvertWorkbook(savePath);
+                var saveFile = EditorUtility.SaveFilePanel("Save lang file", "", "","");
+                if (saveFile.Length != 0)
+                {
+                    ConvertAllInOne(saveFile);
+                }
+            }
+            else
+            {
+                var savePath = EditorUtility.SaveFolderPanel("Save lang file directory", "", "");
+                if (savePath.Length != 0)
+                {
+                    ConvertSeprate(savePath);
+                }
             }
         }
 
-        void DonvertWorkbook(string savePath)
+        void ConvertSeprate(string savePath)
         {
-            int n = 0;
-            for (int i = 0; i < m_SheetConverts.Length; ++i)
+            List<object> langData = EDDataReader.ReadList(m_Workbook.GetSheetAt(0), m_Schema);
+
+            string key = string.IsNullOrEmpty(m_KeyField)?  m_Schema.fields[0].name:m_KeyField;
+
+            List<Dictionary<string, object>> multiLangList = new List<Dictionary<string, object>>();
+            List<string> enableLangNameList = new List<string>();
+
+            for (int i = 0; i < m_LangItems.Length; ++i)
             {
-                if (m_SheetConverts[i].convertable)
+                if (m_LangItems[i].convertable)
                 {
-                    ISheet sheet = m_Workbook.GetSheet(m_SheetConverts[i].name);
-                    if (sheet != null)
-                    {
-                        ++n;
-                        if (m_SheetConverts[i].dataType == ConvertSheetDataType.List)
-                        {
-                            ConvertSheet(sheet, savePath);
-                        }
-                        else if (m_SheetConverts[i].dataType == ConvertSheetDataType.Dictionary)
-                        {
-                            ConvertSheet(sheet, savePath,m_SheetConverts[i].dictKey);
-                        }
-                        EditorUtility.DisplayProgressBar("Convert Sheet", n + "/" + m_SheetConverts.Length, 1.0f*n / m_SheetConverts.Length);                   
-                    }
+                    multiLangList.Add(new Dictionary<string, object>());
+                    enableLangNameList.Add(m_LangItems[i].name);
                 }
             }
 
-            EditorUtility.ClearProgressBar();
-            EditorUtility.DisplayDialog("Convert To Json", "Convert " + n + " Sheets","ok");
+            //提取数据
+            string keyValue;
+            foreach (Dictionary<string,object> record in langData)
+            {
+                for (int i = 0; i < multiLangList.Count; ++i)
+                {
+                    keyValue = record[key] as string;
+                    multiLangList[i][keyValue] = record[enableLangNameList[i]];
+                }
+            }
+
+            //分别保存
+            for (int i = 0; i < multiLangList.Count; ++i)
+            {
+                string langFile = Path.Combine(savePath, enableLangNameList[i] + ".json");
+                SaveToJsonFile(langFile, multiLangList[i]);
+            }
+
+            EditorUtility.DisplayDialog("Convert To Lang", "Convert   Lang","OK");
         }
 
-        void ConvertSheet(ISheet sheet,string savePath)
+        void ConvertAllInOne(string saveFile)
         {
-            Schema schema = EDSchemaReader.ReadSchema(sheet);
-            EDDataReader reader = new EDDataReader();
-            object list = EDDataReader.ReadList(sheet, schema);
+            Dictionary<string,object> langData = EDDataReader.ReadDictionary(m_Workbook.GetSheetAt(0), m_Schema, m_KeyField);
 
-            string filename = Path.Combine(savePath, schema.name + ".json");
-            SaveToJsonFile(filename, list);
-        }
+            //remove key in data field
+            string key = string.IsNullOrEmpty(m_KeyField) ? m_Schema.fields[0].name : m_KeyField;
+            foreach (KeyValuePair<string,object> iter in langData)
+            {
+                Dictionary<string, object> record = iter.Value as Dictionary<string, object>;
+                record.Remove(key);
+            }
 
-        void ConvertSheet(ISheet sheet, string savePath,string keyName)
-        {
-            Schema schema = EDSchemaReader.ReadSchema(sheet);
-            EDDataReader reader = new EDDataReader();
-            object dict = EDDataReader.ReadDictionary(sheet, schema,keyName);
-
-            string filename = Path.Combine(savePath, schema.name + ".json");
-            SaveToJsonFile(filename, dict);
+            SaveToJsonFile(saveFile, langData);
+            EditorUtility.DisplayDialog("Convert To Lang", "Convert   Lang", "OK");
         }
 
         void SaveToJsonFile(string jsonfile, object data)
@@ -181,14 +191,12 @@ namespace YH.Excel.Data
             param.UseEscapedUnicode = false;
 
             string jsonString = fastJSON.JSON.ToJSON(data, param);
-            jsonString = fastJSON.JSON.Beautify(jsonString);
+            if (m_BeautifyJson)
+            {
+                jsonString = fastJSON.JSON.Beautify(jsonString);
+            }           
             
             File.WriteAllText(jsonfile, jsonString);
-        }
-
-        bool IsTableSheet(ISheet sheet)
-        {
-            return sheet.SheetName.IndexOf("__") != 0;
         }
     }
 }

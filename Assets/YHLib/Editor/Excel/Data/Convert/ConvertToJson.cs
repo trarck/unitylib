@@ -28,6 +28,8 @@ namespace YH.Excel.Data
 
         SheetConvertItem[] m_SheetConverts;
 
+        bool m_BeautifyJson = false;
+
         [MenuItem("Assets/ExcelData/Convert To Json")]
         public static void ShowWindow()
         {
@@ -49,6 +51,10 @@ namespace YH.Excel.Data
             {
                 DoConvert();
             }
+
+            YHEditorTools.PushLabelWidth(40);
+            m_BeautifyJson = EditorGUILayout.Toggle("Beautify", m_BeautifyJson);
+            YHEditorTools.PopLabelWidth();
 
             EditorGUILayout.EndHorizontal();
 
@@ -117,11 +123,11 @@ namespace YH.Excel.Data
             var savePath = EditorUtility.SaveFolderPanel("Save json file directory", "", "");
             if (savePath.Length != 0)
             {
-                DonvertWorkbook(savePath);
+                ConvertWorkbook(savePath);
             }
         }
 
-        void DonvertWorkbook(string savePath)
+        void ConvertWorkbook(string savePath)
         {
             int n = 0;
             for (int i = 0; i < m_SheetConverts.Length; ++i)
@@ -175,8 +181,11 @@ namespace YH.Excel.Data
             param.UseEscapedUnicode = false;
 
             string jsonString = fastJSON.JSON.ToJSON(data, param);
-            jsonString = fastJSON.JSON.Beautify(jsonString);
-            
+            if (m_BeautifyJson)
+            {
+                jsonString = fastJSON.JSON.Beautify(jsonString);
+            }
+
             File.WriteAllText(jsonfile, jsonString);
         }
 
