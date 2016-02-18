@@ -119,11 +119,12 @@ namespace YH.Excel.Data
                     return EDLinkDataReader.GetLinkData(cell, field.ExtTypeToSystemType());
                 case ExcelDataType.Array:
                     return EDLinkDataReader.GetLinkArray(cell, field.ExtTypeToSystemType());
+                case ExcelDataType.Dictionary:
+                    return EDLinkDataReader.GetLinkDict(cell, field.extTypeKeyField);
                 default:
                     break;
             }
             return null;
         }
-
     }
 }

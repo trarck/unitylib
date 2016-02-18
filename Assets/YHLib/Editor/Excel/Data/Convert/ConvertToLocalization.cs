@@ -21,6 +21,7 @@ namespace YH.Excel.Data
 
         LangItem[] m_LangItems;
 
+        //保存在一个文件，还是多个文件
         bool m_AllInOne = false;
         bool m_BeautifyJson = false;
         string m_KeyField = "";

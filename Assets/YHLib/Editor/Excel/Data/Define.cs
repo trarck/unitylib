@@ -13,6 +13,7 @@ namespace YH.Excel.Data
         List,
         Long,
         Double,
+        //暂时不支持Enum，涉及动态创建Enum
         Custom=10000
     }
 }

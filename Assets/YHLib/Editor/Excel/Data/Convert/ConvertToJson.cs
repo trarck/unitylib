@@ -52,8 +52,8 @@ namespace YH.Excel.Data
                 DoConvert();
             }
 
-            YHEditorTools.PushLabelWidth(40);
-            m_BeautifyJson = EditorGUILayout.Toggle("Beautify", m_BeautifyJson);
+            YHEditorTools.PushLabelWidth(60);
+            m_BeautifyJson = EditorGUILayout.Toggle("Beautify", m_BeautifyJson, GUILayout.Width(100));
             YHEditorTools.PopLabelWidth();
 
             EditorGUILayout.EndHorizontal();
@@ -71,7 +71,7 @@ namespace YH.Excel.Data
                 {
                     EditorGUILayout.BeginHorizontal();
 
-                    EditorGUILayout.LabelField( "table:"+m_SheetConverts[i].name,GUILayout.Width(100));
+                    EditorGUILayout.LabelField( "Table:"+m_SheetConverts[i].name,GUILayout.Width(100));
                     m_SheetConverts[i].convertable = EditorGUILayout.Toggle(m_SheetConverts[i].convertable, GUILayout.Width(50));
 
                     float oldWidth = EditorGUIUtility.labelWidth;
