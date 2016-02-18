@@ -284,7 +284,7 @@ namespace YH.Excel.Data
             return GetLinkArray(cell, typeof(T)) as T[];
         }
 
-        public static object GetLinkDict(ICell cell, string keyField)
+        public static object GetLinkDict(ICell cell, string keyField,bool removeKeyFieldInElement=false)
         {
             if (cell == null || cell.StringCellValue == "") return null;
             string linkWhere = cell.StringCellValue;
@@ -293,7 +293,9 @@ namespace YH.Excel.Data
 
             ISheet linkSheet = cell.Sheet.Workbook.GetSheet(linkSheetName);
             Schema schema = EDSchemaReader.ReadSchema(linkSheet);
-            return EDDataReader.ReadDictionary(linkSheet, schema, keyField);
+
+            //内容要跳过2个头
+            return EDDataReader.ReadDictionary(linkSheet, schema, keyField,cp.row+EDConstance.SchemaDataRow,cp.col,null, removeKeyFieldInElement);
         }
     }
 }

@@ -16,4 +16,11 @@ namespace YH.Excel.Data
         //暂时不支持Enum，涉及动态创建Enum
         Custom=10000
     }
+
+    public class EDConstance
+    {
+        public const int SchemaNameRow = 0;
+        public const int SchemaDataTypeRow = 1;
+        public const int SchemaDataRow = 2;
+    }
 }

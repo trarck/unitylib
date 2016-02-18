@@ -197,11 +197,21 @@ namespace YH.Excel.Data
         [MenuItem("Assets/Exl/Code gen")]
         public static void TestCodeGen()
         {
-            Field field = new Field("Test", ExcelDataType.Dictionary, "String,Object");
-            Debug.Log(field.ToSystemType().GetGenericArguments()[0]);
+            string fileName = Application.dataPath + "/Tests/Editor/Test1.xlsx";
 
-            field = new Field("Test", ExcelDataType.List, "String");
-            Debug.Log(field.ToSystemType().GetGenericArguments()[0]);
+            IWorkbook workbook = ExcelHelper.Load(fileName);
+            EDReader reader = new EDReader(workbook);
+
+            ISheet dataSheet = workbook.GetSheetAt(0);
+
+            Debug.Log(dataSheet.FirstRowNum + "," + dataSheet.LastRowNum);
+
+            IRow row = dataSheet.GetRow(0);
+            Debug.Log(row.FirstCellNum + "," + row.LastCellNum);
+            row = dataSheet.GetRow(1);
+            Debug.Log(row.FirstCellNum + "," + row.LastCellNum);
+            row = dataSheet.GetRow(2);
+            Debug.Log(row.FirstCellNum + "," + row.LastCellNum);
         }
     }
 }
