@@ -13,17 +13,34 @@ namespace YH.UI
 
         Stack<Scene> m_SceneStack = new Stack<Scene>();
 
+        [SerializeField]
+        Transform[] m_Containers;
+
         void Awake()
         {
-            LoadScenesFromHierarchy();
+            LoadScenes();
         }
 
-        public void LoadScenesFromHierarchy()
+        protected virtual void LoadScenes()
+        {
+            //load scene from containers
+            if (m_Containers.Length>0)
+            {
+                for(int i = 0; i < m_Containers.Length; ++i)
+                {
+                    LoadScenesFromHierarchy(m_Containers[i]);
+                }
+            }
+            //load scene from self
+            LoadScenesFromHierarchy(this.transform);
+        }
+
+        public void LoadScenesFromHierarchy(Transform container)
         {
             m_SceneMap = new Dictionary<string, Scene>();
-            for (int i = 0; i < transform.childCount; ++i)
+            for (int i = 0; i < container.childCount; ++i)
             {
-                Scene scene = transform.GetChild(i).GetComponent<Scene>();
+                Scene scene = container.GetChild(i).GetComponent<Scene>();
                 if (scene != null)
                 {
                     Debug.Log("add " + scene.gameObject.name);
