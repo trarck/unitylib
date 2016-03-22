@@ -43,7 +43,7 @@ namespace YH.UI
                 Scene scene = container.GetChild(i).GetComponent<Scene>();
                 if (scene != null)
                 {
-                    Debug.Log("add " + scene.gameObject.name);
+                    Debug.Log("SimpleSceneDirector Add " + scene.gameObject.name);
                     m_SceneMap.Add(scene.gameObject.name, scene);
                 }
             }
