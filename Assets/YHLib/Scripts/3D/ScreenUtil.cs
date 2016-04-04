@@ -4,7 +4,7 @@ namespace YH
 {
     class ScreenUtil
     {
-        Vector3 ScreenPositionToWorldPosition(Vector2 pointer,Camera camera)
+        public static Vector3 ScreenPositionToWorldPosition(Vector2 pointer,Camera camera)
         {
             Vector3 cameraPos = new Vector3(pointer.x, pointer.y, GetDistanceFromScreenToWorld(pointer,camera));
             Vector3 worldPos = camera.ScreenToWorldPoint(cameraPos);
@@ -17,7 +17,7 @@ namespace YH
         /// </summary>
         /// <param name="pointer"></param>
         /// <returns></returns>
-        public float GetDistanceFromScreenToWorld(Vector2 pointer, Camera camera)
+        public static float GetDistanceFromScreenToWorld(Vector2 pointer, Camera camera)
         {
             Ray ray = camera.ScreenPointToRay(pointer);
             RaycastHit hit;
@@ -35,7 +35,7 @@ namespace YH
         /// <param name="pointer"></param>
         /// <param name="camera"></param>
         /// <returns></returns>
-        public GameObject GetGameObjectOfPointer(Vector2 pointer,Camera camera)
+        public static GameObject GetGameObjectOfPointer(Vector2 pointer,Camera camera)
         {
             Ray ray = camera.ScreenPointToRay(pointer);
             RaycastHit hit;
@@ -46,7 +46,7 @@ namespace YH
             return null;
         }
 
-        public GameObject GetGameObjectOfPointer(Vector2 pointer, Camera camera,out RaycastHit hit)
+        public static GameObject GetGameObjectOfPointer(Vector2 pointer, Camera camera,out RaycastHit hit)
         {
             Ray ray = camera.ScreenPointToRay(pointer);
             
@@ -64,7 +64,7 @@ namespace YH
         /// <param name="camera"></param>
         /// <param name="planeY"></param>
         /// <returns></returns>
-        float GetDistanceFromCameraToGameHorizontalPlaneAtScreenPointer(Vector2 pointer, Camera camera,float planeY=0)
+        public static float GetDistanceFromCameraToGameHorizontalPlaneAtScreenPointer(Vector2 pointer, Camera camera,float planeY=0)
         {
             //相机到屏幕的距离
             float h = camera.nearClipPlane;
@@ -102,7 +102,7 @@ namespace YH
         /// <param name="camera"></param>
         /// <param name="planeY"></param>
         /// <returns></returns>
-        float GetDistanceFromScreenPointerToGameHorizontalPlane(Vector2 pointer, Camera camera, float planeY = 0)
+        public static float GetDistanceFromScreenPointerToGameHorizontalPlane(Vector2 pointer, Camera camera, float planeY = 0)
         {
             //相机到屏幕的距离
             float h = camera.nearClipPlane;
@@ -139,7 +139,7 @@ namespace YH
         /// <param name="camera"></param>
         /// <param name="planeY"></param>
         /// <returns></returns>
-        float GetZInCameraFromScreenPointerToGameHorizontalPlane(Vector2 pointer, Camera camera, float planeY = 0)
+        public static float GetZInCameraFromScreenPointerToGameHorizontalPlane(Vector2 pointer, Camera camera, float planeY = 0)
         {
             //相机到屏幕的距离
             float h = camera.nearClipPlane;

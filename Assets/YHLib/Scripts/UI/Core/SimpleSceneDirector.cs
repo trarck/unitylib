@@ -23,6 +23,7 @@ namespace YH.UI
 
         protected virtual void LoadScenes()
         {
+            m_SceneMap = new Dictionary<string, Scene>();
             //load scene from containers
             if (m_Containers.Length>0)
             {
@@ -37,7 +38,6 @@ namespace YH.UI
 
         public void LoadScenesFromHierarchy(Transform container)
         {
-            m_SceneMap = new Dictionary<string, Scene>();
             for (int i = 0; i < container.childCount; ++i)
             {
                 Scene scene = container.GetChild(i).GetComponent<Scene>();
