@@ -70,7 +70,7 @@ namespace YH.MyInput
 #if MOBILE_INPUT
 		    EnableControlRig(true);
 #else
-            EnableControlRig(true);
+            EnableControlRig(false);
 #endif
         }
 
