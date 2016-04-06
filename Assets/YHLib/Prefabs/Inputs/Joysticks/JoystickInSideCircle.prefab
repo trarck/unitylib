@@ -26,8 +26,8 @@ GameObject:
   m_Component:
   - 224: {fileID: 22469062}
   - 222: {fileID: 22223014}
-  - 114: {fileID: 11464938}
   - 114: {fileID: 11470458}
+  - 114: {fileID: 11453678}
   m_Layer: 5
   m_Name: JoystickInSideCircle
   m_TagString: Untagged
@@ -46,7 +46,7 @@ GameObject:
   - 222: {fileID: 22263998}
   - 114: {fileID: 11410260}
   m_Layer: 5
-  m_Name: Background
+  m_Name: Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -79,6 +79,26 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+--- !u!114 &11453678
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 118412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 926c472f59740454e9b12f7845b3a82a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  appearRange: 200
+  appearOrigin: {x: 200, y: 200}
+  movementRange: 42
+  axesToUse: 0
+  horizontalAxisName: Horizontal
+  verticalAxisName: Vertical
+  m_Touch: {fileID: 22499300}
+  m_Area: {fileID: 22461012}
+  m_AreaRadius: 92
 --- !u!114 &11463534
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -106,25 +126,6 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
---- !u!114 &11464938
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 118412}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 926c472f59740454e9b12f7845b3a82a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  appearRange: 200
-  appearOrigin: {x: 200, y: 200}
-  movementRange: 60
-  axesToUse: 0
-  horizontalAxisName: Horizontal
-  verticalAxisName: Vertical
-  m_Touch: {fileID: 0}
-  m_Area: {fileID: 0}
 --- !u!114 &11470458
 MonoBehaviour:
   m_ObjectHideFlags: 1
