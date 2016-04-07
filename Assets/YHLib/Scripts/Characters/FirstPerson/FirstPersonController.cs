@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using YH.MyInput;
 using Random = UnityEngine.Random;
 
 namespace YH.Cameras.FirstPerson
@@ -67,8 +68,8 @@ namespace YH.Cameras.FirstPerson
         private void GetInput(out float speed)
         {
             // Read input
-            float horizontal = Input.GetAxis("Horizontal");
-            float vertical = Input.GetAxis("Vertical");
+            float horizontal = InputManager.GetAxis("Horizontal");
+            float vertical = InputManager.GetAxis("Vertical");
 
             bool waswalking = m_IsWalking;
 
@@ -85,7 +86,6 @@ namespace YH.Cameras.FirstPerson
                 m_Input.Normalize();
             }
         }
-
 
         private void RotateView()
         {

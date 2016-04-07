@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using YH.MyInput;
 
 namespace YH.Cameras.FirstPerson
 {
@@ -77,8 +78,8 @@ namespace YH.Cameras.FirstPerson
 
         void ParseInput(Transform target, Transform camera)
         {
-            float mouseX = Input.GetAxis("Mouse X");
-            float mouseY = Input.GetAxis("Mouse Y");
+            float mouseX = InputManager.GetAxis("Mouse X");
+            float mouseY = InputManager.GetAxis("Mouse Y");
 
             if (mouseX != 0 || mouseY != 0)
             {
@@ -105,7 +106,6 @@ namespace YH.Cameras.FirstPerson
                 }
             }
         }
-
 
         Quaternion ClampRotationAroundXAxis(Quaternion q)
         {

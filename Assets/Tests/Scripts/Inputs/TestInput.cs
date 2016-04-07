@@ -7,9 +7,15 @@ public class TestInput : MonoBehaviour
 
     [SerializeField]
     private float m_MoveSpeed = 10f;
-    [Range(0f, 10f)]
+
     [SerializeField]
     private float m_TurnSpeed = 1.5f;
+
+    [SerializeField]
+    float m_MovingTurnSpeed = 360;
+    [SerializeField]
+    float m_StationaryTurnSpeed = 180;
+
     [SerializeField]
     private bool m_LockCursor = false;
 
@@ -29,7 +35,6 @@ public class TestInput : MonoBehaviour
 
         //处理移动
         ParseMove(deltaTime);
-
         if (m_LockCursor)
         {
             if (Input.GetMouseButtonDown(0))
@@ -67,7 +72,9 @@ public class TestInput : MonoBehaviour
     protected void ParseMove(float deltaTime)
     {
 #if MOBILE_INPUT
-        ParseTouchMove(deltaTime);
+        //ParseTouchMove(deltaTime);
+
+        CameraFollow(deltaTime);
 #else
         ParseKeyMove(deltaTime);
 #endif
@@ -97,10 +104,10 @@ public class TestInput : MonoBehaviour
             horizontal = 0.5f;
         }
 
-        if (horizontal !=0 || vertical!=0)
+        if (horizontal != 0 || vertical != 0)
         {
             //Transform tf = this.transform;
-            Vector3 desiredMove =this.transform.forward * vertical + this.transform.right * horizontal;
+            Vector3 desiredMove = this.transform.forward * vertical + this.transform.right * horizontal;
             desiredMove *= m_MoveSpeed * deltaTime;
 
             this.transform.position += desiredMove;
@@ -118,7 +125,7 @@ public class TestInput : MonoBehaviour
     {
         float horizontal = InputManager.GetAxis("Horizontal");
         float vertical = InputManager.GetAxis("Vertical");
-        
+
         if (horizontal != 0 || vertical != 0)
         {
             Vector2 input = new Vector2(horizontal, vertical);
@@ -132,6 +139,43 @@ public class TestInput : MonoBehaviour
             desiredMove *= m_MoveSpeed * deltaTime;
 
             this.transform.position += desiredMove;
+        }
+    }
+
+
+    void CameraFollow(float deltaTime)
+    {
+        float horizontal = InputManager.GetAxis("Horizontal");
+        float vertical = InputManager.GetAxis("Vertical");
+
+        if (horizontal != 0 || vertical != 0)
+        {
+
+            float turnSpeed = Mathf.Lerp(m_StationaryTurnSpeed, m_MovingTurnSpeed, vertical);
+
+            float turnAmount = Mathf.Atan2(horizontal, Mathf.Abs(vertical));
+            Debug.Log(turnAmount + "," + horizontal + "," + vertical);
+            this.transform.Rotate(0, turnAmount * deltaTime * turnSpeed, 0);
+
+            Vector3 desiredMove = this.transform.forward;//* vertical;
+
+            desiredMove *= m_MoveSpeed * deltaTime;
+
+            this.transform.position += desiredMove;
+
+            //Vector3 desiredMove = this.transform.forward* vertical+this.transform.right*horizontal;
+
+            //desiredMove *= m_MoveSpeed * deltaTime;
+
+            //this.transform.position += desiredMove;
+
+            //float turnSpeed = Mathf.Lerp(m_StationaryTurnSpeed, m_MovingTurnSpeed, vertical);
+
+            //float turnAmount = Mathf.Atan2(horizontal, Mathf.Abs(vertical));
+            //Debug.Log(turnAmount + "," + horizontal + "," + vertical);
+            //this.transform.Rotate(0, turnAmount * deltaTime * turnSpeed, 0);
+
+
         }
     }
 }
