@@ -21,7 +21,9 @@ public class TestInput : MonoBehaviour
 
     [SerializeField]
     float m_LookHeight = 1.0f;
-
+#if UNITY_ANDROID
+    bool m_TouchDown =false;
+#endif
     void Update()
     {
         ParseInput(Time.deltaTime);
@@ -50,11 +52,18 @@ public class TestInput : MonoBehaviour
 
     protected void ParseTurn(float deltaTime)
     {
-        if (Input.GetMouseButton(0))
+        //android第一个数据不正确
+#if UNITY_ANDROID
+        if (Input.GetMouseButton(0) && m_TouchDown)
+#else
+       if (Input.GetMouseButton(0)
+#endif
         {
             Transform tf = this.transform;
-            float mouseX = InputManager.GetAxis("Mouse X");
-            float mouseY = InputManager.GetAxis("Mouse Y");
+            float mouseX = Input.GetAxis("Mouse X");
+            float mouseY = Input.GetAxis("Mouse Y");
+
+            //Debug.Log("mouse:" + mouseX + "," + mouseY);
 
             //Vector3 eulerAngles=transform.rotation.eulerAngles;
             float angleY = mouseX * m_TurnSpeed;
@@ -67,6 +76,17 @@ public class TestInput : MonoBehaviour
             e.y += angleY;
             tf.eulerAngles = e;
         }
+#if UNITY_ANDROID
+        if (Input.GetMouseButtonDown(0))
+        {
+            m_TouchDown = true;
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            m_TouchDown = false;
+        }
+#endif
     }
 
     protected void ParseMove(float deltaTime)
@@ -123,8 +143,8 @@ public class TestInput : MonoBehaviour
 
     protected void ParseTouchMove(float deltaTime)
     {
-        float horizontal = InputManager.GetAxis("Horizontal");
-        float vertical = InputManager.GetAxis("Vertical");
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
 
         if (horizontal != 0 || vertical != 0)
         {
@@ -145,8 +165,8 @@ public class TestInput : MonoBehaviour
 
     void CameraFollow(float deltaTime)
     {
-        float horizontal = InputManager.GetAxis("Horizontal");
-        float vertical = InputManager.GetAxis("Vertical");
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
 
         if (horizontal != 0 || vertical != 0)
         {
