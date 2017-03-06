@@ -41,7 +41,7 @@ namespace YH.MyInput
 #if UNITY_ANDROID
             if (Input.GetMouseButton(0) && m_TouchDown)
 #else
-            if (Input.GetMouseButton(0)
+            if (Input.GetMouseButton(0))
 #endif
                 {
                 if (m_UseX)
