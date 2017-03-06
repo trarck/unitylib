@@ -56,8 +56,8 @@ public class Polygon2D : MonoBehaviour
         }
 
         bisector = a + b;
-        //输出成标准风向量
-        bisector.Normalize();
+        //这里不用归一化，这样边的宽度就是设置的宽。归一化后就是这点的长才是宽度，边的宽度要变小。
+       //bisector.Normalize();
         return true;
     }
 
