@@ -9,15 +9,24 @@ namespace YH.AM
         /// <summary>
         /// manifest包含的整个资源大小
         /// </summary>
-        long m_TotalSize;
+        public long totalSize;
 
+        /// <summary>
+        /// 当前版本，也是最新版本
+        /// </summary>
+        public string currentVersion;
+
+        /// <summary>
+        /// 补丁版本，表明这个manifest的资源是从补丁版本到当前版本的内容
+        /// </summary>
+        public string patchVersion;
         //具体内容
-        List<Asset> m_Assets;
+        public List<Asset> assets;
 
         public Manifest()
         {
-            m_TotalSize = 0;
-            m_Assets = new List<Asset>();
+            totalSize = 0;
+            assets = new List<Asset>();
         }
 
         public void Parse(string file)
@@ -36,24 +45,8 @@ namespace YH.AM
 
         public void AddAsset(Asset asset)
         {
-            m_Assets.Add(asset);
-            m_TotalSize += asset.size;
-        }
-
-        public Dictionary<string, object> ToDictionary()
-        {
-            Dictionary<string, object> data = new Dictionary<string, object>();
-            data["totalSize"] = m_TotalSize;
-
-            List<Dictionary<string, object>> assets = new List<Dictionary<string, object>>();
-            foreach(Asset asset in m_Assets)
-            {
-                assets.Add(asset.ToDictionary());
-            }
-            data["assets"] = assets;
-            return data;
+            assets.Add(asset);
+            totalSize += asset.size;
         }
     }
-
-
 }

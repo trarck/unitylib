@@ -2,6 +2,7 @@
 
 namespace YH.AM
 {
+    [System.Serializable]
     public class Asset
     {
         public enum AssetType
@@ -23,24 +24,5 @@ namespace YH.AM
         public string hash;
         //留着其它用途
         public string ext;
-
-        public Dictionary<string,object> ToDictionary()
-        {
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-            dict["type"] = type;
-            dict["path"] = path;
-            dict["size"] = size;
-            if(!string.IsNullOrEmpty(hash))
-            {
-                dict["hash"] = hash;
-            }
-
-            if (!string.IsNullOrEmpty(ext))
-            {
-                dict["ext"] = ext;
-            }
-            
-            return dict;
-        }
     }
 }
