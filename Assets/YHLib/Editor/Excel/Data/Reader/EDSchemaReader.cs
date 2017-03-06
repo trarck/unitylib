@@ -14,7 +14,7 @@ namespace YH.Excel.Data
 
         }
 
-        public static Schema ReadSchema(ISheet sheet, int schemaNameRow=0, int schemaDataTypeRow=1)
+        public static Schema ReadSchema(ISheet sheet, int schemaNameRow= EDConstance.SchemaNameRow, int schemaDataTypeRow=EDConstance.SchemaDataTypeRow,int schemaColOffset=0)
         {
             Schema schema = new Schema();
             schema.name = sheet.SheetName;
@@ -25,7 +25,7 @@ namespace YH.Excel.Data
             //second row is data type
             IRow typeRow = sheet.GetRow(sheet.FirstRowNum + schemaDataTypeRow);
 
-            for(int i = headerRow.FirstCellNum; i < headerRow.LastCellNum; ++i)
+            for(int i = headerRow.FirstCellNum+schemaColOffset; i < headerRow.LastCellNum; ++i)
             {
                 ICell headCell = headerRow.GetCell(i);
                 string name = headCell.StringCellValue;                

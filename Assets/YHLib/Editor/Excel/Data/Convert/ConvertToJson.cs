@@ -17,6 +17,7 @@ namespace YH.Excel.Data
         struct SheetConvertItem
         {
             public string name;
+            public string tableName;
             public bool convertable;
             public ConvertSheetDataType dataType;
             public string dictKey;
@@ -27,6 +28,8 @@ namespace YH.Excel.Data
         Vector2 m_ScrollViewPos = Vector2.zero;
 
         SheetConvertItem[] m_SheetConverts;
+
+        bool m_BeautifyJson = false;
 
         [MenuItem("Assets/ExcelData/Convert To Json")]
         public static void ShowWindow()
@@ -50,6 +53,10 @@ namespace YH.Excel.Data
                 DoConvert();
             }
 
+            YHEditorTools.PushLabelWidth(60);
+            m_BeautifyJson = EditorGUILayout.Toggle("Beautify", m_BeautifyJson, GUILayout.Width(100));
+            YHEditorTools.PopLabelWidth();
+
             EditorGUILayout.EndHorizontal();
 
             ShowSheetGUI();
@@ -65,7 +72,10 @@ namespace YH.Excel.Data
                 {
                     EditorGUILayout.BeginHorizontal();
 
-                    EditorGUILayout.LabelField( "table:"+m_SheetConverts[i].name,GUILayout.Width(100));
+                    YHEditorTools.PushLabelWidth(40);
+                    m_SheetConverts[i].tableName = EditorGUILayout.TextField( "Table:",m_SheetConverts[i].tableName,GUILayout.Width(200));
+                    YHEditorTools.PopLabelWidth();
+
                     m_SheetConverts[i].convertable = EditorGUILayout.Toggle(m_SheetConverts[i].convertable, GUILayout.Width(50));
 
                     float oldWidth = EditorGUIUtility.labelWidth;
@@ -101,6 +111,7 @@ namespace YH.Excel.Data
                     {
                         SheetConvertItem item = new SheetConvertItem();
                         item.name = sheet.SheetName;
+                        item.tableName = item.name;
                         item.convertable = true;
                         item.dataType = ConvertSheetDataType.List;
                         item.dictKey = "";
@@ -117,11 +128,11 @@ namespace YH.Excel.Data
             var savePath = EditorUtility.SaveFolderPanel("Save json file directory", "", "");
             if (savePath.Length != 0)
             {
-                DonvertWorkbook(savePath);
+                ConvertWorkbook(savePath);
             }
         }
 
-        void DonvertWorkbook(string savePath)
+        void ConvertWorkbook(string savePath)
         {
             int n = 0;
             for (int i = 0; i < m_SheetConverts.Length; ++i)
@@ -134,11 +145,11 @@ namespace YH.Excel.Data
                         ++n;
                         if (m_SheetConverts[i].dataType == ConvertSheetDataType.List)
                         {
-                            ConvertSheet(sheet, savePath);
+                            ConvertSheet(sheet, savePath, m_SheetConverts[i].tableName);
                         }
                         else if (m_SheetConverts[i].dataType == ConvertSheetDataType.Dictionary)
                         {
-                            ConvertSheet(sheet, savePath,m_SheetConverts[i].dictKey);
+                            ConvertSheet(sheet, savePath, m_SheetConverts[i].tableName, m_SheetConverts[i].dictKey);
                         }
                         EditorUtility.DisplayProgressBar("Convert Sheet", n + "/" + m_SheetConverts.Length, 1.0f*n / m_SheetConverts.Length);                   
                     }
@@ -149,23 +160,23 @@ namespace YH.Excel.Data
             EditorUtility.DisplayDialog("Convert To Json", "Convert " + n + " Sheets","ok");
         }
 
-        void ConvertSheet(ISheet sheet,string savePath)
+        void ConvertSheet(ISheet sheet,string savePath,string tableName)
         {
             Schema schema = EDSchemaReader.ReadSchema(sheet);
             EDDataReader reader = new EDDataReader();
             object list = EDDataReader.ReadList(sheet, schema);
 
-            string filename = Path.Combine(savePath, schema.name + ".json");
+            string filename = Path.Combine(savePath, (string.IsNullOrEmpty(tableName)?schema.name: tableName) + ".json");
             SaveToJsonFile(filename, list);
         }
 
-        void ConvertSheet(ISheet sheet, string savePath,string keyName)
+        void ConvertSheet(ISheet sheet, string savePath, string tableName, string keyName)
         {
             Schema schema = EDSchemaReader.ReadSchema(sheet);
             EDDataReader reader = new EDDataReader();
             object dict = EDDataReader.ReadDictionary(sheet, schema,keyName);
 
-            string filename = Path.Combine(savePath, schema.name + ".json");
+            string filename = Path.Combine(savePath, (string.IsNullOrEmpty(tableName) ? schema.name : tableName) + ".json");
             SaveToJsonFile(filename, dict);
         }
 
@@ -175,8 +186,11 @@ namespace YH.Excel.Data
             param.UseEscapedUnicode = false;
 
             string jsonString = fastJSON.JSON.ToJSON(data, param);
-            jsonString = fastJSON.JSON.Beautify(jsonString);
-            
+            if (m_BeautifyJson)
+            {
+                jsonString = fastJSON.JSON.Beautify(jsonString);
+            }
+
             File.WriteAllText(jsonfile, jsonString);
         }
 

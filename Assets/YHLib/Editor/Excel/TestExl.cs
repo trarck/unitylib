@@ -197,26 +197,21 @@ namespace YH.Excel.Data
         [MenuItem("Assets/Exl/Code gen")]
         public static void TestCodeGen()
         {
-            string fileName = Application.dataPath + "/Tests/Editor/Gacha.xlsx";
+            string fileName = Application.dataPath + "/Tests/Editor/Test1.xlsx";
 
             IWorkbook workbook = ExcelHelper.Load(fileName);
             EDReader reader = new EDReader(workbook);
 
             ISheet dataSheet = workbook.GetSheetAt(0);
 
-            Schema schema = EDSchemaReader.ReadSchema(dataSheet);
+            Debug.Log(dataSheet.FirstRowNum + "," + dataSheet.LastRowNum);
 
-            foreach (Field field in schema.fields)
-            {
-                Debug.Log(field);
-            }
-
-            CodeGen gen = new CodeGen();
-
-            gen.ns = "YH.Test.Data";
-
-            string outputPath = Application.dataPath + "/Tests/Scripts/Data/Beans/";
-            gen.GenClass(schema, outputPath);
+            IRow row = dataSheet.GetRow(0);
+            Debug.Log(row.FirstCellNum + "," + row.LastCellNum);
+            row = dataSheet.GetRow(1);
+            Debug.Log(row.FirstCellNum + "," + row.LastCellNum);
+            row = dataSheet.GetRow(2);
+            Debug.Log(row.FirstCellNum + "," + row.LastCellNum);
         }
     }
 }

@@ -214,6 +214,8 @@ namespace YH.Excel.Data
 
         public static object GetLinkData(ICell cell, Type t)
         {
+            if (cell == null || cell.StringCellValue=="") return null;
+
             string linkWhere = cell.StringCellValue;
             CellPosition cp;
             string linkSheetName = ParseLinkCell(cell, out cp);            
@@ -268,6 +270,7 @@ namespace YH.Excel.Data
 
         public static object GetLinkArray(ICell cell, Type t)
         {
+            if (cell == null || cell.StringCellValue == "") return null;
             string linkWhere = cell.StringCellValue;
             CellPosition cp;
             string linkSheetName = ParseLinkCell(cell, out cp);
@@ -279,6 +282,20 @@ namespace YH.Excel.Data
         public static T[] GetLinkArray<T>(ICell cell)
         {
             return GetLinkArray(cell, typeof(T)) as T[];
+        }
+
+        public static object GetLinkDict(ICell cell, string keyField,bool removeKeyFieldInElement=false)
+        {
+            if (cell == null || cell.StringCellValue == "") return null;
+            string linkWhere = cell.StringCellValue;
+            CellPosition cp;
+            string linkSheetName = ParseLinkCell(cell, out cp);
+
+            ISheet linkSheet = cell.Sheet.Workbook.GetSheet(linkSheetName);
+            Schema schema = EDSchemaReader.ReadSchema(linkSheet);
+
+            //内容要跳过2个头
+            return EDDataReader.ReadDictionary(linkSheet, schema, keyField,cp.row+EDConstance.SchemaDataRow,cp.col,null, removeKeyFieldInElement);
         }
     }
 }

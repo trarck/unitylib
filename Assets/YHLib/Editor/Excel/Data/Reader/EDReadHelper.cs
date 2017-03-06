@@ -7,16 +7,15 @@ namespace YH.Excel.Data
 {
     public class EDReadHelper
     {
-        public static List<string> GetHeader(ISheet sheet, int headerOffset = 0)
+        public static List<string> GetHeader(ISheet sheet, int headerOffset = 0,int colOffset=0)
         {
             List<string> header = new List<string>();
 
             //first row is header as default
             IRow headerRow = sheet.GetRow(sheet.FirstRowNum + headerOffset);
-            IEnumerator<ICell> iter = headerRow.GetEnumerator();
-            while (iter.MoveNext())
+            for(int i=headerRow.FirstCellNum+colOffset;i<headerRow.LastCellNum;++i)
             {
-                header.Add(iter.Current.StringCellValue);
+                header.Add(headerRow.GetCell(i).StringCellValue);
             }
             return header;
         }

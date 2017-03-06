@@ -6,6 +6,4 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Tests/Scenes/test_singleton/SingletonA.unity
-  - enabled: 1
-    path: Assets/Tests/Scenes/test_singleton/SingletonB.unity
+    path: Assets/Tests/Scenes/Inputs/TestBaseInput.unity

@@ -19,6 +19,8 @@ namespace YH
             [SerializeField]
             private UpdateType m_UpdateType;
 
+            [SerializeField]
+            protected Transform m_Transform = null;
 
             void Update()
             {
@@ -54,7 +56,26 @@ namespace YH
                 }
             }
 
+            
+
             protected abstract void parseInput(float deltaTime);
+
+            public Transform selfTransform
+            {
+                set
+                {
+                    m_Transform = value;
+                }
+
+                get
+                {
+                    if (m_Transform == null)
+                    {
+                        m_Transform = this.transform;
+                    }
+                    return m_Transform;
+                }
+            }
         }
     }
 }

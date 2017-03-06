@@ -68,8 +68,8 @@ namespace YH.MyInput
         private void CheckEnableControlRig()
         {
 #if MOBILE_INPUT
-		EnableControlRig(true);
-		#else
+		    EnableControlRig(true);
+#else
             EnableControlRig(false);
 #endif
         }

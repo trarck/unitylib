@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace YH.Excel.Data
@@ -17,6 +18,12 @@ namespace YH.Excel.Data
 
         //注释
         string m_Comment;
+
+        //纯的成员类型
+        string m_ExtMemberType;
+
+        //用于dictionary的key指向的字段
+        string m_ExtTypeKeyField;
 
         public Field()
         {
@@ -55,7 +62,7 @@ namespace YH.Excel.Data
                 int posEnd = type.IndexOf(">");
                 
                 extType = type.Substring(pos + 1, posEnd-pos-1);
-                Debug.Log(pos + "," + posEnd+","+extType);
+                
                 return EnumUtil.ParseEnum<ExcelDataType>(baseType, ExcelDataType.Object);
             }
             else
@@ -65,6 +72,48 @@ namespace YH.Excel.Data
             }
         }
 
+        public string GetMemberType()
+        {
+            if (m_Type == ExcelDataType.Dictionary)
+            {
+                //Dictionary<key,value>,Dictionary<key:xxx,value>,Dictionary<key:xxx,value:xxx>
+                string[] splits = m_ExtType.Split(',');
+                string memType = "";
+                string pureType = "";
+                for (int i = 0; i < splits.Length; ++i)
+                {
+                    int pos = splits[i].IndexOf(':');
+                    if (pos != -1)
+                    {
+                        pureType= splits[i].Substring(0, pos);
+                    }
+                    else
+                    {
+                        pureType = splits[i];
+                    }                    
+                    memType +=((i==0) ?"":",")+pureType;
+                }
+                return memType;       
+            }
+            else
+            {
+                return m_ExtType;
+            }
+        }
+
+        public string GetExtTypeKeyField()
+        {
+            string[] splits = m_ExtType.Split(',');
+            int pos = splits[0].IndexOf(':');
+            if (pos != -1)
+            {
+                return splits[0].Substring(0, pos);
+            }
+            else
+            {
+                return "";
+            }            
+        }
 
         public override string ToString()
         {
@@ -102,6 +151,8 @@ namespace YH.Excel.Data
             set
             {
                 m_ExtType = value;
+                m_ExtMemberType = GetMemberType();
+                m_ExtTypeKeyField = GetExtTypeKeyField();
             }
 
             get
@@ -120,6 +171,22 @@ namespace YH.Excel.Data
             get
             {
                 return m_Comment;
+            }
+        }
+
+        public string extMemberType
+        {
+            get
+            {
+                return m_ExtMemberType;
+            }
+        }
+
+        public string extTypeKeyField
+        {
+            get
+            {
+                return m_ExtTypeKeyField;
             }
         }
     }
