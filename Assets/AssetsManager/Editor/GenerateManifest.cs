@@ -431,12 +431,21 @@ namespace YH.AM
                             asset.hash = GetFileMd5(fs);
                         }
 
-                        string outPath = Path.Combine(outDir, asset.path);
-                        if(!Directory.Exists(Path.GetDirectoryName(outPath)))
+                        string outFilePath = Path.Combine(outDir, asset.path);
+                        if(!Directory.Exists(Path.GetDirectoryName(outFilePath)))
                         {
-                            Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+                            Directory.CreateDirectory(Path.GetDirectoryName(outFilePath));
                         }
-                        File.Copy(filePath, outPath,true);
+
+                        //如果目标文件只读，则copy会失败.
+                        FileInfo outFileInfo = new FileInfo(outFilePath);
+                        if( (outFileInfo.Attributes & FileAttributes.ReadOnly)!=0)
+                        {
+                            outFileInfo.Attributes &= ~FileAttributes.ReadOnly;//outFileInfo.Attributes -= FileAttributes.ReadOnly;
+                            outFileInfo.Refresh();
+                        }
+
+                        File.Copy(filePath, outFilePath, true);
                         break;
                     case Asset.AssetType.Patch:
                         //TODO generate patch file
