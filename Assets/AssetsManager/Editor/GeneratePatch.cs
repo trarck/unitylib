@@ -14,7 +14,7 @@ namespace YH.AM
         }
 
         public static string DefaultPatchDirName = "patch";
-        public static string DefaultManifestName = "__.manifest";
+        public static string DefaultManifestName = ".manifest";
 
         //存放资源的目录，多个版本的资源
         string m_ResourceDir;
