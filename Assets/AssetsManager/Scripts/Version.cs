@@ -63,14 +63,40 @@ namespace YH.AM
             return  ((ulong)major << 32) | ((ulong)minor << 16) | patch;
         }
 
+        public static bool IsVersionFormat(string version)
+        {
+            if (string.IsNullOrEmpty(version))
+            {
+                return false;
+            }
+
+            foreach (char c in version)
+            {
+                if (!char.IsNumber(c) && c != '.')
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         //==================overload compare operator=====================//
         public static bool operator ==(Version lhs,Version rhs)
         {
+            if(object.Equals(lhs,null) || object.Equals(rhs,null))
+            {
+                return object.Equals(lhs, rhs);
+            }
             return lhs.ToLong() == rhs.ToLong();
         }
 
         public static bool operator !=(Version lhs, Version rhs)
         {
+            if (object.Equals(lhs, null) || object.Equals(rhs, null))
+            {
+                return !object.Equals(lhs, rhs);
+            }
             return lhs.ToLong() != rhs.ToLong();
         }
 

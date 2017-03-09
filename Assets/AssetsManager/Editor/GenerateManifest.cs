@@ -20,6 +20,9 @@ namespace YH.AM
         //目标目录
         string m_destPath;
 
+        //是否使用差异补丁
+        public bool useDiffPatch=false;
+
         public struct DirData
         {
             public string srcPath;
@@ -34,21 +37,68 @@ namespace YH.AM
             }
         }
 
+        public enum Segment
+        {
+            Process,
+            Manifest,
+            Collect
+        }
+
+        //处理阶段信息回调
+        public delegate void ProcessHandle(Segment segment,string msg);
+        public ProcessHandle OnProcessing;
+
+        public Manifest Generate(string srcDir, string destDir, string outDir,string dirName = "")
+        {
+            if (OnProcessing != null)
+            {
+                OnProcessing(Segment.Process, "Process Start");
+            }
+            Process(srcDir, destDir, dirName);
+
+            if (OnProcessing != null)
+            {
+                OnProcessing(Segment.Manifest, "Get Manifest ");
+            }
+            Manifest manifest= GetManifest();
+
+            if (OnProcessing != null)
+            {
+                OnProcessing(Segment.Collect, "Collect Assets");
+            }
+            CollectAssets(manifest,outDir);
+            return manifest;
+        }
+
         public void Process(string srcDir, string destDir, string dirName = "")
         {
+
             //保存下来，后面获取具体信息时有用。
             m_srcPath = srcDir;
             m_destPath = destDir;
-
-            Queue<DirData> dirs = new Queue<DirData>();
-            dirs.Enqueue(new DirData(srcDir, destDir, dirName));
-            while (dirs.Count > 0)
+            //如果目录目录是空，则什么都不做。没有源目录，难道要删除所有文件？
+            if (string.IsNullOrEmpty(destDir))
             {
-                DirData dirData = dirs.Dequeue();
-                ProcessFiles(dirData.srcPath, dirData.destPath, dirData.dirName);
-                ProcessSubDirs(dirData.srcPath, dirData.destPath, dirData.dirName, dirs);
+                return;
             }
 
+            //检查目标目录是否存在
+            if (string.IsNullOrEmpty(srcDir))
+            {
+                //没有目标目录，则添加所有源目录。
+                AddAllFiles(destDir, dirName, m_Addes);
+            }
+            else
+            {
+                Queue<DirData> dirs = new Queue<DirData>();
+                dirs.Enqueue(new DirData(srcDir, destDir, dirName));
+                while (dirs.Count > 0)
+                {
+                    DirData dirData = dirs.Dequeue();
+                    ProcessFiles(dirData.srcPath, dirData.destPath, dirData.dirName);
+                    ProcessSubDirs(dirData.srcPath, dirData.destPath, dirData.dirName, dirs);
+                }
+            }
         }
 
         public void ProcessFiles(string srcDir, string destDir, string dirName)
@@ -328,28 +378,16 @@ namespace YH.AM
             return a + "/" + b;
         }
 
-        public Manifest GenManifest()
+        public Manifest GetManifest()
         {
             Manifest manifest = new Manifest();
 
             Asset asset;
-            FileInfo fileInfo;
             foreach (string file in m_Modifies)
             {
                 asset = new Asset();
                 asset.path = file;
-                //更新暂时使用文件替换
-                asset.type = Asset.AssetType.Full;
-
-                //更新的文件的信息从dest目录取。
-                fileInfo = new FileInfo(Path.Combine(m_destPath, file));
-                //记录大小
-                asset.size = fileInfo.Length;
-                //记录md5
-                using (FileStream fs = fileInfo.OpenRead())
-                {
-                    asset.hash = GetFileMd5(fs);
-                }                    
+                asset.type = useDiffPatch ? Asset.AssetType.Patch : Asset.AssetType.Full;
                 manifest.AddAsset(asset);
             }
 
@@ -358,16 +396,6 @@ namespace YH.AM
                 asset = new Asset();
                 asset.path = file;
                 asset.type = Asset.AssetType.Full;
-
-                //新增的文件的信息从dest目录取。
-                fileInfo = new FileInfo(Path.Combine(m_destPath, file));
-                //记录大小
-                asset.size = fileInfo.Length;
-                //记录md5
-                using (FileStream fs = fileInfo.OpenRead())
-                {
-                    asset.hash = GetFileMd5(fs);
-                }
                 manifest.AddAsset(asset);
             }
 
@@ -381,6 +409,115 @@ namespace YH.AM
 
             return manifest;
         }
+
+        public void CollectAssets(Manifest manifest,string outDir)
+        {
+            FileInfo fileInfo;
+            string filePath;
+            foreach (Asset asset in manifest.assets)
+            {
+                switch(asset.type)
+                {
+                    case Asset.AssetType.Full:
+                        filePath = Path.Combine(m_destPath, asset.path);
+                        fileInfo = new FileInfo(filePath);
+                        //保存文件大小
+                        asset.size = fileInfo.Length;
+                        //更新总的资源大小
+                        manifest.totalSize += asset.size;
+                        //保存md5
+                        using (FileStream fs = fileInfo.OpenRead())
+                        {
+                            asset.hash = GetFileMd5(fs);
+                        }
+
+                        string outPath = Path.Combine(outDir, asset.path);
+                        if(!Directory.Exists(Path.GetDirectoryName(outPath)))
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+                        }
+                        File.Copy(filePath, outPath,true);
+                        break;
+                    case Asset.AssetType.Patch:
+                        //TODO generate patch file
+                        break;
+                }
+            }
+        }
+
+        ///// <summary>
+        ///// 生成manifest包含的资源
+        ///// </summary>
+        ///// <returns></returns>
+        //public Manifest Collect()
+        //{
+        //    Manifest manifest = new Manifest();
+
+        //    Asset asset;
+        //    FileInfo fileInfo;
+        //    string filePath;
+        //    foreach (string file in m_Modifies)
+        //    {
+        //        asset = new Asset();
+        //        asset.path = file;
+        //        if(useDiffPatch)
+        //        {
+        //            asset.type = Asset.AssetType.Patch;
+        //            //TODO 生成差异化文件
+        //        }
+        //        else
+        //        {
+        //            filePath = Path.Combine(m_destPath, file);
+        //            //更新暂时使用文件替换
+        //            asset.type =Asset.AssetType.Full;
+
+        //            //更新的文件的信息从dest目录取。
+        //            fileInfo = new FileInfo(filePath);
+        //            //记录大小
+        //            asset.size = fileInfo.Length;
+        //            //记录md5
+        //            using (FileStream fs = fileInfo.OpenRead())
+        //            {
+        //                asset.hash = GetFileMd5(fs);
+        //            }
+
+        //            File.Copy(filePath, Path.Combine(m_outPath, file));
+        //        }
+
+        //        manifest.AddAsset(asset);
+        //    }
+
+        //    foreach (string file in m_Addes)
+        //    {
+        //        asset = new Asset();
+        //        asset.path = file;
+        //        asset.type = Asset.AssetType.Full;
+
+        //        filePath = Path.Combine(m_destPath, file);
+        //        //新增的文件的信息从dest目录取。
+        //        fileInfo = new FileInfo(filePath);
+        //        //记录大小
+        //        asset.size = fileInfo.Length;
+        //        //记录md5
+        //        using (FileStream fs = fileInfo.OpenRead())
+        //        {
+        //            asset.hash = GetFileMd5(fs);
+        //        }
+
+        //        File.Copy(filePath, Path.Combine(m_outPath, file));
+        //        manifest.AddAsset(asset);
+        //    }
+
+        //    foreach (string file in m_Deletes)
+        //    {
+        //        asset = new Asset();
+        //        asset.path = file;
+        //        asset.type = Asset.AssetType.Delete;
+        //        manifest.AddAsset(asset);
+        //    }
+
+        //    return manifest;
+        //}
 
         public override string ToString()
         {
