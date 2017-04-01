@@ -1,13 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using YH.AM;
+using Ionic.Zip;
+
 public class MyEditor : Editor
 {
     [MenuItem("MyMenu/Test AM")]
     public static void Test()
     {
-
         GeneratePatch gen = new GeneratePatch();
         gen.Generate("D:\\temp\\am\\iphone");
     }
@@ -28,5 +30,5 @@ public class MyEditor : Editor
         }
 
         return true;
-    }
+    }    
 }

@@ -3,6 +3,15 @@ using System.IO;
 
 namespace YH.AM
 {
+
+    [System.Serializable]
+    public struct ManifestHeader
+    {
+        public long totalSize;
+        public string currentVersion;
+        public string patchVersion;
+    }
+
     [System.Serializable]
     public class Manifest
     {
@@ -20,6 +29,7 @@ namespace YH.AM
         /// 补丁版本，表明这个manifest的资源是从补丁版本到当前版本的内容
         /// </summary>
         public string patchVersion;
+
         //具体内容
         public List<Asset> assets;
 
@@ -47,6 +57,15 @@ namespace YH.AM
         {
             assets.Add(asset);
             totalSize += asset.size;
+        }
+
+        public ManifestHeader GetHeader()
+        {
+            ManifestHeader header = new ManifestHeader();
+            header.totalSize = totalSize;
+            header.currentVersion = currentVersion;
+            header.patchVersion = patchVersion;
+            return header;
         }
     }
 }

@@ -54,18 +54,24 @@ namespace YH.AM
             {
                 OnProcessing(Segment.Process, "Process Start");
             }
+
+            //处理目录，生成差异文件
             Process(srcDir, destDir, dirName);
 
             if (OnProcessing != null)
             {
                 OnProcessing(Segment.Manifest, "Get Manifest ");
             }
+
+            //由差差异文件生成Manifest
             Manifest manifest= GetManifest();
 
             if (OnProcessing != null)
             {
                 OnProcessing(Segment.Collect, "Collect Assets");
             }
+
+            //收集Manifest的资源
             CollectAssets(manifest,outDir);
             return manifest;
         }
