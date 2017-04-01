@@ -25,10 +25,13 @@ namespace YH.AM
         string m_PatchDir;
 
         //最小版本
-        string m_MinVersion;
+        Version m_MinVersion;
 
         //最新版本
-        string m_LastVersion;
+        Version m_LastVersion;
+
+        //最小主体版本
+        Version m_MinHostVersion;
 
         //是否生成manifest的头文件
         bool m_GenerateManifestHeader=false;
@@ -59,12 +62,39 @@ namespace YH.AM
             }
 
             //开始生成各个版本和最新版本之间的差异。
+            List<Version> versions = CheckVersions(resourceDir, fromVersion, toVersion, minHostVersion);
+            //check have version files
+            if (versions.Count==0)
+            {
+                return GenerateState.NoVersions;
+            }
+     
+            for(int i=0;i<versions.Count;++i)
+            {
+                Version currentVersion = versions[i];
+                if (currentVersion >= m_MinVersion && currentVersion < m_LastVersion)
+                {
+                    GenerateBetweenVersion(currentVersion.ToString(), m_LastVersion.ToString());
+                }
+            }
+
+            //生成最新的全部文件包。也可以不生成，超出更新范围的是下载最新的安装文件，也就是和当前最新资源同一个版本。
+            GenerateBetweenVersion("", m_LastVersion.ToString());
+
+            //生成版本信息文件
+            GenerateVersionFile(Path.Combine(m_PatchDir, VersionFilename), m_LastVersion.ToString(), m_MinVersion.ToString(), m_MinHostVersion.ToString());
+
+            return GenerateState.OK;
+        }
+
+        protected List<Version> CheckVersions(string resourceDir,string fromVersion, string toVersion , string minHostVersion)
+        {
             List<Version> versions = GetVersionsInResource(resourceDir);
 
             //check have version files
-            if(versions.Count==0)
+            if (versions.Count == 0)
             {
-                return GenerateState.NoVersions;
+                return versions;
             }
 
             Version minVersion = null;
@@ -73,7 +103,7 @@ namespace YH.AM
             //check min version
             if (Version.IsVersionFormat(fromVersion))
             {
-                minVersion = new Version(fromVersion); 
+                minVersion = new Version(fromVersion);
             }
             else
             {
@@ -81,7 +111,7 @@ namespace YH.AM
             }
 
             //check current version
-            if(Version.IsVersionFormat(toVersion))
+            if (Version.IsVersionFormat(toVersion))
             {
                 lastVersion = new Version(toVersion);
             }
@@ -89,7 +119,7 @@ namespace YH.AM
             {
                 lastVersion = versions[versions.Count - 1];
             }
-            
+
             //检查最小主体版本
             if (string.IsNullOrEmpty(minHostVersion))
             {
@@ -101,35 +131,23 @@ namespace YH.AM
                     //check is version
                     if (Version.IsVersionFormat(minHostVersion))
                     {
-                        minHostVersion = minVersion.ToString();
+                        m_MinHostVersion = new Version(minHostVersion);
+                    }
+                    else
+                    {
+                        m_MinHostVersion = minVersion;
                     }
                 }
                 else
                 {
-                    minHostVersion = minVersion.ToString();
+                    m_MinHostVersion = minVersion;
                 }
             }
 
-            //记录版本信息
-            m_MinVersion = minVersion.ToString();
-            m_LastVersion = lastVersion.ToString();
-         
-            for(int i=0;i<versions.Count;++i)
-            {
-                Version currentVersion = versions[i];
-                if (currentVersion >= minVersion && currentVersion < lastVersion)
-                {
-                    GenerateBetweenVersion(currentVersion.ToString(), lastVersion.ToString());
-                }
-            }
+            m_MinVersion = minVersion;
+            m_LastVersion = lastVersion;
 
-            //生成最新的全部文件包。也可以不生成
-            GenerateBetweenVersion("", lastVersion.ToString());
-
-            //生成版本信息文件
-            GenerateVersionFile(Path.Combine(m_PatchDir, VersionFilename), m_LastVersion, m_MinVersion, minHostVersion);
-
-            return GenerateState.OK;
+            return versions;
         }
 
         protected void GenerateBetweenVersion(string srcVersion,string destVersion)
@@ -237,11 +255,17 @@ namespace YH.AM
             }
         }
 
+        //显示生成进度。只有提示做用
         public void ShowGenerateProgress(GenerateManifest.Segment segment,string msg,float percent)
         {
             EditorUtility.DisplayCancelableProgressBar(segment.ToString(), msg, percent);
         }
 
+        /// <summary>
+        /// 从目录中提取是版本信息
+        /// </summary>
+        /// <param name="resoureDir"></param>
+        /// <returns></returns>
         public List<Version> GetVersionsInResource(string resoureDir)
         {
             string[] versions = Directory.GetDirectories(resoureDir);
@@ -264,6 +288,13 @@ namespace YH.AM
             return list;
         }
         
+        /// <summary>
+        /// 生成版本提示文件
+        /// </summary>
+        /// <param name="versionFile"></param>
+        /// <param name="lastestVersion"></param>
+        /// <param name="minSupportVersion"></param>
+        /// <param name="minHostVersion"></param>
         public void GenerateVersionFile(string versionFile,string lastestVersion, string minSupportVersion,string minHostVersion="")
         {
             if(string.IsNullOrEmpty(minHostVersion))
@@ -275,7 +306,7 @@ namespace YH.AM
             File.WriteAllText(versionFile, content);
         }
 
-        public bool generateManifestHeader
+        public bool GenerateManifestHeader
         {
             get
             {
@@ -285,6 +316,19 @@ namespace YH.AM
             set
             {
                 m_GenerateManifestHeader = value;
+            }
+        }
+
+        public bool RemovePatchsAfterPack
+        {
+            get
+            {
+                return m_RemovePatchsAfterPack;
+            }
+
+            set
+            {
+                m_RemovePatchsAfterPack = value;
             }
         }
     }
