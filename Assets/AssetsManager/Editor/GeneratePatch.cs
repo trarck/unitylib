@@ -28,7 +28,7 @@ namespace YH.AM
         Version m_MinVersion;
 
         //最新版本
-        Version m_LastVersion;
+        Version m_LastestVersion;
 
         //最小主体版本
         Version m_MinHostVersion;
@@ -72,17 +72,17 @@ namespace YH.AM
             for(int i=0;i<versions.Count;++i)
             {
                 Version currentVersion = versions[i];
-                if (currentVersion >= m_MinVersion && currentVersion < m_LastVersion)
+                if (currentVersion >= m_MinVersion && currentVersion < m_LastestVersion)
                 {
-                    GenerateBetweenVersion(currentVersion.ToString(), m_LastVersion.ToString());
+                    GenerateBetweenVersion(currentVersion.ToString(), m_LastestVersion.ToString());
                 }
             }
 
             //生成最新的全部文件包。也可以不生成，超出更新范围的是下载最新的安装文件，也就是和当前最新资源同一个版本。
-            GenerateBetweenVersion("", m_LastVersion.ToString());
+            GenerateBetweenVersion("", m_LastestVersion.ToString());
 
             //生成版本信息文件
-            GenerateVersionFile(Path.Combine(m_PatchDir, VersionFilename), m_LastVersion.ToString(), m_MinVersion.ToString(), m_MinHostVersion.ToString());
+            GenerateVersionFile(Path.Combine(m_PatchDir, VersionFilename), m_LastestVersion.ToString(), m_MinVersion.ToString(), m_MinHostVersion.ToString());
 
             return GenerateState.OK;
         }
@@ -103,21 +103,21 @@ namespace YH.AM
             //check min version
             if (Version.IsVersionFormat(fromVersion))
             {
-                minVersion = new Version(fromVersion);
+                m_MinVersion = new Version(fromVersion);
             }
             else
             {
-                minVersion = versions[0];
+                m_MinVersion = versions[0];
             }
 
             //check current version
             if (Version.IsVersionFormat(toVersion))
             {
-                lastVersion = new Version(toVersion);
+                m_LastestVersion = new Version(toVersion);
             }
             else
             {
-                lastVersion = versions[versions.Count - 1];
+                m_LastestVersion = versions[versions.Count - 1];
             }
 
             //检查最小主体版本
@@ -135,18 +135,14 @@ namespace YH.AM
                     }
                     else
                     {
-                        m_MinHostVersion = minVersion;
+                        m_MinHostVersion = m_MinVersion;
                     }
                 }
                 else
                 {
-                    m_MinHostVersion = minVersion;
+                    m_MinHostVersion = m_MinVersion;
                 }
             }
-
-            m_MinVersion = minVersion;
-            m_LastVersion = lastVersion;
-
             return versions;
         }
 
