@@ -10,8 +10,9 @@ public class MyEditor : Editor
     [MenuItem("MyMenu/Test AM")]
     public static void Test()
     {
-        GeneratePatch gen = new GeneratePatch();
-        gen.Generate("D:\\temp\\am\\iphone");
+        //GeneratePatch gen = new GeneratePatch();
+        //gen.Generate("D:\\temp\\am\\iphone");
+        Debug.Log(Application.version);
     }
 
     static bool IsVersionFormat(string name)
