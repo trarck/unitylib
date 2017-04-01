@@ -45,31 +45,16 @@ namespace YH.AM
         }
 
         //处理阶段信息回调
-        public delegate void ProcessHandle(Segment segment,string msg);
+        public delegate void ProcessHandle(Segment segment,string msg,float percent);
         public ProcessHandle OnProcessing;
 
         public Manifest Generate(string srcDir, string destDir, string outDir,string dirName = "")
         {
-            if (OnProcessing != null)
-            {
-                OnProcessing(Segment.Process, "Process Start");
-            }
-
             //处理目录，生成差异文件
             Process(srcDir, destDir, dirName);
 
-            if (OnProcessing != null)
-            {
-                OnProcessing(Segment.Manifest, "Get Manifest ");
-            }
-
             //由差差异文件生成Manifest
             Manifest manifest= GetManifest();
-
-            if (OnProcessing != null)
-            {
-                OnProcessing(Segment.Collect, "Collect Assets");
-            }
 
             //收集Manifest的资源
             CollectAssets(manifest,outDir);
@@ -78,7 +63,6 @@ namespace YH.AM
 
         public void Process(string srcDir, string destDir, string dirName = "")
         {
-
             //保存下来，后面获取具体信息时有用。
             m_srcPath = srcDir;
             m_destPath = destDir;
@@ -114,6 +98,7 @@ namespace YH.AM
             string srcPath;
             string destPath;
             Dictionary<string, bool> fileSigns = new Dictionary<string, bool>();
+            OnProcessing(Segment.Process, "process dir " + srcDir, 0);
             foreach (string file in srcFiles)
             {
                 string fileName = Path.GetFileName(file);
@@ -132,6 +117,8 @@ namespace YH.AM
                 }
 
                 fileSigns[fileName] = true;
+
+                FireProcessing(Segment.Process, "process fire " + file,1);
             }
 
             //检查目标目录的文件
@@ -144,7 +131,9 @@ namespace YH.AM
                 {
                     m_Addes.Add(dirName + "/" + fileName);
                 }
-            }
+
+                FireProcessing(Segment.Process, "process fire " + file, 1);
+            }            
         }
 
         public void ProcessSubDirs(string srcDir, string destDir, string dirName, Queue<DirData> dirs)
@@ -452,6 +441,7 @@ namespace YH.AM
                         }
 
                         File.Copy(filePath, outFilePath, true);
+                        FireProcessing(Segment.Collect, "collect " + filePath, 1);
                         break;
                     case Asset.AssetType.Patch:
                         //TODO generate patch file
@@ -533,6 +523,12 @@ namespace YH.AM
 
         //    return manifest;
         //}
+
+        private void FireProcessing(Segment segment, string msg, float percent)
+        {
+            if (OnProcessing != null)
+                OnProcessing(segment, msg, percent);
+        }
 
         public override string ToString()
         {

@@ -34,7 +34,7 @@ namespace YH.AM
         bool m_GenerateManifestHeader=false;
 
         //打包否，是否删除补丁文件。
-        bool m_RemovePatchsAfterPack = true;
+        bool m_RemovePatchsAfterPack = false;
 
         /// <summary>
         /// 开始生成补丁
@@ -158,10 +158,10 @@ namespace YH.AM
                 manifest.patchVersion = srcVersion;
 
                 //out put manifest to json
-                EditorUtility.DisplayCancelableProgressBar("Gen Manifest", "Save Manifest", 1);
+                EditorUtility.DisplayCancelableProgressBar("Save Manifest", Path.Combine(outDir, DefaultManifestName), 0);
                 string manifestJson = JsonUtility.ToJson(manifest);
                 File.WriteAllText(Path.Combine(outDir, DefaultManifestName), manifestJson);
-
+                EditorUtility.DisplayCancelableProgressBar("Save Manifest", Path.Combine(outDir, DefaultManifestName), 1);
                 //pack out patch files
                 PackPatchFiles(outDir, DefaultManifestName);
             }
@@ -177,6 +177,8 @@ namespace YH.AM
         //打包生成的补丁文件。要把manifest文件放在第一个。
         public void PackPatchFiles(string patchDir,string manifestFile,string patchFile="")
         {
+            EditorUtility.DisplayCancelableProgressBar("Pack", patchDir, 0);
+
             string manifestContent = File.ReadAllText(Path.Combine(patchDir, manifestFile));
 
             if (string.IsNullOrEmpty(manifestContent))
@@ -197,6 +199,7 @@ namespace YH.AM
 
             Manifest manifest = JsonUtility.FromJson<Manifest>(manifestContent);
 
+            EditorUtility.DisplayCancelableProgressBar("Pack", "zip "+ patchFile, 0.4f);
             using (ZipFile zip = new ZipFile())
             {
                 //first add manifest files
@@ -210,9 +213,9 @@ namespace YH.AM
 
                 zip.Save(patchFile);
             }
-
+            EditorUtility.DisplayCancelableProgressBar("Pack", "zip " + patchFile, 1);
             //generate manifest header
-            if(m_GenerateManifestHeader)
+            if (m_GenerateManifestHeader)
             {
                 string headerFileName = Path.GetFileName(patchDir);
                 string headerFile= Path.Combine(Path.GetDirectoryName(patchDir), headerFileName) + ".manifest";
@@ -234,9 +237,9 @@ namespace YH.AM
             }
         }
 
-        public void ShowGenerateProgress(GenerateManifest.Segment segment,string msg)
+        public void ShowGenerateProgress(GenerateManifest.Segment segment,string msg,float percent)
         {
-            EditorUtility.DisplayCancelableProgressBar("Gen Manifest", msg, (float)segment / 3);
+            EditorUtility.DisplayCancelableProgressBar(segment.ToString(), msg, percent);
         }
 
         public List<Version> GetVersionsInResource(string resoureDir)
