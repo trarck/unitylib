@@ -39,20 +39,6 @@ namespace YH.AM
             assets = new List<Asset>();
         }
 
-        public void Parse(string file)
-        {
-            string content="";
-            if(File.Exists(file))
-            {
-                content = File.ReadAllText(file);
-            }
-
-            if(!string.IsNullOrEmpty(content))
-            {
-
-            }
-        }
-
         public void AddAsset(Asset asset)
         {
             assets.Add(asset);
