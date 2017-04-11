@@ -408,13 +408,13 @@ namespace YH.AM
         public void CollectAssets(Manifest manifest,string outDir)
         {
             FileInfo fileInfo;
-            string filePath;
             foreach (Asset asset in manifest.assets)
             {
-                switch(asset.type)
+                switch (asset.type)
                 {
                     case Asset.AssetType.Full:
-                        filePath = Path.Combine(m_destPath, asset.path);
+                        string filePath = Path.Combine(m_destPath, asset.path);
+                        string outFilePath = Path.Combine(outDir, asset.path);
                         fileInfo = new FileInfo(filePath);
                         //保存文件大小
                         asset.size = fileInfo.Length;
@@ -426,7 +426,7 @@ namespace YH.AM
                             asset.hash = GetFileMd5(fs);
                         }
 
-                        string outFilePath = Path.Combine(outDir, asset.path);
+                       
                         if(!Directory.Exists(Path.GetDirectoryName(outFilePath)))
                         {
                             Directory.CreateDirectory(Path.GetDirectoryName(outFilePath));
@@ -444,7 +444,18 @@ namespace YH.AM
                         FireProcessing(Segment.Collect, "collect " + filePath, 1);
                         break;
                     case Asset.AssetType.Patch:
-                        //TODO generate patch file
+                        //generate patch file
+                        string srcfilePath = Path.Combine(m_srcPath, asset.path);
+                        string destFilePath = Path.Combine(m_destPath, asset.path);
+                        string patchFile = Path.Combine(outDir, asset.path);
+                        if(!Directory.Exists(Path.GetDirectoryName(patchFile)))
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(patchFile));
+                        }
+                        using (FileStream output = new FileStream(patchFile, FileMode.Create))
+                        {
+                            BsDiff.BinaryPatchUtility.Create(File.ReadAllBytes(srcfilePath), File.ReadAllBytes(destFilePath), output);
+                        }
                         break;
                 }
             }

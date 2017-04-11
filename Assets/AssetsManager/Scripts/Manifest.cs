@@ -5,7 +5,7 @@ namespace YH.AM
 {
 
     [System.Serializable]
-    public struct ManifestHeader
+    public class ManifestHeader
     {
         public long totalSize;
         public string currentVersion;

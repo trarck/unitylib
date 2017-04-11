@@ -59,15 +59,18 @@ namespace YH.AM
         [SerializeField]
         HttpRequest m_HttpRequest;
 
-
-        //开始更新
+        /// <summary>
+        /// 开始更新
+        /// 因为不是同步，执行流程分散在各个子函数里。
+        /// 由于下一步依赖上一步的数据，无法直接使用Coroutine来写成同步调用。可以使用成员变量来保存。
+        /// </summary>
+        /// <returns></returns>
         public int StartUpdate()
         {
-            
-            GetRemoteVersion();
+            GetRemoteVersion(); //Step
             return 0;
         }
-
+        
         public void GetRemoteVersion()
         {
             string remoteVersionUrl = m_UpdateUrl + "/version.txt";
@@ -81,11 +84,13 @@ namespace YH.AM
                 }
                 else
                 {
-                    OnUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Get Remote Version", 1);
+                    //获取远程版本信息成功
+                    OnUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Get Remote Version", 0.2f);
                     RemoteVersions remoteVersions = new RemoteVersions();
                     if (remoteVersions.Parse(www.text))
                     {
-                        CompareVersion(remoteVersions);
+                        //比较版本
+                        CompareVersion(remoteVersions); //Step
                     }
                     else
                     {
@@ -129,14 +134,15 @@ namespace YH.AM
                 return;
             }
 
+            OnUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Compare Complete", 1);
             //do update
             string patchPath = GetPatchPath(m_CurrentVersion, remoteVersions.LatestVersion);
             //TODO download the manifest file.
             //GetManifestHeaderFile(patchPath);
-            //download the pack file
-            DownLoadPatchPack(patchPath);
+            //download the pack file            
+            DownLoadPatchPack(patchPath);//Step
 
-            //更新当前版本号，但不保存到文件.等所有补丁执行完成才保存
+            //更新当前版本号，但不保存到文件.等所有补丁执行完成才保存到本地文件。
             m_CurrentVersion = remoteVersions.LatestVersion;
         }
 
@@ -155,16 +161,29 @@ namespace YH.AM
                 {
                     if (string.IsNullOrEmpty(www.text))
                     {
-                        
+                        OnUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "Manifest file is empty:" + manifestUrl, 1);
                     }
                     else
                     {
-                        OnUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "parse fail:" + www.text, 1);
+                        ManifestHeader manifestHeader = JsonUtility.FromJson<ManifestHeader>(www.text);
+                        if(manifestHeader==null)
+                        {
+                            OnUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "parse fail:" + www.text, 1);
+                        }
+                        else
+                        {
+                            //TODO other
+                        }
                     }
                 }
             });
         }
 
+        /// <summary>
+        /// 下载补丁文件
+        /// 由于使用www下载，无法获取下载进度。
+        /// </summary>
+        /// <param name="patchPath"></param>
         public void DownLoadPatchPack(string patchPath)
         {
             string patchPacktUrl = m_UpdateUrl + "/" + patchPath + ".zip";
@@ -246,7 +265,9 @@ namespace YH.AM
                                     zipEntry.Extract(m_StoragePath, ExtractExistingFileAction.OverwriteSilently);
                                     break;
                                 case Asset.AssetType.Patch:
-                                    //TODO apply patch
+                                    //apply patch
+                                    zipEntry.Extract(PatchTempPath, ExtractExistingFileAction.OverwriteSilently);
+                                    AllpyPatchFile(zipEntry.FileName);
                                     break;
                                }
                         }
@@ -260,6 +281,27 @@ namespace YH.AM
 
             //update CurrentVersion
             UpdateCurrentVersion();
+
+            ClearTempDir();
+        }
+
+        protected void AllpyPatchFile(string filename)
+        {
+            string srcFile = Path.Combine(m_StoragePath, filename);
+            string patchFile = Path.Combine(PatchTempPath, filename);
+            string outFile = Path.Combine(PatchedPath, filename);
+            if(!Directory.Exists(Path.GetDirectoryName(outFile)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(outFile));
+            }
+            using (FileStream input = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (FileStream output = new FileStream(outFile, FileMode.Create))
+            {
+                BsDiff.BinaryPatchUtility.Apply(input, () => new FileStream(patchFile, FileMode.Open, FileAccess.Read, FileShare.Read), output);
+            }
+
+            //copy patched file to source file
+            File.Copy(outFile, srcFile, true);
         }
 
         /// <summary>
@@ -326,6 +368,12 @@ namespace YH.AM
                 OnUpdating(segment,err, msg, percent);
         }
 
+        protected void ClearTempDir()
+        {
+            Directory.Delete(PatchTempPath, true);
+            Directory.Delete(PatchedPath, true);
+        }
+
         public string UpdateUrl
         {
             set
@@ -362,6 +410,22 @@ namespace YH.AM
             get
             {
                 return m_HostVersionInFile;
+            }
+        }
+
+        public string PatchTempPath
+        {
+            get
+            {
+                return Path.Combine(m_StoragePath, "_temppatchs");
+            }
+        }
+
+        public string PatchedPath
+        {
+            get
+            {
+                return Path.Combine(m_StoragePath, "_patcheds");
             }
         }
     }

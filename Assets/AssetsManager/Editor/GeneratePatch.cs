@@ -39,6 +39,9 @@ namespace YH.AM
         //打包否，是否删除补丁文件。
         bool m_RemovePatchsAfterPack = false;
 
+        //是否使用差异补丁
+        bool m_UseDiffPatch = false;
+
         /// <summary>
         /// 开始生成补丁
         /// 当版本发布太多的时候，资源目录会包含很多版本文件，这里需要指定fromVersion，而此时的fromVersion也成了这次更新支持的最低版本.
@@ -164,6 +167,7 @@ namespace YH.AM
             //开始生成
             GenerateManifest genManifest = new GenerateManifest();
             genManifest.OnProcessing += ShowGenerateProgress;
+            genManifest.useDiffPatch = m_UseDiffPatch;
             Manifest manifest;
             try
             {
@@ -327,5 +331,18 @@ namespace YH.AM
                 m_RemovePatchsAfterPack = value;
             }
         }
+
+        public bool UseDiffPatch
+        {
+            get
+            {
+                return m_UseDiffPatch;
+            }
+
+            set
+            {
+                m_UseDiffPatch = value;
+            }
+        }        
     }
 }

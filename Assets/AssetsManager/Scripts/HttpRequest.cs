@@ -77,11 +77,4 @@ public class HttpRequest : MonoBehaviour {
 
         callback(www.error, www);
     }
-
-    public IEnumerator  TestWait()
-    {
-        Debug.Log("Wait before:" + Time.realtimeSinceStartup);
-        yield return new WaitForSeconds(2);
-        Debug.Log("Wait after:" + Time.realtimeSinceStartup);
-    }
 }
