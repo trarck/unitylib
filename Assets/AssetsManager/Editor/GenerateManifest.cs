@@ -20,8 +20,11 @@ namespace YH.AM
         //目标目录
         string m_destPath;
 
-        //是否使用差异补丁
+        //是否使用差分补丁
         public bool useDiffPatch=false;
+
+        //检查文件是否使用差分规则
+        public AssetBinaryDiffRule assetBinaryDiffRule;
 
         public struct DirData
         {
@@ -373,6 +376,21 @@ namespace YH.AM
             return a + "/" + b;
         }
 
+        /// <summary>
+        /// 检查是否使用二进制差分
+        /// </summary>
+        /// <param name="distFile"></param>
+        /// <returns></returns>
+        protected bool CheckUseBinaryDiff(string distFile)
+        {
+            if(assetBinaryDiffRule!=null)
+            {
+                return assetBinaryDiffRule.Check(distFile);
+            }
+
+            return true;
+        }
+
         public Manifest GetManifest()
         {
             Manifest manifest = new Manifest();
@@ -382,7 +400,7 @@ namespace YH.AM
             {
                 asset = new Asset();
                 asset.path = file;
-                asset.type = useDiffPatch ? Asset.AssetType.Patch : Asset.AssetType.Full;
+                asset.type = useDiffPatch && CheckUseBinaryDiff(Path.Combine(m_destPath, file)) ? Asset.AssetType.Patch : Asset.AssetType.Full;
                 manifest.AddAsset(asset);
             }
 
