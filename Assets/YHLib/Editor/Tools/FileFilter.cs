@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace YH.AM
+namespace YH
 {
     public abstract class FileFilterRule
     {
