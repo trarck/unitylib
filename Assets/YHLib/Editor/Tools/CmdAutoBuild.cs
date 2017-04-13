@@ -39,30 +39,14 @@ namespace YH
                 return;
             }
 
-            SetCommonSettings(options);
+			//parse resource
+			ParseResources(target, options);
 
-            //call set special platform 
-            Type t = typeof(CmdAutoBuild);
-            Debug.Log("cmd:" + "Set" + UcFirst(target.ToString()) + "Settings");
-            MethodInfo method = t.GetMethod("Set" + UcFirst(target.ToString()) + "Settings", BindingFlags.NonPublic | BindingFlags.Static);
-            if( method !=null )
-            {
-                object[] parameters = new object[1];
-                parameters[0] = options;
-                method.Invoke(null, parameters);
-            }
+			//parse plugin. sdk,lib...
+			ParsePlugins(target,options);
 
-            //switch (target)
-            //{
-            //    case BuildTarget.Android:
-            //        SetAndroidSettings(options);
-            //        break;
-            //    case BuildTarget.iOS:
-            //        SetIOSSettings(options);
-            //        break;
-            //    default:
-            //        break;
-            //}
+			//set project settings
+			SetProjectSettings(target,options);      
 
             //levels
             string[] levels = null;
@@ -87,10 +71,33 @@ namespace YH
                 buildOpts |= BuildOptions.AllowDebugging;
             }
             
+			//remove exists file
+			if(File.Exists(outPath))
+			{
+				File.Delete(outPath);
+			}
+			
             BuildPipeline.BuildPlayer(levels, outPath, target, buildOpts);
         }
+		
+		static void SetProjectSettings(BuildTarget target,Dictionary<string,string>options)
+		{
+			//set normal 
+			SetCommonSettings(options);
 
-       static void SetCommonSettings(Dictionary<string,string> options)
+			//set special platform 
+			Type t = typeof(CmdAutoBuild);
+			Debug.Log("cmd:" + "Set" + UcFirst(target.ToString()) + "Settings");
+			MethodInfo method = t.GetMethod("Set" + UcFirst(target.ToString()) + "Settings", BindingFlags.NonPublic | BindingFlags.Static);
+			if (method != null)
+			{
+				object[] parameters = new object[1];
+				parameters[0] = options;
+				method.Invoke(null, parameters);
+			}
+		}
+
+		static void SetCommonSettings(Dictionary<string,string> options)
         {
             if (options.ContainsKey("bundleIdentifier"))
             {
@@ -128,7 +135,52 @@ namespace YH
 				PlayerSettings.iOS.buildNumber = (int.Parse(PlayerSettings.iOS.buildNumber) + 1).ToString();
 			}
         }
+		
+		static void ParseResources(BuildTarget target,Dictionary<string,string>options)
+		{
+			//build special plateform
+			Type t = typeof(CmdAutoBuild);
+			MethodInfo method = t.GetMethod("Parse" + UcFirst(target.ToString()) + "Resource", BindingFlags.NonPublic | BindingFlags.Static);
+			if (method != null)
+			{
+				object[] parameters = new object[1];
+				parameters[0] = options;
+				method.Invoke(null, parameters);
+			}
+		}
 
+		static void BuildAndroidResource(Dictionary<string, string> options)
+		{
+
+		}
+	
+		static void ParsePlugins(BuildTarget target,Dictionary<string, string> options)
+		{
+			//libs
+
+			//sdks
+			Type t = typeof(CmdAutoBuild);
+			MethodInfo method = t.GetMethod("Parse" + UcFirst(target.ToString()) + "Plugins", BindingFlags.NonPublic | BindingFlags.Static);
+			if (method != null)
+			{
+				object[] parameters = new object[1];
+				parameters[0] = options;
+				method.Invoke(null, parameters);
+			}
+		}
+		
+		static void ParseAndroidPlugins(Dictionary<string,string> options)
+		{
+			string sdk = options.ContainsKey("sdk")? options["sdk"]:"Base";
+			string sdkPath=Application.dataPath+"../PackTools/"+sdk;
+
+			EditorHelper.DeleteFolder(AutoPack.AndroidPluginPath);
+			
+			EditorHelper.CopyDirectory(sdkPath, AutoPack.AndroidPluginPath);
+			
+			AssetDatabase.Refresh();
+		}
+	
         static string[] GetDefaultBuildScenes()
         {
             List<string> names = new List<string>();
