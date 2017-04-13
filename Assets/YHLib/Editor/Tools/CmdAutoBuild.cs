@@ -7,31 +7,30 @@ using System;
 namespace YH
 {
     public class CmdAutoBuild
-    {
-        public static void Build()
+    {     
+        public static void BuildAnroid()
+        {
+            Debug.Log("Build android");
+            Dictionary<string, string> options = CmdArguments.GetArgumentOptions();
+            Build(BuildTarget.Android, options);
+        }
+
+		public static void Build()
         {
             Dictionary<string, string> options = CmdArguments.GetArgumentOptions();         
             if(options.ContainsKey("buildTarget"))
             {
                 //build target
                 BuildTarget target = EnumUtil.ParseEnum<BuildTarget>(options["buildTarget"]);
-                _Build(target, options);
+                Build(target, options);
             }
             else
             {
                 EditorUtility.DisplayDialog("build", "no build target", "ok");
-            }
-            
+            }            
         }
-
-        public static void BuildAnroid()
-        {
-            Debug.Log("Build android");
-            Dictionary<string, string> options = CmdArguments.GetArgumentOptions();
-            _Build(BuildTarget.Android, options);
-        }
-
-        static void _Build(BuildTarget target,Dictionary<string,string>options)
+		
+        public static void Build(BuildTarget target,Dictionary<string,string>options)
         {
             string outPath = options.ContainsKey("outpath")? options["outpath"]:null;
             if (string.IsNullOrEmpty(outPath))
@@ -110,6 +109,11 @@ namespace YH
             {
                 PlayerSettings.Android.bundleVersionCode = int.Parse(options["bundleVersionCode"]);
             }
+			else
+			{
+				//自动加1
+				PlayerSettings.Android.bundleVersionCode = PlayerSettings.Android.bundleVersionCode +1;
+			}
         }
 
         static void SetIOSSettings(Dictionary<string, string> options)
@@ -118,6 +122,11 @@ namespace YH
             {
                 PlayerSettings.iOS.buildNumber = options["buildNumber"];
             }
+			else
+			{
+				//自动加1
+				PlayerSettings.iOS.buildNumber = (int.Parse(PlayerSettings.iOS.buildNumber) + 1).ToString();
+			}
         }
 
         static string[] GetDefaultBuildScenes()
