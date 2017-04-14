@@ -75,6 +75,9 @@ namespace YH
 			if(File.Exists(outPath))
 			{
 				File.Delete(outPath);
+			}else if(Directory.Exists(outPath))
+			{
+				Directory.Delete(outPath, true);
 			}
 			
             BuildPipeline.BuildPlayer(levels, outPath, target, buildOpts);
