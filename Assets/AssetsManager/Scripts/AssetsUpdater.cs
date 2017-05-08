@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using UnityEngine;
 using Ionic.Zip;
+using YH.Net;
 
 namespace YH.AM
 {
@@ -209,6 +210,10 @@ namespace YH.AM
 
                     ApplayPatch(localPackFile);
                 }
+            },
+            (percent)=>
+            {
+                OnUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "downloading", percent);
             });
         }
 
