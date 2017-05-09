@@ -48,8 +48,11 @@ namespace YH.AM
         //本地版本
         Version m_CurrentVersion;
 
-        //主体版本
+        //主体版本。通常存放在可写目录，表示当前补丁对应哪个Host版本。
         Version m_HostVersion;
+
+        //安装包版本
+        Version m_NativeHostVersion;
 
         //主体版本是否在文件中。如果为ture,则由程序启动时写到文件中。
         bool m_HostVersionInFile=true;
@@ -106,14 +109,58 @@ namespace YH.AM
             //get local version
             m_CurrentVersion = GetCurrentVersion();
             m_HostVersion = GetHostVersion();
+            m_NativeHostVersion = GetNativeHostVersion();
 
-            if(m_CurrentVersion==null)
+            if (m_HostVersion == null)
             {
-                m_CurrentVersion = m_HostVersion;
+                m_HostVersion = m_NativeHostVersion;
             }
 
+            //bool haveLocalCurrentVersion = true;
+            if(m_CurrentVersion==null)
+            {
+                m_CurrentVersion = m_NativeHostVersion;
+                //haveLocalCurrentVersion = false;
+            }
+
+            //check host version and native version
+            //1.m_HostVersion==m_NativeHostVersion      do nothing
+            //2.m_HostVersion<m_NativeHostVersion         user remove install package and reinstall new version package.
+            //   when m_CurrentVersion < m_NativeHostVersion        Update from NativeHostVersion.others use currentVersion for update.
+            //3.m_HostVersion > m_NativeHostVersion       user remove install package and reinstall old version package. 
+            //                                                                          must update from native host version.     
+            if ((m_HostVersion < m_NativeHostVersion && m_CurrentVersion < m_NativeHostVersion) || m_HostVersion > m_NativeHostVersion)
+            {
+                //Update from NativeHostVersion
+                m_HostVersion = m_NativeHostVersion;
+                m_CurrentVersion = m_NativeHostVersion;
+                ClearStorageDir();
+                WriteHostVersionToFile();
+            }
+
+            //if (m_HostVersion < m_NativeHostVersion)
+            //{
+            //    //user remove install package and reinstall new version package.
+            //    if(m_CurrentVersion<m_NativeHostVersion)
+            //    {
+            //        //Update from NativeHostVersion
+            //        m_HostVersion = m_NativeHostVersion;
+            //        m_CurrentVersion = m_NativeHostVersion;
+            //        ClearStorageDir();
+            //        WriteHostVersionToFile();
+            //    }              
+            //}
+            //else if (m_HostVersion > m_NativeHostVersion)
+            //{
+            //    //user remove install package and reinstall old version package. must update from native host version.               
+            //    m_HostVersion = m_NativeHostVersion;
+            //    m_CurrentVersion = m_NativeHostVersion;
+            //    ClearStorageDir();
+            //    WriteHostVersionToFile();
+            //}
+
             //first check the host is support
-            if (remoteVersions.MinHostVersion > m_HostVersion)
+            if (remoteVersions.MinHostVersion > m_NativeHostVersion)
             {
                 //the host is out data
                 TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.HostIsOutOfDate, "please download the newest application", 1);
@@ -136,6 +183,7 @@ namespace YH.AM
             }
 
             OnUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Compare Complete", 1);
+
             //do update
             string patchPath = GetPatchPath(m_CurrentVersion, remoteVersions.LatestVersion);
             //TODO download the manifest file.
@@ -285,7 +333,7 @@ namespace YH.AM
             }
 
             //update CurrentVersion
-            UpdateCurrentVersion();
+            WriteCurrentVersionToFile();
 
             ClearTempDir();
         }
@@ -332,15 +380,14 @@ namespace YH.AM
             }
             return assets;
         }
-
-        protected void UpdateCurrentVersion()
-        {
-            File.WriteAllText(Path.Combine(m_StoragePath, CurrentVersionName),m_CurrentVersion.ToString());
-        }
-
         public string GetPatchPath(Version from,Version to)
         {
             return from.ToString() + "_" + to.ToString();
+        }
+
+        protected void WriteCurrentVersionToFile()
+        {
+            File.WriteAllText(Path.Combine(m_StoragePath, CurrentVersionName), m_CurrentVersion.ToString());
         }
 
         public Version GetCurrentVersion()
@@ -357,7 +404,27 @@ namespace YH.AM
             return ver;
         }
 
+
+        protected void WriteHostVersionToFile()
+        {
+            File.WriteAllText(Path.Combine(m_StoragePath, HostVersionName), m_HostVersion.ToString());
+        }
+
         public Version GetHostVersion()
+        {
+            Version ver = null;
+            if (File.Exists(Path.Combine(m_StoragePath, HostVersionName)))
+            {
+                string content = File.ReadAllText(Path.Combine(m_StoragePath, HostVersionName));
+                if (!string.IsNullOrEmpty(content) && Version.IsVersionFormat(content.Trim()))
+                {
+                    ver = new Version(content);
+                }
+            }
+            return ver;
+        }
+
+        public Version GetNativeHostVersion()
         {
             Version ver = null;
             if (Version.IsVersionFormat(Application.version))
@@ -378,6 +445,12 @@ namespace YH.AM
             Directory.Delete(PatchTempPath, true);
             Directory.Delete(PatchedPath, true);
         }
+
+        protected void ClearStorageDir()
+        {
+            Directory.Delete(m_StoragePath, true);
+        }
+
 
         public string UpdateUrl
         {
