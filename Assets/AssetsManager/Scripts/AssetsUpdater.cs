@@ -57,7 +57,7 @@ namespace YH.AM
         Version m_NativeHostVersion;
 
         //主体版本是否在文件中。如果为ture,则由程序启动时写到文件中。
-        bool m_HostVersionInFile=true;
+        bool m_HostVersionInFile = true;
 
         //如果打补丁出错，是否继续打剩下的文件。
         bool m_ContinueWithApplyError = false;
@@ -79,7 +79,7 @@ namespace YH.AM
             GetRemoteVersion(); //Step
             return 0;
         }
-        
+
         public void GetRemoteVersion()
         {
             string remoteVersionUrl = m_UpdateUrl + "/version.txt";
@@ -122,7 +122,7 @@ namespace YH.AM
             }
 
             //bool haveLocalCurrentVersion = true;
-            if(m_CurrentVersion==null)
+            if (m_CurrentVersion == null)
             {
                 m_CurrentVersion = m_NativeHostVersion;
                 //haveLocalCurrentVersion = false;
@@ -202,7 +202,7 @@ namespace YH.AM
 
         public void GetManifestHeaderFile(string patchPath)
         {
-            string manifestUrl = m_UpdateUrl +"/"+ patchPath+".manifest";
+            string manifestUrl = m_UpdateUrl + "/" + patchPath + ".manifest";
 
             m_HttpRequest.Get(manifestUrl, (err, www) =>
             {
@@ -220,7 +220,7 @@ namespace YH.AM
                     else
                     {
                         ManifestHeader manifestHeader = JsonUtility.FromJson<ManifestHeader>(www.text);
-                        if(manifestHeader==null)
+                        if (manifestHeader == null)
                         {
                             OnUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "parse fail:" + www.text, 1);
                         }
@@ -254,8 +254,8 @@ namespace YH.AM
                 {
                     OnUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "download patch pack", 1);
                     //save to temp file
-                    string localPackFile = Path.Combine(m_StoragePath , patchPath + ".zip");
-                    if(!Directory.Exists(Path.GetDirectoryName(localPackFile)))
+                    string localPackFile = Path.Combine(m_StoragePath, patchPath + ".zip");
+                    if (!Directory.Exists(Path.GetDirectoryName(localPackFile)))
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(localPackFile));
                     }
@@ -264,7 +264,7 @@ namespace YH.AM
                     ApplayPatch(localPackFile);
                 }
             },
-            (percent)=>
+            (percent) =>
             {
                 OnUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "downloading", percent);
             });
@@ -284,7 +284,7 @@ namespace YH.AM
                 bool haveManifest = false;
                 Manifest manifest = null;
                 Dictionary<string, Asset> assetsMap = null;
-                int i = 0;               
+                int i = 0;
                 foreach (ZipEntry zipEntry in zipFile)
                 {
                     if (!haveManifest)
@@ -314,7 +314,7 @@ namespace YH.AM
                     else
                     {
                         OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", 0);
-                        if (assetsMap!=null && assetsMap.ContainsKey(zipEntry.FileName))
+                        if (assetsMap != null && assetsMap.ContainsKey(zipEntry.FileName))
                         {
                             Asset asset = assetsMap[zipEntry.FileName];
                             switch (asset.type)
@@ -327,7 +327,7 @@ namespace YH.AM
                                 case Asset.AssetType.Patch:
                                     //apply patch
                                     zipEntry.Extract(PatchTempPath, ExtractExistingFileAction.OverwriteSilently);
-                                    if(AllpyPatchFile(zipEntry.FileName))
+                                    if (AllpyPatchFile(zipEntry.FileName))
                                     {
                                         OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", (float)(++i) / assetsMap.Count);
                                     }
@@ -353,11 +353,11 @@ namespace YH.AM
             }
 
             //update CurrentVersion
-            if(!haveError)
+            if (!haveError)
             {
                 WriteCurrentVersionToFile();
             }
-             
+
             ClearTempDir();
         }
 
@@ -371,7 +371,7 @@ namespace YH.AM
 
             string patchFile = Path.Combine(PatchTempPath, filename);
             string outFile = Path.Combine(PatchedPath, filename);
-            if(!Directory.Exists(Path.GetDirectoryName(outFile)))
+            if (!Directory.Exists(Path.GetDirectoryName(outFile)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(outFile));
             }
@@ -391,7 +391,7 @@ namespace YH.AM
         /// </summary>
         /// <param name="manifest"></param>
         /// <returns>返回需要进一步操作的资源表</returns>
-        protected Dictionary<string,Asset> ParseManifest(Manifest manifest)
+        protected Dictionary<string, Asset> ParseManifest(Manifest manifest)
         {
             Dictionary<string, Asset> assets = new Dictionary<string, Asset>();
             foreach (Asset asset in manifest.assets)
@@ -409,7 +409,7 @@ namespace YH.AM
             }
             return assets;
         }
-        public string GetPatchPath(Version from,Version to)
+        public string GetPatchPath(Version from, Version to)
         {
             return from.ToString() + "_" + to.ToString();
         }
@@ -466,18 +466,21 @@ namespace YH.AM
         protected void TriggerUpdating(UpdateSegment segment, UpdateError err, string msg, float percent)
         {
             if (OnUpdating != null)
-                OnUpdating(segment,err, msg, percent);
+                OnUpdating(segment, err, msg, percent);
         }
 
         protected void ClearTempDir()
         {
-            Directory.Delete(PatchTempPath, true);
-            Directory.Delete(PatchedPath, true);
+            if (Directory.Exists(PatchTempPath))
+                Directory.Delete(PatchTempPath, true);
+            if (Directory.Exists(PatchedPath))
+                Directory.Delete(PatchedPath, true);
         }
 
         protected void ClearStorageDir()
         {
-            Directory.Delete(m_StoragePath, true);
+            if (Directory.Exists(m_StoragePath))
+                Directory.Delete(m_StoragePath, true);
         }
 
 

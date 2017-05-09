@@ -13,7 +13,7 @@ public class MyEditor : Editor
     public static void Test()
     {
         GeneratePatch gen = new GeneratePatch();
-        gen.UseDiffPatch = true;
+        gen.UseDiffPatch = false;
         gen.PatchBlackDirs = new List<string>() { "Lua" };
         gen.Generate("D:\\temp\\am\\iphone");
         //Debug.Log(Application.version);
