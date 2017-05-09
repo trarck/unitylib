@@ -33,6 +33,8 @@ namespace YH.AM
             DownloadManifestError,
             //下载补丁包文件信错
             DownloadPatchPackError,
+            //打补丁错误
+            ApplyPatchError,
         }
 
         public static string CurrentVersionName = "CurrentVersion";
@@ -56,6 +58,9 @@ namespace YH.AM
 
         //主体版本是否在文件中。如果为ture,则由程序启动时写到文件中。
         bool m_HostVersionInFile=true;
+
+        //如果打补丁出错，是否继续打剩下的文件。
+        bool m_ContinueWithApplyError = false;
 
         public delegate void UpdatingHandle(UpdateSegment segment, UpdateError err, string msg, float percent);
         public UpdatingHandle OnUpdating;
@@ -272,12 +277,14 @@ namespace YH.AM
         protected void ApplayPatch(string localPakFile)
         {
             OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", 0);
+            bool haveError = false;
+
             using (ZipFile zipFile = new ZipFile(localPakFile))
             {
                 bool haveManifest = false;
                 Manifest manifest = null;
                 Dictionary<string, Asset> assetsMap = null;
-                int i = 0;
+                int i = 0;               
                 foreach (ZipEntry zipEntry in zipFile)
                 {
                     if (!haveManifest)
@@ -309,20 +316,33 @@ namespace YH.AM
                         OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", 0);
                         if (assetsMap!=null && assetsMap.ContainsKey(zipEntry.FileName))
                         {
-                            OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", (float)(++i)/assetsMap.Count);
                             Asset asset = assetsMap[zipEntry.FileName];
                             switch (asset.type)
                             {
                                 case Asset.AssetType.Full:
                                     //extract to the target path
                                     zipEntry.Extract(m_StoragePath, ExtractExistingFileAction.OverwriteSilently);
+                                    OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", (float)(++i) / assetsMap.Count);
                                     break;
                                 case Asset.AssetType.Patch:
                                     //apply patch
                                     zipEntry.Extract(PatchTempPath, ExtractExistingFileAction.OverwriteSilently);
-                                    AllpyPatchFile(zipEntry.FileName);
+                                    if(AllpyPatchFile(zipEntry.FileName))
+                                    {
+                                        OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", (float)(++i) / assetsMap.Count);
+                                    }
+                                    else
+                                    {
+                                        OnUpdating(UpdateSegment.ApplyAssets, UpdateError.ApplyPatchError, "patch fail file:" + zipEntry.FileName, (float)(++i) / assetsMap.Count);
+                                        haveError = true;
+                                    }
                                     break;
-                               }
+                            }
+                            //stop 
+                            if (!m_ContinueWithApplyError && haveError)
+                            {
+                                break;
+                            }
                         }
                         else
                         {
@@ -333,14 +353,22 @@ namespace YH.AM
             }
 
             //update CurrentVersion
-            WriteCurrentVersionToFile();
-
+            if(!haveError)
+            {
+                WriteCurrentVersionToFile();
+            }
+             
             ClearTempDir();
         }
 
-        protected void AllpyPatchFile(string filename)
+        protected bool AllpyPatchFile(string filename)
         {
             string srcFile = Path.Combine(m_StoragePath, filename);
+            if (!File.Exists(srcFile))
+            {
+                return false;
+            }
+
             string patchFile = Path.Combine(PatchTempPath, filename);
             string outFile = Path.Combine(PatchedPath, filename);
             if(!Directory.Exists(Path.GetDirectoryName(outFile)))
@@ -355,6 +383,7 @@ namespace YH.AM
 
             //copy patched file to source file
             File.Copy(outFile, srcFile, true);
+            return true;
         }
 
         /// <summary>
@@ -504,6 +533,19 @@ namespace YH.AM
             get
             {
                 return Path.Combine(m_StoragePath, "_patcheds");
+            }
+        }
+
+        public bool IsContinueWithApplyError
+        {
+            set
+            {
+                m_ContinueWithApplyError = value;
+            }
+
+            get
+            {
+                return m_ContinueWithApplyError;
             }
         }
     }
