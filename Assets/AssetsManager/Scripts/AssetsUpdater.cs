@@ -321,7 +321,7 @@ namespace YH.AM
                                 case Asset.AssetType.Full:
                                     //extract to the target path
                                     zipEntry.Extract(m_StoragePath, ExtractExistingFileAction.OverwriteSilently);
-                                    OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch "+i, (float)(++i) / assetsMap.Count);
+                                    OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", (float)(++i) / assetsMap.Count);
                                     break;
                                 case Asset.AssetType.Patch:
                                     //apply patch
