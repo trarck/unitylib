@@ -36,7 +36,7 @@ namespace YH.AM
         //是否生成manifest的头文件
         bool m_GenerateManifestHeader=false;
 
-        //打包否，是否删除补丁文件。
+        //打包后，是否删除补丁文件。
         bool m_RemovePatchsAfterPack = false;
 
         //是否使用差异补丁

@@ -10,6 +10,12 @@ namespace YH.AM
         //版本目录
         string m_Path = "";
 
+        //是否保留中间目录
+        bool m_keepPatchDirs = false;
+
+        //是否使用二进制差分
+        bool m_useBinaryDiff = false;
+
         //使用差分的文件最小长度
         int m_UseBinaryDiffFileSize=128;
 
@@ -41,15 +47,21 @@ namespace YH.AM
             }
             EditorGUILayout.EndHorizontal();
 
-            //黑名单目录
-            m_UseBinaryDiffFileSize = EditorGUILayout.IntField("使用差分的最小文件长度:", m_UseBinaryDiffFileSize);
+            m_keepPatchDirs = EditorGUILayout.Toggle("保留补丁目录:", m_keepPatchDirs);
 
-            //黑名单目录
-            m_NoBinaryDiffDirs = EditorGUILayout.TextField("不使用差分目录(;分割):", m_NoBinaryDiffDirs);
+            m_useBinaryDiff = EditorGUILayout.Toggle("使用二进制差分:",m_useBinaryDiff);
 
-            //黑名扩展名
-            m_NoBinaryDiffExts = EditorGUILayout.TextField("不使用差分扩展名(;分割):", m_NoBinaryDiffExts);
+            if (m_useBinaryDiff)
+            {
+                //黑名单目录
+                m_UseBinaryDiffFileSize = EditorGUILayout.IntField("使用差分的最小文件长度:", m_UseBinaryDiffFileSize);
 
+                //黑名单目录
+                m_NoBinaryDiffDirs = EditorGUILayout.TextField("不使用差分目录(;分割):", m_NoBinaryDiffDirs);
+
+                //黑名扩展名
+                m_NoBinaryDiffExts = EditorGUILayout.TextField("不使用差分扩展名(;分割):", m_NoBinaryDiffExts);
+            }
             if (GUILayout.Button("generate"))
             {
                 Generate(m_Path);
@@ -65,21 +77,24 @@ namespace YH.AM
             }
 
             GeneratePatch gen = new GeneratePatch();
-            gen.UseDiffPatch = true;
-
-            if(m_UseBinaryDiffFileSize>=0)
+            gen.UseDiffPatch = m_useBinaryDiff;
+            gen.RemovePatchsAfterPack = !m_keepPatchDirs;
+            if (m_useBinaryDiff)
             {
-                gen.PatchMinFileSize = m_UseBinaryDiffFileSize;
-            }
+                if (m_UseBinaryDiffFileSize >= 0)
+                {
+                    gen.PatchMinFileSize = m_UseBinaryDiffFileSize;
+                }
 
-            if(!string.IsNullOrEmpty(m_NoBinaryDiffDirs))
-            {
-                gen.PatchBlackDirs = new List<string>(m_NoBinaryDiffDirs.Split(';'));
-            }
+                if (!string.IsNullOrEmpty(m_NoBinaryDiffDirs))
+                {
+                    gen.PatchBlackDirs = new List<string>(m_NoBinaryDiffDirs.Split(';'));
+                }
 
-            if (!string.IsNullOrEmpty(m_NoBinaryDiffExts))
-            {
-                gen.PatchBlackFileExts = new List<string>(m_NoBinaryDiffExts.Split(';'));
+                if (!string.IsNullOrEmpty(m_NoBinaryDiffExts))
+                {
+                    gen.PatchBlackFileExts = new List<string>(m_NoBinaryDiffExts.Split(';'));
+                }
             }
 
             gen.Generate(m_Path);
