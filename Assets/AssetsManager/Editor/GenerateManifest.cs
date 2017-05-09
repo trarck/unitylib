@@ -463,6 +463,7 @@ namespace YH.AM
                         break;
                     case Asset.AssetType.Patch:
                         //generate patch file
+#if USE_BSDIFF
                         string srcfilePath = Path.Combine(m_srcPath, asset.path);
                         string destFilePath = Path.Combine(m_destPath, asset.path);
                         string patchFile = Path.Combine(outDir, asset.path);
@@ -470,10 +471,12 @@ namespace YH.AM
                         {
                             Directory.CreateDirectory(Path.GetDirectoryName(patchFile));
                         }
+
                         using (FileStream output = new FileStream(patchFile, FileMode.Create))
                         {
                             BsDiff.BinaryPatchUtility.Create(File.ReadAllBytes(srcfilePath), File.ReadAllBytes(destFilePath), output);
                         }
+#endif
                         break;
                 }
             }
