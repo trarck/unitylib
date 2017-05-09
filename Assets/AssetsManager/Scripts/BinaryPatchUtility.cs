@@ -1,4 +1,4 @@
-﻿#if USE_BSDIFF
+﻿#if USE_BSDIFF || UNITY_EDITOR
 using System;
 using System.IO;
 using Ionic.BZip2;
