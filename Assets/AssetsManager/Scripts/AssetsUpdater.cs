@@ -183,7 +183,7 @@ namespace YH.AM
             if (m_CurrentVersion >= remoteVersions.LatestVersion)
             {
                 //the current is latest version,complete the update
-                TriggerUpdating(UpdateSegment.Complete, UpdateError.CurrentVersionOutOfDate, "the assets is latest did not need update", 1);
+                TriggerUpdating(UpdateSegment.Complete, UpdateError.OK, "the assets is latest did not need update", 1);
                 return;
             }
 
@@ -261,7 +261,7 @@ namespace YH.AM
                     }
                     File.WriteAllBytes(localPackFile, www.bytes);
 
-                    ApplayPatch(localPackFile);
+                    StartCoroutine(ApplayPatch(localPackFile));
                 }
             },
             (percent) =>
@@ -274,7 +274,7 @@ namespace YH.AM
         /// 应用补丁
         /// </summary>
         /// <param name="localPakFile"></param>
-        protected void ApplayPatch(string localPakFile)
+        protected IEnumerator ApplayPatch(string localPakFile)
         {
             OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", 0);
             bool haveError = false;
@@ -312,8 +312,7 @@ namespace YH.AM
                         }
                     }
                     else
-                    {
-                        OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", 0);
+                    {                       
                         if (assetsMap != null && assetsMap.ContainsKey(zipEntry.FileName))
                         {
                             Asset asset = assetsMap[zipEntry.FileName];
@@ -322,10 +321,11 @@ namespace YH.AM
                                 case Asset.AssetType.Full:
                                     //extract to the target path
                                     zipEntry.Extract(m_StoragePath, ExtractExistingFileAction.OverwriteSilently);
-                                    OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", (float)(++i) / assetsMap.Count);
+                                    OnUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch "+i, (float)(++i) / assetsMap.Count);
                                     break;
                                 case Asset.AssetType.Patch:
                                     //apply patch
+#if USE_BSDIFF
                                     zipEntry.Extract(PatchTempPath, ExtractExistingFileAction.OverwriteSilently);
                                     if (AllpyPatchFile(zipEntry.FileName))
                                     {
@@ -336,6 +336,7 @@ namespace YH.AM
                                         OnUpdating(UpdateSegment.ApplyAssets, UpdateError.ApplyPatchError, "patch fail file:" + zipEntry.FileName, (float)(++i) / assetsMap.Count);
                                         haveError = true;
                                     }
+#endif
                                     break;
                             }
                             //stop 
@@ -343,6 +344,7 @@ namespace YH.AM
                             {
                                 break;
                             }
+                            yield return new WaitForEndOfFrame();
                         }
                         else
                         {
@@ -359,10 +361,13 @@ namespace YH.AM
             }
 
             ClearTempDir();
+
+            TriggerUpdating(UpdateSegment.Complete, UpdateError.OK, "update complete", 1);
         }
 
         protected bool AllpyPatchFile(string filename)
         {
+#if USE_BSDIFF
             string srcFile = Path.Combine(m_StoragePath, filename);
             if (!File.Exists(srcFile))
             {
@@ -384,6 +389,9 @@ namespace YH.AM
             //copy patched file to source file
             File.Copy(outFile, srcFile, true);
             return true;
+#else
+            return false;
+#endif
         }
 
         /// <summary>
