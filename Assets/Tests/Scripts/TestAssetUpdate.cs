@@ -28,7 +28,11 @@ public class TestAssetUpdate : MonoBehaviour {
             if (err != AssetsUpdater.UpdateError.OK)
             {
                 //show dialog
-            }           
+            }
+            if (AssetsUpdater.UpdateSegment.Complete == segment)
+            {
+                Debug.Log("###更新完成###");
+            }
         };
         m_AssetsUpdater.StartUpdate();
 	}
