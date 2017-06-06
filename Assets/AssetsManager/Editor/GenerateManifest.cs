@@ -132,7 +132,7 @@ namespace YH.AM
                 //如果文件没有标记过，表示是新增加的文件
                 if (!fileSigns.ContainsKey(fileName))
                 {
-                    m_Addes.Add(dirName + "/" + fileName);
+                   m_Addes.Add(JoinPath(dirName , fileName));
                 }
 
                 FireProcessing(Segment.Process, "process fire " + file, 1);

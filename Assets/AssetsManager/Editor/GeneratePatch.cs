@@ -241,7 +241,10 @@ namespace YH.AM
                 //add other files
                 foreach (Asset asset in manifest.assets)
                 {
-                    zip.AddFile(Path.Combine(patchDir, asset.path), Path.GetDirectoryName(asset.path));
+                    if(asset.type==Asset.AssetType.Full || asset.type == Asset.AssetType.Patch)
+                    {
+                        zip.AddFile(Path.Combine(patchDir, asset.path), Path.GetDirectoryName(asset.path));
+                    }     
                 }
 
                 zip.Save(patchFile);
