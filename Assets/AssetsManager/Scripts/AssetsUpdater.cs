@@ -428,7 +428,9 @@ namespace YH.AM
                         assets.Add(asset.path, asset);
                         break;
                     case Asset.AssetType.Delete:
-                        File.Delete(Path.Combine(m_StoragePath, asset.path));
+                        string deleteFilePath = Path.Combine(m_StoragePath, asset.path);
+                        if(File.Exists(deleteFilePath))
+                            File.Delete(deleteFilePath);
                         break;
                 }
             }
