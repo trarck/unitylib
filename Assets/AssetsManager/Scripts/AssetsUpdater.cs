@@ -78,6 +78,7 @@ namespace YH.AM
                 m_HttpRequest = gameObject.AddComponent<HttpRequest>();
             }
         }
+
         /// <summary>
         /// 开始更新
         /// 因为不是同步，执行流程分散在各个子函数里。
@@ -139,12 +140,13 @@ namespace YH.AM
             }
 
             //check host version and native version
-            //1.m_HostVersion==m_NativeHostVersion      do nothing
+            //1.m_HostVersion==m_NativeHostVersion                        same install package or no temp HostVersion file.
+            //    when m_CurrentVersion < m_NativeHostVersion        Update from NativeHostVersion
             //2.m_HostVersion<m_NativeHostVersion         user remove install package and reinstall new version package.
             //   when m_CurrentVersion < m_NativeHostVersion        Update from NativeHostVersion.others use currentVersion for update.
             //3.m_HostVersion > m_NativeHostVersion       user remove install package and reinstall old version package. 
             //                                                                          must update from native host version.     
-            if ((m_HostVersion < m_NativeHostVersion && m_CurrentVersion < m_NativeHostVersion) || m_HostVersion > m_NativeHostVersion)
+            if ((m_HostVersion <= m_NativeHostVersion && m_CurrentVersion < m_NativeHostVersion) || m_HostVersion > m_NativeHostVersion)
             {
                 //Update from NativeHostVersion
                 m_HostVersion = m_NativeHostVersion;
@@ -370,7 +372,7 @@ namespace YH.AM
                 WriteCurrentVersionToFile();
             }
 
-            ClearTempDir();
+            DeleteTempDir();
             
             if (m_DeletePatchPack && File.Exists(localPakFile))
             {
@@ -492,18 +494,92 @@ namespace YH.AM
                 OnUpdating(segment, err, msg, percent);
         }
 
-        protected void ClearTempDir()
+        protected void DeleteTempDir()
         {
-            if (Directory.Exists(PatchTempPath))
-                Directory.Delete(PatchTempPath, true);
+             if (Directory.Exists(PatchTempPath))
+                ForceDeleteDirectory(PatchTempPath);
             if (Directory.Exists(PatchedPath))
-                Directory.Delete(PatchedPath, true);
+                ForceDeleteDirectory(PatchedPath);
         }
 
         protected void ClearStorageDir()
         {
             if (Directory.Exists(m_StoragePath))
-                Directory.Delete(m_StoragePath, true);
+                 ForceCelarDirectory(m_StoragePath);
+        }
+
+        public static void ForceDeleteDirectory(string path)
+        {
+            DirectoryInfo root;
+            Stack<DirectoryInfo> fols;
+            DirectoryInfo fol;
+            fols = new Stack<DirectoryInfo>();
+            root = new DirectoryInfo(path);
+            fols.Push(root);
+            while (fols.Count > 0)
+            {
+                fol = fols.Peek();
+                fol.Attributes = fol.Attributes & ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
+
+                foreach (FileInfo f in fol.GetFiles())
+                {
+                    f.Attributes = f.Attributes & ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
+                    f.Delete();
+                }
+
+                DirectoryInfo[] subs = fol.GetDirectories();
+                if (subs.Length > 0)
+                {
+                    foreach (DirectoryInfo d in fol.GetDirectories())
+                    {
+                        fols.Push(d);
+                    }
+                }
+                else
+                {
+                    fol.Delete(true);
+                    fols.Pop();
+                }
+            }
+        }
+
+        public static void ForceCelarDirectory(string path)
+        {
+            DirectoryInfo root;
+            Stack<DirectoryInfo> fols;
+            DirectoryInfo fol;
+            fols = new Stack<DirectoryInfo>();
+            root = new DirectoryInfo(path);
+            fols.Push(root);
+            while (fols.Count > 0)
+            {
+                fol = fols.Peek();
+                fol.Attributes = fol.Attributes & ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
+
+                foreach (FileInfo f in fol.GetFiles())
+                {
+                    f.Attributes = f.Attributes & ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
+                    f.Delete();
+                }
+
+                DirectoryInfo[] subs = fol.GetDirectories();
+                if (subs.Length > 0)
+                {
+                    foreach (DirectoryInfo d in fol.GetDirectories())
+                    {
+                        fols.Push(d);
+                    }
+                }
+                else
+                {
+                    if (fol != root)
+                    {
+                        fol.Delete(true);
+                    }
+
+                    fols.Pop();
+                }
+            }
         }
 
         public string UpdateUrl
@@ -542,6 +618,14 @@ namespace YH.AM
             get
             {
                 return m_HostVersionInFile;
+            }
+        }
+
+        public Version CurrentVersion
+        {
+            get
+            {
+                return m_CurrentVersion;
             }
         }
 
