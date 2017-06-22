@@ -65,6 +65,8 @@ namespace YH.AM
         //是否删除补丁包
         bool m_DeletePatchPack = true;
 
+        bool m_IsInitLocalVersion = false;
+
         public delegate void UpdatingHandle(UpdateSegment segment, UpdateError err, string msg, float percent);
         public event UpdatingHandle OnUpdating;
 
@@ -120,8 +122,12 @@ namespace YH.AM
             });
         }
 
-        protected void CompareVersion(RemoteVersions remoteVersions)
+        public void InitLocalVersion()
         {
+            if (m_IsInitLocalVersion) return;
+
+            m_IsInitLocalVersion = true;
+
             //get local version
             m_CurrentVersion = GetCurrentVersion();
             m_HostVersion = GetHostVersion();
@@ -138,12 +144,18 @@ namespace YH.AM
                 m_CurrentVersion = m_NativeHostVersion;
                 //haveLocalCurrentVersion = false;
             }
+        }
+
+        protected void CompareVersion(RemoteVersions remoteVersions)
+        {
+            //make sure local version is set.
+            InitLocalVersion();
 
             //check host version and native version
             //1.m_HostVersion==m_NativeHostVersion                        same install package or no temp HostVersion file.
             //    when m_CurrentVersion < m_NativeHostVersion        Update from NativeHostVersion
-            //2.m_HostVersion<m_NativeHostVersion         user remove install package and reinstall new version package.
-            //   when m_CurrentVersion < m_NativeHostVersion        Update from NativeHostVersion.others use currentVersion for update.
+            //2.m_HostVersion<m_NativeHostVersion                         user remove install package and reinstall new version package.
+            //   when m_CurrentVersion < m_NativeHostVersion        Update from NativeHostVersion.Others use currentVersion for update.
             //3.m_HostVersion > m_NativeHostVersion       user remove install package and reinstall old version package. 
             //                                                                          must update from native host version.     
             if ((m_HostVersion <= m_NativeHostVersion && m_CurrentVersion < m_NativeHostVersion) || m_HostVersion > m_NativeHostVersion)
@@ -290,8 +302,7 @@ namespace YH.AM
         {
             TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", 0);
             bool haveError = false;
-
-            using (ZipFile zipFile = new ZipFile(localPakFile))
+            using (ZipFile zipFile = new ZipFile(localPakFile, System.Text.Encoding.UTF8))
             {
                 bool haveManifest = false;
                 Manifest manifest = null;
@@ -324,7 +335,7 @@ namespace YH.AM
                         }
                     }
                     else
-                    {                       
+                    {
                         if (assetsMap != null && assetsMap.ContainsKey(zipEntry.FileName))
                         {
                             Asset asset = assetsMap[zipEntry.FileName];
@@ -373,7 +384,7 @@ namespace YH.AM
             }
 
             DeleteTempDir();
-            
+
             if (m_DeletePatchPack && File.Exists(localPakFile))
             {
                 File.Delete(localPakFile);
@@ -429,7 +440,7 @@ namespace YH.AM
                         break;
                     case Asset.AssetType.Delete:
                         string deleteFilePath = Path.Combine(m_StoragePath, asset.path);
-                        if(File.Exists(deleteFilePath))
+                        if (File.Exists(deleteFilePath))
                             File.Delete(deleteFilePath);
                         break;
                 }
@@ -498,7 +509,7 @@ namespace YH.AM
 
         protected void DeleteTempDir()
         {
-             if (Directory.Exists(PatchTempPath))
+            if (Directory.Exists(PatchTempPath))
                 ForceDeleteDirectory(PatchTempPath);
             if (Directory.Exists(PatchedPath))
                 ForceDeleteDirectory(PatchedPath);
@@ -507,7 +518,7 @@ namespace YH.AM
         protected void ClearStorageDir()
         {
             if (Directory.Exists(m_StoragePath))
-                 ForceCelarDirectory(m_StoragePath);
+                ForceCelarDirectory(m_StoragePath);
         }
 
         public static void ForceDeleteDirectory(string path)
@@ -660,7 +671,7 @@ namespace YH.AM
             }
         }
 
-        public HttpRequest HttpRequest
+        public HttpRequest httpRequest
         {
             set
             {

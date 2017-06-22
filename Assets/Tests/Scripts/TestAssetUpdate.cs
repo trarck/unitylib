@@ -21,7 +21,7 @@ public class TestAssetUpdate : MonoBehaviour {
     {
         m_AssetsUpdater.StoragePath = Application.persistentDataPath;
         m_AssetsUpdater.UpdateUrl = m_RemoteUrl;
-        m_AssetsUpdater.OnUpdating = (segment, err, msg, percent) =>{
+        m_AssetsUpdater.OnUpdating += (segment, err, msg, percent) =>{
             Debug.LogFormat("updating seg:{3}, err:{0},msg:{1},percent:{2},frame:{4}",err,msg,percent,segment,Time.frameCount);
             m_ProgressMsg.text = msg;
             m_ProgressBar.value = percent;

@@ -420,7 +420,6 @@ GameObject:
   m_Component:
   - 4: {fileID: 922000520}
   - 114: {fileID: 922000519}
-  - 114: {fileID: 922000518}
   - 114: {fileID: 922000517}
   m_Layer: 0
   m_Name: AssetUpdate
@@ -444,18 +443,6 @@ MonoBehaviour:
   m_RemoteUrl: http://patch.xuebaogames.com/test2/
   m_ProgressBar: {fileID: 1991272318}
   m_ProgressMsg: {fileID: 1940176265}
---- !u!114 &922000518
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 922000516}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92aef4d1fb3036b4e813c5d35887d560, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  progressInterval: 0.1
 --- !u!114 &922000519
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -467,7 +454,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 873fe07af17393a439ba9f35a70f4e92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_HttpRequest: {fileID: 922000518}
+  m_HttpRequest: {fileID: 0}
 --- !u!4 &922000520
 Transform:
   m_ObjectHideFlags: 0
