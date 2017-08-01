@@ -55,7 +55,7 @@ def build(args):
         log_path=fullpath(args[logFileValueIndex])
         args[logFileValueIndex]=log_path
     else:
-        log_path=fullpath(os.path.join(project_path, '__kellylog.txt'))
+        log_path=fullpath(os.path.join(project_path, '__kellylog.txt'))#fullpath('__kellylog.txt')#
         args.extend(['-logFile', log_path])
     
     build_cmd = args
