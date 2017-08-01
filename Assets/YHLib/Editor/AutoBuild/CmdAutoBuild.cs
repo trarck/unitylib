@@ -11,9 +11,16 @@ namespace YH
     {     
         public static void BuildAnroid()
         {
-            Debug.Log("Build android");
+            Debug.Log("Build Android");
             Dictionary<string, string> options = CmdArguments.GetArgumentOptions();
             Build(BuildTarget.Android, options);
+        }
+
+        public static void BuildIOS()
+        {
+            Debug.Log("Build IOS");
+            Dictionary<string, string> options = CmdArguments.GetArgumentOptions();
+            Build(BuildTarget.iOS, options);
         }
 
 		public static void Build()
