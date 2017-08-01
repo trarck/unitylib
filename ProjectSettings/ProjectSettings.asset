@@ -354,7 +354,7 @@ PlayerSettings:
   psmSplashimage: {fileID: 0}
   spritePackerPolicy: 
   scriptingDefineSymbols:
-    1: SILVERLIGHT
+    1: SILVERLIGHT;USE_BSDIFF
     4: SILVERLIGHT;MOBILE_INPUT
     7: SILVERLIGHT;MOBILE_INPUT
   metroPackageName: unitylib

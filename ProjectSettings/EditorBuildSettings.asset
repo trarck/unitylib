@@ -7,3 +7,7 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Tests/Scenes/Inputs/TestBaseInput.unity
+  - enabled: 1
+    path: Assets/Tests/Scenes/TestAssestUnload1.unity
+  - enabled: 1
+    path: Assets/Tests/Scenes/TestAssestUnload2.unity
