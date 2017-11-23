@@ -88,7 +88,7 @@ namespace YH
             //bundleIdentifier
             if (options.ContainsKey("bundleIdentifier"))
             {
-                PlayerSettings.bundleIdentifier = options["bundleIdentifier"];
+                PlayerSettings.applicationIdentifier = options["bundleIdentifier"];
             }
 
             //bundleVersion

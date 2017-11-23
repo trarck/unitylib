@@ -7,7 +7,7 @@ namespace YH
 	{
 		public static void SaveScreenshot(string file)
 		{
-			Application.CaptureScreenshot(file);
+			ScreenCapture.CaptureScreenshot(file);
 		}
 
 		/// <summary>

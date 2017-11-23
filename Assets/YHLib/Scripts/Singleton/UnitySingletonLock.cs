@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace YH
 {
-    public class UnitySingleton<T> : MonoBehaviour
+    public class UnitySingletonLock<T> : MonoBehaviour
         where T : Component
     {
         private static T m_Instance;

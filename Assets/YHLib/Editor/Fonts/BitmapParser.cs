@@ -27,7 +27,7 @@ namespace YH.Fonts
                 Texture2D inputTexture = (Texture2D)AssetDatabase.LoadAssetAtPath(imagePath, typeof(Texture2D));
                 //Make sure font texture is readable
                 TextureImporter inputTextureImp = (TextureImporter)AssetImporter.GetAtPath(imagePath);
-                inputTextureImp.textureType = TextureImporterType.Advanced;
+                inputTextureImp.textureType = TextureImporterType.Default;
                 inputTextureImp.isReadable = true;
                 inputTextureImp.maxTextureSize = 4096;
                 inputTextureImp.mipmapEnabled = false;
@@ -87,7 +87,7 @@ namespace YH.Fonts
 
                 //Set correct texture format
                 TextureImporter texImp = (TextureImporter)TextureImporter.GetAtPath(outputPath);
-                texImp.textureType = TextureImporterType.Advanced;
+                texImp.textureType = TextureImporterType.Default;
                 texImp.isReadable = true;
                 texImp.textureFormat = TextureImporterFormat.RGBA32;
                 texImp.mipmapEnabled = false;
