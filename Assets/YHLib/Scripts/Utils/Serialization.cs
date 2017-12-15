@@ -106,4 +106,4 @@ var str = JsonUtility.ToJson(new SerializationBitArray(bits)); // json : {"flags
 // Json -> BitArray
 BitArray bits = JsonUtility.FromJson<SerializationBitArray>(s).ToBitArray();
 
-/*
+*/
