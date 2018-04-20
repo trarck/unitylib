@@ -10,7 +10,7 @@ namespace YH
 		public float probability;
 
 		//产出
-		public object yield;
+		public object data;
 	}
 
 	//格式化的配置表
@@ -53,11 +53,11 @@ namespace YH
 			m_ConfigTable= new List<ProbabilityConfigItem>();
 		}
 
-		public void AddProbability(float probability,object yield)
+		public void AddProbability(float probability,object data)
 		{
 			ProbabilityConfigItem item = new ProbabilityConfigItem();
 			item.probability = probability;
-			item.yield = yield;
+			item.data = data;
 			m_ConfigTable.Add(item);
 			m_Dirty = true;
 		}
@@ -117,7 +117,7 @@ namespace YH
 				if (rand > item.from && rand <= item.to)
 				{
 					//命中
-					return m_ConfigTable[item.index].yield;
+					return m_ConfigTable[item.index].data;
 				}
 			}
 
@@ -138,7 +138,7 @@ namespace YH
 				if (rand <= item.probability)
 				{
 					//命中
-					result.Add(item.yield);
+					result.Add(item.data);
 				}
 			}
 
