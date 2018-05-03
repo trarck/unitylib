@@ -5,14 +5,21 @@ namespace YH
 {
     public class ParticleEvent : MonoBehaviour
     {
-
         // Use this for initialization
         void Start()
         {
-            ParticleSystem ps = GetComponent<ParticleSystem>();
-            if (ps)
+            ParticleSystem[] particleSystems = GetComponentsInChildren<ParticleSystem>();
+            if (particleSystems != null)
             {
-                StartCoroutine(OnComplete(ps.duration));
+                float maxDuration = 0;
+                for (int i = 0; i < particleSystems.Length; ++i)
+                {
+                    if (particleSystems[i].main.duration > maxDuration)
+                    {
+                        maxDuration = particleSystems[i].main.duration;
+                    }
+                }
+                StartCoroutine(OnComplete(maxDuration));
             }
         }
 
@@ -20,7 +27,32 @@ namespace YH
         {
             yield return new WaitForSeconds(wait);
 
-            AnimationEventSystem animationEventSystem = GetComponent<AnimationEventSystem>();
+            AnimationEventSystem animationEventSystem = GetComponentInParent<AnimationEventSystem>();
+            if (animationEventSystem != null)
+            {
+                animationEventSystem.TriggerCompleteEvent();
+            }
+        }
+    }
+
+    public class SimpleParticleEvent : MonoBehaviour
+    {
+
+        // Use this for initialization
+        void Start()
+        {
+            ParticleSystem ps = GetComponentInChildren<ParticleSystem>();
+            if (ps)
+            {
+                StartCoroutine(OnComplete(ps.main.duration));
+            }
+        }
+
+        IEnumerator OnComplete(float wait)
+        {
+            yield return new WaitForSeconds(wait);
+
+            AnimationEventSystem animationEventSystem = GetComponentInParent<AnimationEventSystem>();
             if (animationEventSystem != null)
             {
                 animationEventSystem.TriggerCompleteEvent();
