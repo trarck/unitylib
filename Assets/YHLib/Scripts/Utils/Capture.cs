@@ -7,15 +7,19 @@ namespace YH
 	{
 		public static void SaveScreenshot(string file)
 		{
-			ScreenCapture.CaptureScreenshot(file);
-		}
+#if UNITY_2017_OR_NEWER
+            ScreenCapture.CaptureScreenshot(file);
+#else
+            Application.CaptureScreenshot(file);
+#endif
+        }
 
-		/// <summary>
-		/// 最好在一帧最后截图
-		/// </summary>
-		/// <param name="rect"></param>
-		/// <returns></returns>
-		public static Texture2D GetScreenshot(Rect rect)
+        /// <summary>
+        /// 最好在一帧最后截图
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <returns></returns>
+        public static Texture2D GetScreenshot(Rect rect)
 		{
 			Texture2D screenShot = new Texture2D((int)rect.width, (int)rect.height, TextureFormat.RGB24, false);
 
