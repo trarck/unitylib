@@ -19,5 +19,17 @@ namespace YH
                 Object.DestroyImmediate(parent.GetChild(i).gameObject);
             }
         }
+
+        public static string FullPath(Transform transform)
+        {
+            string path = transform.gameObject.name;
+
+            while (transform.parent)
+            {
+                transform = transform.parent;
+                path = transform.gameObject.name + "/" + path;
+            }
+            return path;
+        }
     }
 }

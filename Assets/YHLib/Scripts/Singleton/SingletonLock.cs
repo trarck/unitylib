@@ -3,7 +3,7 @@
 namespace YH
 {
  
-    class SingletonLock<T> where T : class,new()
+    public class SingletonLock<T> where T : class,new()
     {
         private static T m_Instance;
         private static readonly object syslock = new object();

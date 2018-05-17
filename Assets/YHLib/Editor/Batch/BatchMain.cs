@@ -4,7 +4,7 @@ using UnityEditor;
 namespace YH
 {
 
-    public class BatchMain : EditorWindow
+    public class BatchMain : EditorTabs
     {
         [SerializeField]
         FindTab m_FindTab;
@@ -14,7 +14,18 @@ namespace YH
         {
             var window = GetWindow<BatchMain>();
             window.titleContent = new GUIContent("AssetBatch");
+            window.Init();
             window.Show();
+        }
+
+        public override void Init()
+        {
+            base.Init();
+
+            FindTab findTab = new FindTab();
+            findTab.name = "Find";
+            findTab.Init(this);
+            AddTab(findTab);
         }
     }
 
