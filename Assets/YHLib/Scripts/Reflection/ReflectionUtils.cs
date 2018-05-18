@@ -29,6 +29,8 @@ namespace YH
             {
                 m_Assemblies[name] = assembly;
             }
+
+            Type[] types=assembly.GetTypes();
             return assembly;
         }
 

@@ -17,6 +17,7 @@ namespace YH
         }
     }
 
+    #region Relation
     public class RelationalOperator : Operator<bool>
     {
 
@@ -174,5 +175,127 @@ namespace YH
         {
             return (bool)a || (bool)b;
         }
-    }   
+    }
+    #endregion
+
+    public class ValueOperator : Operator<object>
+    {
+
+    }
+
+    #region Set
+
+    public class Set : ValueOperator
+    {
+        public override object Execute(object a)
+        {
+            return a;
+        }
+    }
+
+    #endregion
+
+    #region Math
+
+    public class Add : ValueOperator
+    {
+        public override object Execute(object a, object b)
+        {
+            Type aType = a.GetType();
+            if(aType ==typeof(int))
+            {
+                return (int)a + (int)b;
+            }
+            else if (aType == typeof(long))
+            {
+                return (long)a + (long)b;
+            }
+            else if (aType == typeof(float))
+            {
+                return (float)a + (float)b;
+            }
+            else if (aType == typeof(double))
+            {
+                return (double)a + (double)b;
+            }
+            return a;
+        }
+    }
+
+    public class Sub : ValueOperator
+    {
+        public override object Execute(object a, object b)
+        {
+            Type aType = a.GetType();
+            if (aType == typeof(int))
+            {
+                return (int)a - (int)b;
+            }
+            else if (aType == typeof(long))
+            {
+                return (long)a - (long)b;
+            }
+            else if (aType == typeof(float))
+            {
+                return (float)a - (float)b;
+            }
+            else if (aType == typeof(double))
+            {
+                return (double)a - (double)b;
+            }
+            return a;
+        }
+    }
+
+    public class Mul : ValueOperator
+    {
+        public override object Execute(object a, object b)
+        {
+            Type aType = a.GetType();
+            if (aType == typeof(int))
+            {
+                return (int)a * (int)b;
+            }
+            else if (aType == typeof(long))
+            {
+                return (long)a * (long)b;
+            }
+            else if (aType == typeof(float))
+            {
+                return (float)a * (float)b;
+            }
+            else if (aType == typeof(double))
+            {
+                return (double)a * (double)b;
+            }
+            return a;
+        }
+    }
+
+    public class Div : ValueOperator
+    {
+        public override object Execute(object a, object b)
+        {
+            Type aType = a.GetType();
+            if (aType == typeof(int))
+            {
+                return (int)a / (int)b;
+            }
+            else if (aType == typeof(long))
+            {
+                return (long)a / (long)b;
+            }
+            else if (aType == typeof(float))
+            {
+                return (float)a / (float)b;
+            }
+            else if (aType == typeof(double))
+            {
+                return (double)a / (double)b;
+            }
+            return a;
+        }
+    }
+
+    #endregion
 }

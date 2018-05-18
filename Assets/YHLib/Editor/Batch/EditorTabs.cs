@@ -6,7 +6,7 @@ namespace YH
 {
     public interface IEditorTab
     {
-        void Init(EditorWindow owner);
+        void Init(EditorTabs owner);
         void Update(float delta);
         void OnGUI(Rect pos);
 
@@ -19,7 +19,6 @@ namespace YH
         const float k_MenubarPadding = 32;
 
         List<IEditorTab> m_Tabs=new List<IEditorTab>();
-        IEditorTab m_CurrentTab;
         int m_SelectIndex=0;
 
         //[MenuItem("Window/EditorTabTest", priority = 2050)]
@@ -75,6 +74,48 @@ namespace YH
         public void RemoveTab(int index)
         {
             m_Tabs.RemoveAt(index);
+        }
+
+        public void ChangeTab(int index)
+        {
+            if (index > -1 && index<m_Tabs.Count)
+            {
+                m_SelectIndex = index;
+            }
+        }
+
+        public void ChangeTab(IEditorTab tab)
+        {
+            int index = m_Tabs.IndexOf(currentTab);
+            ChangeTab(index);
+        }
+
+        public void ChangeTab(string name)
+        {
+            for(int i = 0; i < m_Tabs.Count; ++i)
+            {
+                if (m_Tabs[i].name == name)
+                {
+                    m_SelectIndex = i;
+                    break;
+                }
+            }
+        }
+
+        public IEditorTab currentTab
+        {
+            get
+            {
+                if(m_SelectIndex>=0 && m_SelectIndex < m_Tabs.Count)
+                {
+                    return m_Tabs[m_SelectIndex];
+                }
+                return null;
+            }
+            set
+            {
+                ChangeTab(value);
+            }
         }
 
         string[] GetTabNames()

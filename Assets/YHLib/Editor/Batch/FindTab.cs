@@ -6,90 +6,30 @@ using System.Collections.Generic;
 
 namespace YH
 {
-    [Serializable]
-    public class FindClass
-    {
-        public string className;
-        public string[] fieldNames;
-
-        public Type type;
-    }
-
-    [Serializable]
-    public class FindCondition
-    {
-        public enum Operation
-        {
-            Equal,//=
-            NotEqual,//!=
-            Less,//<
-            LessEqual,//<=
-            Big,//>
-            BigEqual,//>=
-            Contains,//contain
-        }
-
-        public int propertyIndex = 0;
-        public string property;
-        public Operation op;
-        public string value;
-    }
-
-    public class FindResult
-    {
-        public string path;
-        public UnityEngine.Object obj; 
-              
-        public FindResult(string path,UnityEngine.Object obj)
-        {
-            this.path = path;
-            this.obj = obj;
-        }
-    }
-
+    
     [Serializable]
     public class FindTab:IEditorTab
     {
-        EditorWindow m_Owner;
+        BatchMain m_Owner;
 
         string m_SearchPath= "Assets/Tests/Prefabs/Find";
         string m_Filter= "t:Prefab t:Scene";
+        string m_ClassName ="";
 
-        FindClass m_Class = new FindClass();
-
-        List<string> m_FieldNames = new List<string>();
         int m_SelectFieldIndex = 0;
 
         Vector2 m_ConditionScrollPosition = Vector2.zero;
         List<FindCondition> m_Conditions = new List<FindCondition>();
 
-        List<FindResult> m_Results = new List<FindResult>();
-        Vector2 m_ResultScrollPosition = Vector2.zero;
-
-        Dictionary<FindCondition.Operation, RelationalOperator> m_Operators = new Dictionary<FindCondition.Operation, RelationalOperator>();
-
         public string name { get; set; }
         
         // Use this for initialization
-        public void Init(EditorWindow owner)
+        public void Init(EditorTabs owner)
         {
-            InitOperators();
+            m_Owner = (BatchMain)owner;
+            m_ClassName = "MyObjA";
+            m_Owner.controller.findClassInfo = Batch.GetClassInfo(m_ClassName);
 
-            m_Class.className = "MyObjA";
-            GetClassInfo();
-
-            m_Owner = owner;
-        }
-
-        void InitOperators()
-        {
-            m_Operators[FindCondition.Operation.Equal] = new Equal();
-            m_Operators[FindCondition.Operation.NotEqual] = new NotEqual();
-            m_Operators[FindCondition.Operation.Less] = new Less();
-            m_Operators[FindCondition.Operation.LessEqual] = new LessEqual();
-            m_Operators[FindCondition.Operation.Big] = new Big();
-            m_Operators[FindCondition.Operation.BigEqual] = new BigEqual();
-            m_Operators[FindCondition.Operation.Contains] = new Contains();
         }
 
         // Update is called once per frame
@@ -123,10 +63,10 @@ namespace YH
             EditorGUILayout.Space();
 
             GUILayout.BeginHorizontal();
-            string className = EditorGUILayout.TextField("Class Name", m_Class.className);
-            if (className!=m_Class.className)
+            string className = EditorGUILayout.TextField("Class Name", m_ClassName);
+            if (className!= m_ClassName)
             {
-                m_Class.className = className;
+                m_ClassName = className;
                 ChangeClassName();
             }
             GUILayout.EndHorizontal();
@@ -137,14 +77,12 @@ namespace YH
             {
                 DoSearch();
             }
-
-            DrawResults();
         }
 
         void DrawConditions()
         {
             GUILayout.BeginHorizontal();
-            EditorGUILayout.TextField("Conditions");
+            EditorGUILayout.LabelField("Conditions");
 
             if (GUILayout.Button("+"))
             {
@@ -170,22 +108,24 @@ namespace YH
         void DrawCondition(FindCondition fc)
         {
             GUILayout.BeginHorizontal();
-            if (m_Class.fieldNames != null && m_Class.fieldNames.Length > 0)
+            ClassInfo findClassInfo = m_Owner.controller.findClassInfo;
+
+            if (findClassInfo.fieldNames != null && findClassInfo.fieldNames.Length > 0)
             {
-                fc.propertyIndex = EditorGUILayout.Popup(fc.propertyIndex, m_Class.fieldNames);
-                if (fc.propertyIndex == m_Class.fieldNames.Length - 1)
+                fc.fieldIndex = EditorGUILayout.Popup(fc.fieldIndex, findClassInfo.fieldNames);
+                if (fc.fieldIndex == findClassInfo.fieldNames.Length - 1)
                 {
                     //last one is custom define
-                    fc.property = EditorGUILayout.TextField(fc.property);
+                    fc.field = EditorGUILayout.TextField(fc.field);
                 }
                 else
                 {
-                    fc.property = m_Class.fieldNames[fc.propertyIndex];
+                    fc.field = findClassInfo.fieldNames[fc.fieldIndex];
                 }
             }
             else
             {
-                fc.property = EditorGUILayout.TextField(fc.property);
+                fc.field = EditorGUILayout.TextField(fc.field);
             }
             
             
@@ -196,22 +136,6 @@ namespace YH
                 RemoveCondition(fc);
             }
             GUILayout.EndHorizontal();
-        }
-
-        void DrawResults()
-        {
-            m_ConditionScrollPosition = EditorGUILayout.BeginScrollView(m_ConditionScrollPosition);
-
-            for (int i = 0; i < m_Results.Count; ++i)
-            {
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(m_Results[i].path);
-                m_Results[i].obj= EditorGUILayout.ObjectField(m_Results[i].obj,m_Class.type,false);
-                GUILayout.EndHorizontal();
-            }
-
-
-            EditorGUILayout.EndScrollView();
         }
 
         void AddCondition()
@@ -227,90 +151,19 @@ namespace YH
 
         void ChangeClassName()
         {
-            GetClassInfo();
+            m_Owner.controller.RefreshFindClassInfo(m_ClassName);
+
             m_Conditions.Clear();
         }
-
-        void GetClassInfo()
-        {
-            if (!string.IsNullOrEmpty(m_Class.className))
-            {
-                m_Class.type = ReflectionUtils.Instance.GetType(m_Class.className);
-                if (m_Class.type != null)
-                {
-                    FieldInfo[] fields = ReflectionUtils.Instance.GetSerializableFields(m_Class.type);
-                    string[] names = new string[fields.Length+1];
-                    for(int i=0;i<fields.Length;++i)
-                    {
-                        names[i]= fields[i].Name;
-                    }
-                    names[fields.Length] = "Custom";
-                    m_Class.fieldNames = names;                    
-                }
-                else
-                {
-                    m_Class.fieldNames = null;
-                }
-            }
-        }
-
+        
         void DoSearch()
         {
-            if (string.IsNullOrEmpty(m_Class.className))
+            if (string.IsNullOrEmpty(m_ClassName))
             {
                 return;
             }
-           
-            FindCondition condition = null;
-            object fieldValue=null;
-            object conditionValue = null;
-
-            m_Results.Clear();
-
-            List<string> assets = FindAsset.FindAllAssets(m_SearchPath, m_Filter);
-            for (int i = 0; i < assets.Count; ++i)
-            {
-                GameObject gameObj = AssetDatabase.LoadAssetAtPath<GameObject>(assets[i]);
-
-                if (gameObj != null)
-                {
-                    Component[] insts = gameObj.GetComponentsInChildren(m_Class.type);
-                    if (insts!=null && insts.Length>0)
-                    {
-                        for(int j = 0; j < insts.Length; ++j)
-                        {
-
-                            if (m_Conditions != null && m_Conditions.Count > 0)
-                            {
-                                for (int k = 0; k < m_Conditions.Count; ++k)
-                                {
-                                    condition = m_Conditions[k];
-                                    FieldInfo field = m_Class.type.GetField(condition.property, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-                                    if (field != null)
-                                    {
-                                        fieldValue = field.GetValue(insts[j]);
-                                        conditionValue = condition.value;
-
-                                        if (conditionValue.GetType() != fieldValue.GetType())
-                                        {
-                                            conditionValue=Convert.ChangeType(conditionValue, fieldValue.GetType());
-                                        }
-
-                                        if (m_Operators.ContainsKey(condition.op) && m_Operators[condition.op].Execute(fieldValue,conditionValue))
-                                        {
-                                            m_Results.Add(new FindResult(assets[i] + ":" +HierarchyUtil.FullPath(insts[j].transform), insts[j]));
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                m_Results.Add(new FindResult(assets[i] + ":" + HierarchyUtil.FullPath(insts[j].transform), insts[j]));
-                            }
-                        }
-                    }
-                }
-            }
+            m_Owner.controller.findResults = m_Owner.controller.Search(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_Conditions);
+            m_Owner.ChangeTab("Result");
         }
 
         private void BrowseForFolder()

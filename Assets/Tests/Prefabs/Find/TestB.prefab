@@ -51,5 +51,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 545c2c47c73c0aa4e93d22df2e0a0059, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Age: 10
-  m_MyName: TestA
+  m_Age: 1
+  m_MyName: TestB
+  testa: 0
