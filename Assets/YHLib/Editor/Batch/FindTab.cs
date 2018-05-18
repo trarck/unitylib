@@ -73,6 +73,8 @@ namespace YH
         // Use this for initialization
         public void Init(EditorWindow owner)
         {
+            InitOperators();
+
             m_Class.className = "MyObjA";
             GetClassInfo();
 
@@ -260,7 +262,8 @@ namespace YH
             }
            
             FindCondition condition = null;
-            object value=null;
+            object fieldValue=null;
+            object conditionValue = null;
 
             m_Results.Clear();
 
@@ -285,8 +288,15 @@ namespace YH
                                     FieldInfo field = m_Class.type.GetField(condition.property, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
                                     if (field != null)
                                     {
-                                        value = field.GetValue(insts[j]);
-                                        if (m_Operators.ContainsKey(condition.op) && m_Operators[condition.op].Execute(condition.value, value))
+                                        fieldValue = field.GetValue(insts[j]);
+                                        conditionValue = condition.value;
+
+                                        if (conditionValue.GetType() != fieldValue.GetType())
+                                        {
+                                            conditionValue=Convert.ChangeType(conditionValue, fieldValue.GetType());
+                                        }
+
+                                        if (m_Operators.ContainsKey(condition.op) && m_Operators[condition.op].Execute(fieldValue,conditionValue))
                                         {
                                             m_Results.Add(new FindResult(assets[i] + ":" +HierarchyUtil.FullPath(insts[j].transform), insts[j]));
                                         }
