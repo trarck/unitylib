@@ -72,11 +72,14 @@ namespace YH
 
         public Type GetMemberType(string name)
         {
-            for (int i = 0; i < accesses.Count; ++i)
+            if (accesses != null)
             {
-                if (accesses[i].Name == name)
+                for (int i = 0; i < accesses.Count; ++i)
                 {
-                    return ReflectionUtils.GetFieldOrPropertyType(accesses[i]);
+                    if (accesses[i].Name == name)
+                    {
+                        return ReflectionUtils.GetFieldOrPropertyType(accesses[i]);
+                    }
                 }
             }
             return null;

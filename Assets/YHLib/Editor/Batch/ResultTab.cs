@@ -31,6 +31,17 @@ namespace YH
             
         }
 
+
+        public void OnEnter()
+        {
+
+        }
+
+        public void OnExit()
+        {
+
+        }
+
         public void OnGUI(Rect pos)
         {
             EditorGUILayout.Space();

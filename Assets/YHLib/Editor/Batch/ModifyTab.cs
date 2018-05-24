@@ -24,7 +24,6 @@ namespace YH
         public void Init(EditorTabs owner)
         {
             m_Owner = (BatchMain)owner;
-            m_ConditionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
         }
 
         void InitOperators()
@@ -36,6 +35,17 @@ namespace YH
         public void Update(float delta)
         {
             
+        }
+
+
+        public void OnEnter()
+        {
+            m_ConditionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
+        }
+
+        public void OnExit()
+        {
+
         }
 
         public void OnGUI(Rect pos)
@@ -201,17 +211,19 @@ namespace YH
 
         void ChangeExpresstion(ModifyExpression expr, int index, string name = null)
         {
-            if (index < m_ConditionNames.Length - 1)
+            if (m_ConditionNames != null)
             {
-                expr.index = index;
-                expr.name = m_ConditionNames[expr.index];
+                if (index < m_ConditionNames.Length - 1)
+                {
+                    expr.index = index;
+                    expr.name = m_ConditionNames[expr.index];
+                }
+                else
+                {
+                    expr.index = m_ConditionNames.Length - 1;
+                    expr.name = name;
+                }
             }
-            else
-            {
-                expr.index = m_ConditionNames.Length - 1;
-                expr.name = name;
-            }
-
 
             Type newType = m_Owner.controller.findClassInfo.GetMemberType(expr.name);
             if (newType != expr.type)

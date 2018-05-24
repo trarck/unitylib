@@ -10,6 +10,9 @@ namespace YH
         void Update(float delta);
         void OnGUI(Rect pos);
 
+        void OnEnter();
+        void OnExit();
+
         string name { get; set; }
     }
 
@@ -50,7 +53,9 @@ namespace YH
             GUILayout.Space(k_ToolbarPadding);
 
             float toolbarWidth = position.width - k_ToolbarPadding * 4;
-            m_SelectIndex = GUILayout.Toolbar(m_SelectIndex, GetTabNames(), "LargeButton", GUILayout.Width(toolbarWidth));
+            int index = GUILayout.Toolbar(m_SelectIndex, GetTabNames(), "LargeButton", GUILayout.Width(toolbarWidth));
+            ChangeTab(index);
+
             GUILayout.EndHorizontal();
         }
 
@@ -80,7 +85,12 @@ namespace YH
         {
             if (index > -1 && index<m_Tabs.Count)
             {
-                m_SelectIndex = index;
+                if (m_SelectIndex != index)
+                {
+                    m_Tabs[m_SelectIndex].OnExit();
+                    m_SelectIndex = index;
+                    m_Tabs[m_SelectIndex].OnEnter();
+                }
             }
         }
 
@@ -96,7 +106,7 @@ namespace YH
             {
                 if (m_Tabs[i].name == name)
                 {
-                    m_SelectIndex = i;
+                    ChangeTab(i);
                     break;
                 }
             }

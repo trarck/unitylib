@@ -40,6 +40,16 @@ namespace YH
             
         }
 
+        public void OnEnter()
+        {
+
+        }
+
+        public void OnExit()
+        {
+
+        }
+
         public void OnGUI(Rect pos)
         {
             EditorGUILayout.Space();
@@ -225,23 +235,30 @@ namespace YH
         void AddCondition()
         {
             FindCondition fc = new FindCondition();
-            ChangeCondition(fc,m_Conditions.Count);
+            ChangeCondition(fc,m_Conditions.Count,"");
             m_Conditions.Add(fc);
         }
 
         void ChangeCondition(FindCondition fc,int index,string name=null)
         {
-            if (index < m_ConditionNames.Length-1)
+            if (m_ConditionNames != null)
             {
-                fc.index = index;
-                fc.name = m_ConditionNames[fc.index];
+                if (index < m_ConditionNames.Length - 1)
+                {
+                    fc.index = index;
+                    fc.name = m_ConditionNames[fc.index];
+                }
+                else
+                {
+                    fc.index = m_ConditionNames.Length - 1;
+                    fc.name = name;
+                }
             }
             else
             {
-                fc.index = m_ConditionNames.Length - 1;
+                fc.index = 0;
                 fc.name = name;
             }
-
 
             Type newType = m_Owner.controller.findClassInfo.GetMemberType(fc.name);
             if (newType != fc.type)
