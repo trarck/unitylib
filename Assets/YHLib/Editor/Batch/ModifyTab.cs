@@ -10,6 +10,10 @@ namespace YH
     {
         BatchMain m_Owner;
 
+        bool m_Inherit = false;
+
+        string[] m_ConditionNames;
+
         Vector2 m_ExpresstionScrollPosition = Vector2.zero;
 
         List<ModifyExpression> m_ModifyExpressions = new List<ModifyExpression>();
@@ -20,6 +24,7 @@ namespace YH
         public void Init(EditorTabs owner)
         {
             m_Owner = (BatchMain)owner;
+            m_ConditionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
         }
 
         void InitOperators()
@@ -50,6 +55,15 @@ namespace YH
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Conditions");
 
+            bool inherit = EditorGUILayout.Toggle(m_Inherit);
+            EditorGUILayout.LabelField("Inherit");
+
+            if (m_Inherit != inherit)
+            {
+                m_Inherit = inherit;
+                ChangeInherit();
+            }
+
             if (GUILayout.Button("+"))
             {
                 AddExpresstion();
@@ -76,22 +90,22 @@ namespace YH
             GUILayout.BeginHorizontal();
             ClassInfo findClassInfo = m_Owner.controller.findClassInfo;
 
-            if (findClassInfo.fieldNames != null && findClassInfo.fieldNames.Length > 0)
+            if (m_ConditionNames != null && m_ConditionNames.Length > 0)
             {
-                expr.fieldIndex = EditorGUILayout.Popup(expr.fieldIndex, findClassInfo.fieldNames);
-                if (expr.fieldIndex == findClassInfo.fieldNames.Length - 1)
+                expr.index = EditorGUILayout.Popup(expr.index, m_ConditionNames);
+                if (expr.index == m_ConditionNames.Length - 1)
                 {
                     //last one is custom define
-                    expr.field = EditorGUILayout.TextField(expr.field);
+                    expr.name = EditorGUILayout.TextField(expr.name);
                 }
                 else
                 {
-                    expr.field = findClassInfo.fieldNames[expr.fieldIndex];
+                    expr.name = m_ConditionNames[expr.index];
                 }
             }
             else
             {
-                expr.field = EditorGUILayout.TextField(expr.field);
+                expr.name = EditorGUILayout.TextField(expr.name);
             }
 
 
@@ -113,6 +127,27 @@ namespace YH
         void RemoveExpresstion(ModifyExpression expr)
         {
             m_ModifyExpressions.Remove(expr);
+        }
+
+
+        void ChangeInherit()
+        {
+            m_ConditionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
+
+            List<ModifyExpression> keeps = new List<ModifyExpression>();
+
+            for (int i = 0; i < m_ModifyExpressions.Count; ++i)
+            {
+                for (int j = 0; j < m_ConditionNames.Length; ++j)
+                {
+                    if (m_ModifyExpressions[i].name == m_ConditionNames[j])
+                    {
+                        keeps.Add(m_ModifyExpressions[i]);
+                        break;
+                    }
+                }
+            }
+            m_ModifyExpressions = keeps;
         }
 
         void DoModify()

@@ -6,12 +6,69 @@ using UnityEngine;
 
 namespace YH
 {
+    public class AccessInfo
+    {
+        public MemberInfo member;
+
+        public AccessInfo() { }
+
+        public AccessInfo(MemberInfo member)
+        {
+            this.member = member;
+        }
+
+        public void SetValue(object obj,object value)
+        {
+            ReflectionUtils.SetValue(member, obj, value);
+        }
+
+        public object GetValue(object obj)
+        {
+            return ReflectionUtils.GetValue(member,obj);
+        }
+
+        public Type type
+        {
+            get{
+                return ReflectionUtils.GetFieldOrPropertyType(member);
+            }
+        }
+
+        public string name
+        {
+            get
+            {
+                return member != null ? member.Name : null;
+            }
+        }
+    }
+
     [Serializable]
     public class ClassInfo
     {
         public string className;
-        public string[] fieldNames;
         public Type type;
+        public List<MemberInfo> accesses;
+
+        //public string[] memberNames;
+        //public Dictionary<string, Type> memberTypes;
+
+        public string[] GetMemberNames(bool inhert=true)
+        {
+            if (accesses != null)
+            {
+                List<string> names = new List<string>();
+                for(int i = 0; i < accesses.Count; ++i)
+                {
+                    if (inhert || accesses[i].DeclaringType==type) {
+                        names.Add(accesses[i].Name);
+                    }
+                }
+                names.Add("Custom");
+                return names.ToArray();
+            }
+            return null;
+        }
     }
 
     [Serializable]
@@ -28,8 +85,8 @@ namespace YH
             Contains,//contain
         }
 
-        public int fieldIndex = 0;
-        public string field;
+        public int index = 0;
+        public string name;
         public Operation op;
         public string value;//输入的时候统一字符串，在具体执行逻辑的时候进行转换。
     }
@@ -59,8 +116,8 @@ namespace YH
             Div,///
         }
 
-        public int fieldIndex = 0;
-        public string field;
+        public int index = 0;
+        public string name;
         public Operation op;
         public string value;//输入的时候统一字符串，在具体执行逻辑的时候进行转换。
     }
@@ -96,12 +153,12 @@ namespace YH
             m_ExpressionOperators[ModifyExpression.Operation.Div] = new Div();
         }
 
-        public void RefreshFindClassInfo(string className)
+        public void RefreshFindClassInfo(string className,bool inherit)
         {
-            findClassInfo = GetClassInfo(className);
+            findClassInfo = GetClassInfo(className, inherit);
         }
 
-        public static ClassInfo GetClassInfo(string className)
+        public static ClassInfo GetClassInfo(string className,bool inherit)
         {
             ClassInfo classInfo = null;
 
@@ -113,18 +170,12 @@ namespace YH
 
                 if (classInfo.type != null)
                 {
-                    FieldInfo[] fields = ReflectionUtils.Instance.GetSerializableFields(classInfo.type);
-                    string[] names = new string[fields.Length + 1];
-                    for (int i = 0; i < fields.Length; ++i)
-                    {
-                        names[i] = fields[i].Name;
-                    }
-                    names[fields.Length] = "Custom";
-                    classInfo.fieldNames = names;
+                    Dictionary<string, Type> memberTypes = new Dictionary<string, Type>();
+                    classInfo.accesses = ReflectionUtils.GetAccessableFieldAndProperties(classInfo.type, false);
                 }
                 else
                 {
-                    classInfo.fieldNames = null;
+                    classInfo.accesses = null;
                 }
             }
             return classInfo;
@@ -154,15 +205,16 @@ namespace YH
             List<object> conditionsValue = new List<object>();
             for (int i = 0; i < conditions.Count; ++i)
             {
-                //get from class type
-                FieldInfo field = classInfo.type.GetField(conditions[i].field, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-                if (field != null)
+                object conditionValue = conditions[i].value;
+                //这里必须从类里查找，条件可能是自定义的
+                MemberInfo member = ReflectionUtils.GetMember(classInfo.type, conditions[i].name);
+                if (member != null)
                 {
-                    object conditionValue = conditions[i].value;
+                    Type conditionType = ReflectionUtils.GetFieldOrPropertyType(member);
 
-                    if (conditionValue.GetType() != field.FieldType)
+                    if (conditionValue.GetType() != conditionType)
                     {
-                        conditionValue = Convert.ChangeType(conditionValue, field.FieldType);
+                        conditionValue = Convert.ChangeType(conditionValue, conditionType);
                     }
                     conditionsValue.Add(conditionValue);
                 }
@@ -190,12 +242,19 @@ namespace YH
                             {
                                 for (int k = 0; k < conditions.Count; ++k)
                                 {
-                                    FindCondition condition = conditions[k];
-                                    FieldInfo field = classInfo.type.GetField(condition.field, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-                                    if (field != null)
+                                    object conditionValue = conditionsValue[k];
+                                    if (conditionValue == null)
                                     {
-                                        object fieldValue = field.GetValue(insts[j]);
-                                        object conditionValue = conditionsValue[k];
+                                        continue;
+                                    }
+
+                                    FindCondition condition = conditions[k];
+                         
+                                    MemberInfo member = ReflectionUtils.GetMember(classInfo.type, condition.name);
+
+                                    if (member != null)
+                                    {
+                                        object fieldValue = ReflectionUtils.GetValue(member,insts[j]);
 
                                         if (m_ConditionOperators.ContainsKey(condition.op) && m_ConditionOperators[condition.op].Execute(fieldValue, conditionValue))
                                         {
@@ -252,35 +311,42 @@ namespace YH
             //    }
             //}
 
-            if (results!=null && results.Count > 0 && expresstions!=null && expresstions.Count>0)
+            if (results != null && results.Count > 0 && expresstions != null && expresstions.Count > 0)
             {
-                for (int j = 0; j < expresstions.Count; ++j)
+                for (int i = 0; i < results.Count; ++i)
                 {
-                    ModifyExpression expression = expresstions[j];
-                    FieldInfo field = classInfo.type.GetField(expression.field, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-                    if (field != null)
+                    FindResult result = results[i];
+
+                    for (int j = 0; j < expresstions.Count; ++j)
                     {
-                        for (int i = 0; i < results.Count; ++i)
+                        ModifyExpression expression = expresstions[j];
+
+                        if (expression.value != null)
                         {
-                            FindResult result = results[i];
-                            object fieldValue = field.GetValue(result.obj);
-                            object expressionValue = expression.value;
+                            MemberInfo member = ReflectionUtils.GetMember(classInfo.type, expression.name);
 
-                            if (expressionValue.GetType() != fieldValue.GetType())
+                            if (member != null)
                             {
-                                expressionValue = Convert.ChangeType(expressionValue, fieldValue.GetType());
-                            }
+                                object expressionValue = expression.value;
+                                Type memberType = ReflectionUtils.GetFieldOrPropertyType(member);
 
-                            if (m_ExpressionOperators.ContainsKey(expression.op))
-                            {
-                                expressionValue=m_ExpressionOperators[expression.op].Execute(fieldValue, expressionValue);
-                            }
+                                if (expressionValue.GetType() != memberType)
+                                {
+                                    expressionValue = Convert.ChangeType(expressionValue, memberType);
+                                }
 
-                            field.SetValue(result.obj, expressionValue);
-                            ++n;
+                                if (m_ExpressionOperators.ContainsKey(expression.op))
+                                {
+                                    expressionValue = m_ExpressionOperators[expression.op].Execute(memberType, expressionValue);
+                                }
+
+                                ReflectionUtils.SetValue(member, result.obj, expressionValue);
+                                ++n;
+                            }
                         }
                     }
                 }
+
             }
 
             if (n > 0)
@@ -291,6 +357,4 @@ namespace YH
             return n;
         }
     }
-
-    
 }

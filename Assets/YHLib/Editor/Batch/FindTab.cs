@@ -15,10 +15,12 @@ namespace YH
         string m_SearchPath= "Assets/Tests/Prefabs/Find";
         string m_Filter= "t:Prefab t:Scene";
         string m_ClassName ="";
-
-        int m_SelectFieldIndex = 0;
+        bool m_Inherit=false;
 
         Vector2 m_ConditionScrollPosition = Vector2.zero;
+
+        string[] m_ConditionNames;
+
         List<FindCondition> m_Conditions = new List<FindCondition>();
 
         public string name { get; set; }
@@ -27,9 +29,9 @@ namespace YH
         public void Init(EditorTabs owner)
         {
             m_Owner = (BatchMain)owner;
-            m_ClassName = "MyObjA";
-            m_Owner.controller.findClassInfo = Batch.GetClassInfo(m_ClassName);
-
+            m_ClassName = "UnityEngine.SpriteRenderer";
+            m_Owner.controller.findClassInfo = Batch.GetClassInfo(m_ClassName,m_Inherit);
+            m_ConditionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
         }
 
         // Update is called once per frame
@@ -63,12 +65,26 @@ namespace YH
             EditorGUILayout.Space();
 
             GUILayout.BeginHorizontal();
-            string className = EditorGUILayout.TextField("Class Name", m_ClassName);
+            YHEditorTools.PushLabelWidth(80);
+            string className = EditorGUILayout.TextField("Class Name", m_ClassName,GUILayout.MinWidth(360));
+            bool inherit = EditorGUILayout.Toggle(m_Inherit);
+            EditorGUILayout.LabelField("Inherit");
+
             if (className!= m_ClassName)
             {
                 m_ClassName = className;
+                m_Inherit = inherit;
                 ChangeClassName();
             }
+
+            if(m_Inherit != inherit)
+            {
+                m_Inherit = inherit;
+                ChangeInherit();
+            }
+
+
+            YHEditorTools.PopLabelWidth();
             GUILayout.EndHorizontal();
 
             DrawConditions();
@@ -110,22 +126,22 @@ namespace YH
             GUILayout.BeginHorizontal();
             ClassInfo findClassInfo = m_Owner.controller.findClassInfo;
 
-            if (findClassInfo.fieldNames != null && findClassInfo.fieldNames.Length > 0)
+            if (m_ConditionNames != null && m_ConditionNames.Length > 0)
             {
-                fc.fieldIndex = EditorGUILayout.Popup(fc.fieldIndex, findClassInfo.fieldNames);
-                if (fc.fieldIndex == findClassInfo.fieldNames.Length - 1)
+                fc.index = EditorGUILayout.Popup(fc.index, m_ConditionNames);
+                if (fc.index == m_ConditionNames.Length - 1)
                 {
                     //last one is custom define
-                    fc.field = EditorGUILayout.TextField(fc.field);
+                    fc.name = EditorGUILayout.TextField(fc.name);
                 }
                 else
                 {
-                    fc.field = findClassInfo.fieldNames[fc.fieldIndex];
+                    fc.name = m_ConditionNames[fc.index];
                 }
             }
             else
             {
-                fc.field = EditorGUILayout.TextField(fc.field);
+                fc.name = EditorGUILayout.TextField(fc.name);
             }
             
             
@@ -151,18 +167,54 @@ namespace YH
 
         void ChangeClassName()
         {
-            m_Owner.controller.RefreshFindClassInfo(m_ClassName);
-
+            m_Owner.controller.RefreshFindClassInfo(m_ClassName,m_Inherit);
+            m_ConditionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
             m_Conditions.Clear();
         }
-        
+
+        void ChangeInherit()
+        {
+            m_ConditionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
+
+            List<FindCondition> keeps = new List<FindCondition>();
+
+            for(int i = 0; i < m_Conditions.Count; ++i)
+            {
+                for(int j=0;j< m_ConditionNames.Length; ++j)
+                {
+                    if (m_Conditions[i].name == m_ConditionNames[j])
+                    {
+                        m_Conditions[i].index = j;
+                        keeps.Add(m_Conditions[i]);
+                        break;
+                    }
+                }
+            }
+
+            m_Conditions = keeps;
+        }
+
+        List<FindCondition> GetNotNullConditions()
+        {
+            List<FindCondition> keeps = new List<FindCondition>();
+            for (int i = 0; i < m_Conditions.Count; ++i)
+            {
+                if (!string.IsNullOrEmpty(m_Conditions[i].value))
+                {
+                    keeps.Add(m_Conditions[i]);
+                }
+            }
+            return keeps;
+        }
+
         void DoSearch()
         {
             if (string.IsNullOrEmpty(m_ClassName))
             {
                 return;
             }
-            m_Owner.controller.findResults = m_Owner.controller.Search(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_Conditions);
+
+            m_Owner.controller.findResults = m_Owner.controller.Search(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, GetNotNullConditions());
             m_Owner.ChangeTab("Result");
         }
 
