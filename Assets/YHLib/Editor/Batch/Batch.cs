@@ -69,6 +69,18 @@ namespace YH
             }
             return null;
         }
+
+        public Type GetMemberType(string name)
+        {
+            for (int i = 0; i < accesses.Count; ++i)
+            {
+                if (accesses[i].Name == name)
+                {
+                    return ReflectionUtils.GetFieldOrPropertyType(accesses[i]);
+                }
+            }
+            return null;
+        }
     }
 
     [Serializable]
@@ -88,7 +100,8 @@ namespace YH
         public int index = 0;
         public string name;
         public Operation op;
-        public string value;//输入的时候统一字符串，在具体执行逻辑的时候进行转换。
+        public object value;
+        public Type type;
     }
 
     [Serializable]
@@ -119,7 +132,8 @@ namespace YH
         public int index = 0;
         public string name;
         public Operation op;
-        public string value;//输入的时候统一字符串，在具体执行逻辑的时候进行转换。
+        public object value;
+        public Type type;
     }
 
     public class Batch
@@ -146,7 +160,7 @@ namespace YH
             m_ConditionOperators[FindCondition.Operation.BigEqual] = new BigEqual();
             m_ConditionOperators[FindCondition.Operation.Contains] = new Contains();
 
-            m_ExpressionOperators[ModifyExpression.Operation.Set] = new Set();
+            //m_ExpressionOperators[ModifyExpression.Operation.Set] = new Set();
             m_ExpressionOperators[ModifyExpression.Operation.Add] = new Add();
             m_ExpressionOperators[ModifyExpression.Operation.Sub] = new Sub();
             m_ExpressionOperators[ModifyExpression.Operation.Mul] = new Mul();
@@ -329,6 +343,7 @@ namespace YH
                             {
                                 object expressionValue = expression.value;
                                 Type memberType = ReflectionUtils.GetFieldOrPropertyType(member);
+                                object memberValue = ReflectionUtils.GetValue(member, result.obj);
 
                                 if (expressionValue.GetType() != memberType)
                                 {
@@ -337,7 +352,7 @@ namespace YH
 
                                 if (m_ExpressionOperators.ContainsKey(expression.op))
                                 {
-                                    expressionValue = m_ExpressionOperators[expression.op].Execute(memberType, expressionValue);
+                                    expressionValue = m_ExpressionOperators[expression.op].Execute(memberValue, expressionValue);
                                 }
 
                                 ReflectionUtils.SetValue(member, result.obj, expressionValue);
@@ -346,7 +361,6 @@ namespace YH
                         }
                     }
                 }
-
             }
 
             if (n > 0)

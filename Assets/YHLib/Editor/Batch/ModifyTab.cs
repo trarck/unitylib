@@ -92,25 +92,37 @@ namespace YH
 
             if (m_ConditionNames != null && m_ConditionNames.Length > 0)
             {
-                expr.index = EditorGUILayout.Popup(expr.index, m_ConditionNames);
-                if (expr.index == m_ConditionNames.Length - 1)
+                int index = EditorGUILayout.Popup(expr.index, m_ConditionNames);
+
+                if (index == m_ConditionNames.Length - 1)
                 {
+                    expr.index = index;
                     //last one is custom define
-                    expr.name = EditorGUILayout.TextField(expr.name);
+                    string name = EditorGUILayout.TextField(expr.name);
+                    if (expr.name != name)
+                    {
+                        ChangeExpresstion(expr, index, name);
+                    }
                 }
-                else
+                else if (expr.index != index)
                 {
-                    expr.name = m_ConditionNames[expr.index];
+                    ChangeExpresstion(expr, index, name);
                 }
             }
             else
             {
-                expr.name = EditorGUILayout.TextField(expr.name);
+                string name = EditorGUILayout.TextField(expr.name);
+                if (expr.name != name)
+                {
+                    ChangeExpresstion(expr, 1, name);
+                }
             }
 
 
             expr.op = (ModifyExpression.Operation)EditorGUILayout.EnumPopup(expr.op);
-            expr.value = EditorGUILayout.TextField(expr.value);
+
+            DrawExpresstionValue(expr);
+
             if (GUILayout.Button("-"))
             {
                 RemoveExpresstion(expr);
@@ -118,9 +130,67 @@ namespace YH
             GUILayout.EndHorizontal();
         }
 
+        void DrawExpresstionValue(ModifyExpression expr)
+        {
+            if (expr.type != null)
+            {
+                switch (expr.type.ToString())
+                {
+                    case "System.Int32":
+                        expr.value = EditorGUILayout.IntField(expr.value != null ? (int)expr.value : 0);
+                        break;
+                    case "System.Int64":
+                        expr.value = EditorGUILayout.LongField(expr.value != null ? (long)expr.value : 0);
+                        break;
+                    case "System.Single":
+                        expr.value = EditorGUILayout.FloatField(expr.value != null ? (float)expr.value : 0);
+                        break;
+                    case "System.Double":
+                        expr.value = EditorGUILayout.DoubleField(expr.value != null ? (double)expr.value : 0);
+                        break;
+
+                    case "UnityEngine.Vect2":
+                        expr.value = EditorGUILayout.Vector2Field("", expr.value != null ? (Vector2)expr.value : Vector2.zero);
+                        break;
+                    case "UnityEngine.Vect3":
+                        expr.value = EditorGUILayout.Vector3Field("", expr.value != null ? (Vector3)expr.value : Vector3.zero);
+                        break;
+                    case "UnityEngine.Vect4":
+                        expr.value = EditorGUILayout.Vector4Field("", expr.value != null ? (Vector4)expr.value : Vector4.zero);
+                        break;
+                    case "UnityEngine.Rect":
+                        expr.value = EditorGUILayout.RectField(expr.value != null ? (Rect)expr.value : Rect.zero);
+                        break;
+                    case "UnityEngine.Bounds":
+                        expr.value = EditorGUILayout.BoundsField((Bounds)expr.value);
+                        break;
+                    case "UnityEngine.Color":
+                        expr.value = EditorGUILayout.ColorField((Color)expr.value);
+                        break;
+
+                    case "UnityEngine.AnimationCurve":
+                        expr.value = EditorGUILayout.CurveField((AnimationCurve)expr.value);
+                        break;
+
+                    default:
+
+                        if (expr.type.IsSubclassOf(typeof(UnityEngine.Object)))
+                        {
+                            expr.value = EditorGUILayout.ObjectField((UnityEngine.Object)expr.value, expr.type, false);
+                        }
+                        else
+                        {
+                            expr.value = EditorGUILayout.TextField(expr.value != null ? expr.value.ToString() : "");
+                        }
+                        break;
+                }
+            }
+        }
+
         void AddExpresstion()
         {
             ModifyExpression expr = new ModifyExpression();
+            ChangeExpresstion(expr,m_ModifyExpressions.Count);
             m_ModifyExpressions.Add(expr);
         }
 
@@ -129,6 +199,27 @@ namespace YH
             m_ModifyExpressions.Remove(expr);
         }
 
+        void ChangeExpresstion(ModifyExpression expr, int index, string name = null)
+        {
+            if (index < m_ConditionNames.Length - 1)
+            {
+                expr.index = index;
+                expr.name = m_ConditionNames[expr.index];
+            }
+            else
+            {
+                expr.index = m_ConditionNames.Length - 1;
+                expr.name = name;
+            }
+
+
+            Type newType = m_Owner.controller.findClassInfo.GetMemberType(expr.name);
+            if (newType != expr.type)
+            {
+                expr.type = newType;
+                expr.value = null;
+            }
+        }
 
         void ChangeInherit()
         {

@@ -128,25 +128,36 @@ namespace YH
 
             if (m_ConditionNames != null && m_ConditionNames.Length > 0)
             {
-                fc.index = EditorGUILayout.Popup(fc.index, m_ConditionNames);
-                if (fc.index == m_ConditionNames.Length - 1)
+                int index = EditorGUILayout.Popup(fc.index, m_ConditionNames);
+
+                if (index == m_ConditionNames.Length - 1)
                 {
+                    fc.index = index;
                     //last one is custom define
-                    fc.name = EditorGUILayout.TextField(fc.name);
+                    string name = EditorGUILayout.TextField(fc.name);
+                    if (fc.name != name)
+                    {
+                        ChangeCondition(fc, index, name);
+                    }
                 }
-                else
+                else if(fc.index!=index)
                 {
-                    fc.name = m_ConditionNames[fc.index];
+                    ChangeCondition(fc, index, name);
                 }
             }
             else
             {
-                fc.name = EditorGUILayout.TextField(fc.name);
+                string name = EditorGUILayout.TextField(fc.name);
+                if (fc.name != name)
+                {
+                    ChangeCondition(fc, 1, name);
+                }
             }
             
-            
             fc.op = (FindCondition.Operation)EditorGUILayout.EnumPopup(fc.op);
-            fc.value= EditorGUILayout.TextField(fc.value);
+
+            DrawConditionValue(fc);
+
             if (GUILayout.Button("-"))
             {
                 RemoveCondition(fc);
@@ -154,10 +165,90 @@ namespace YH
             GUILayout.EndHorizontal();
         }
 
+        void DrawConditionValue(FindCondition fc)
+        {
+            if (fc.type != null)
+            {
+                switch (fc.type.ToString())
+                {
+                    case "System.Int32":
+                        fc.value = EditorGUILayout.IntField(fc.value!=null?(int)fc.value:0);
+                        break;
+                    case "System.Int64":
+                        fc.value = EditorGUILayout.LongField(fc.value != null?(long)fc.value:0);
+                        break;
+                    case "System.Single":
+                        fc.value = EditorGUILayout.FloatField(fc.value != null ? (float)fc.value:0);
+                        break;
+                    case "System.Double":
+                        fc.value = EditorGUILayout.DoubleField(fc.value != null ? (double)fc.value:0);
+                        break;
+
+                    case "UnityEngine.Vect2":
+                        fc.value = EditorGUILayout.Vector2Field("", fc.value != null ? (Vector2)fc.value:Vector2.zero);
+                        break;
+                    case "UnityEngine.Vect3":
+                        fc.value = EditorGUILayout.Vector3Field("", fc.value != null ? (Vector3)fc.value:Vector3.zero);
+                        break;
+                    case "UnityEngine.Vect4":
+                        fc.value = EditorGUILayout.Vector4Field("", fc.value != null ? (Vector4)fc.value:Vector4.zero);
+                        break;
+                    case "UnityEngine.Rect":
+                        fc.value = EditorGUILayout.RectField(fc.value != null ? (Rect)fc.value:Rect.zero);
+                        break;
+                    case "UnityEngine.Bounds":
+                        fc.value = EditorGUILayout.BoundsField((Bounds)fc.value);
+                        break;
+                    case "UnityEngine.Color":
+                        fc.value = EditorGUILayout.ColorField((Color)fc.value);
+                        break;
+
+                    case "UnityEngine.AnimationCurve":
+                        fc.value = EditorGUILayout.CurveField((AnimationCurve)fc.value);
+                        break;
+
+                    default:
+
+                        if (fc.type.IsSubclassOf(typeof(UnityEngine.Object)))
+                        {
+                            fc.value = EditorGUILayout.ObjectField((UnityEngine.Object)fc.value, fc.type, false);
+                        }
+                        else
+                        {
+                            fc.value = EditorGUILayout.TextField(fc.value!=null?fc.value.ToString():"");
+                        }
+                        break;
+                }
+            }
+        }
+
         void AddCondition()
         {
             FindCondition fc = new FindCondition();
+            ChangeCondition(fc,m_Conditions.Count);
             m_Conditions.Add(fc);
+        }
+
+        void ChangeCondition(FindCondition fc,int index,string name=null)
+        {
+            if (index < m_ConditionNames.Length-1)
+            {
+                fc.index = index;
+                fc.name = m_ConditionNames[fc.index];
+            }
+            else
+            {
+                fc.index = m_ConditionNames.Length - 1;
+                fc.name = name;
+            }
+
+
+            Type newType = m_Owner.controller.findClassInfo.GetMemberType(fc.name);
+            if (newType != fc.type)
+            {
+                fc.type = newType;
+                fc.value = null;
+            }
         }
 
         void RemoveCondition(FindCondition fc)
@@ -199,7 +290,7 @@ namespace YH
             List<FindCondition> keeps = new List<FindCondition>();
             for (int i = 0; i < m_Conditions.Count; ++i)
             {
-                if (!string.IsNullOrEmpty(m_Conditions[i].value))
+                if (m_Conditions[i].value!=null)
                 {
                     keeps.Add(m_Conditions[i]);
                 }
@@ -213,6 +304,12 @@ namespace YH
             {
                 return;
             }
+
+            Debug.Log(typeof(int).ToString());
+            Debug.Log(typeof(long).ToString());
+            Debug.Log(typeof(float).ToString());
+            Debug.Log(typeof(double).ToString());
+            Debug.Log(typeof(SpriteRenderer).ToString());
 
             m_Owner.controller.findResults = m_Owner.controller.Search(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, GetNotNullConditions());
             m_Owner.ChangeTab("Result");

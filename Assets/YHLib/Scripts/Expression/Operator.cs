@@ -191,6 +191,11 @@ namespace YH
         {
             return a;
         }
+
+        public override object Execute(object a,object b)
+        {
+            return b;
+        }
     }
 
     #endregion
