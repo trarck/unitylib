@@ -15,6 +15,9 @@ public class MyObjA : MonoBehaviour {
     [System.NonSerialized]
     public int testb;
 
+    [SerializeField]
+    int[] indexs;
+
     int m_MyNormal;
 
 	// Use this for initialization

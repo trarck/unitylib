@@ -20,7 +20,8 @@ namespace YH
         FindConditionView m_FindConditionView;
 
         public string name { get; set; }
-        
+
+        object myValue;
         // Use this for initialization
         public void Init(EditorTabs owner)
         {
@@ -102,8 +103,11 @@ namespace YH
             {
                 DoSearch();
             }
+
+            mma = (string[])YHEditor.YHGUI.DrawArray(mma, mma.GetType(), ref fodout, "test");
         }
-        
+
+        string[] mma = new string[] { "1", "3", "2" };
 
         void ChangeClassName()
         {
@@ -115,8 +119,8 @@ namespace YH
         {
             m_FindConditionView.ChangeExpressionNames(m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit), true);
         }
-        
 
+        bool fodout = false;
         void DoSearch()
         {
             if (string.IsNullOrEmpty(m_ClassName))
@@ -124,14 +128,21 @@ namespace YH
                 return;
             }
 
-            Debug.Log(typeof(int).ToString());
-            Debug.Log(typeof(long).ToString());
-            Debug.Log(typeof(float).ToString());
-            Debug.Log(typeof(double).ToString());
-            Debug.Log(typeof(SpriteRenderer).ToString());
+            //string[] a = new string[] { "1","3","2"};
 
-            m_Owner.controller.findResults = m_Owner.controller.Search(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.GetNotNullExpressions());
-            m_Owner.ChangeTab("Result");
+            //MemberInfo[] ms = a.GetType().GetMembers();
+
+            //object aa = a.GetType().InvokeMember("Set", BindingFlags.CreateInstance, null, a, new object[] { 6 });
+
+            //MethodInfo m = a.GetType().GetMethod("GetValue",new Type[] { typeof(int)});
+
+            //object[] param = new object[] { 1 };
+
+            //object o=m.Invoke(a, param);
+
+            //fodout=YHEditor.YHGUI.DrawArray(a, a.GetType(), fodout, "test");
+          //  m_Owner.controller.findResults = m_Owner.controller.Search(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.GetNotNullExpressions());
+          // m_Owner.ChangeTab("Result");
         }
 
         private void BrowseForFolder()

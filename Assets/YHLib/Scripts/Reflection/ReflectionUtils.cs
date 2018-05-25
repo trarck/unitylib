@@ -204,5 +204,102 @@ namespace YH
             }
             return null;
         }
+
+        public static object InvokeConstructor(object obj, object[] args)
+        {
+            if (obj != null)
+            {
+                Type type = obj.GetType();
+                ConstructorInfo[] constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic);
+                for (int i = 0; i < constructors.Length; ++i)
+                {
+
+                    ParameterInfo[] parameters = constructors[i].GetParameters();
+                    if (args != null && args.Length > 0)
+                    {
+                        if (parameters != null && args.Length == parameters.Length)
+                        {
+                            bool isMatch = true;
+
+                            for (int j = 0; j < args.Length; ++j)
+                            {
+                                if (args[j] != null && parameters[j].ParameterType != typeof(System.Object) && parameters[j].ParameterType != args[j].GetType())
+                                {
+                                    isMatch = false;
+                                }
+                            }
+
+                            if (isMatch)
+                            {
+                                return constructors[i].Invoke(obj, args);
+                            }
+                        }
+                    }
+                    else if (parameters == null || parameters.Length == 0)
+                    {
+                        return constructors[i].Invoke(obj, args);
+                    }
+                }
+            }
+            return null;
+        }
+
+        public static object InvokeMethod(object obj,string methodName,object[] args)
+        {
+            if (obj != null)
+            {
+                Type type = obj.GetType();
+                MethodInfo[] methods = type.GetMethods(BindingFlags.Public|BindingFlags.Static|BindingFlags.Instance|BindingFlags.NonPublic);
+                for(int i = 0; i < methods.Length; ++i)
+                {
+                    if(methods[i].Name== methodName)
+                    {
+                        ParameterInfo[] parameters = methods[i].GetParameters();
+                        if (args != null && args.Length>0)
+                        {
+                            if (parameters != null && args.Length==parameters.Length)
+                            {
+                                bool isMatch = true;
+
+                                for(int j = 0; j < args.Length; ++j)
+                                {
+                                    if( args[j]!=null && parameters[j].ParameterType!=typeof(System.Object) && parameters[j].ParameterType != args[j].GetType())
+                                    {
+                                        isMatch = false;
+                                    }
+                                }
+
+                                if (isMatch)
+                                {
+                                    return methods[i].Invoke(obj, args);
+                                }
+                            }
+                        }
+                        else if(parameters==null || parameters.Length==0)
+                        {
+                            return methods[i].Invoke(obj, args);
+                        }
+                    }
+                }
+
+            }
+            return null;
+        }
+
+        #region Array
+        public static int GetLength(object obj)
+        {
+            if (obj == null) return 0;
+            Type type = obj.GetType();
+            if (type.IsArray)
+            {
+                MethodInfo getLength = type.GetMethod("get_Length");
+                return (int)getLength.Invoke(obj, null);
+            }
+            //TODO other type;
+            return 0;
+        }
+        #endregion
+
     }
 }
