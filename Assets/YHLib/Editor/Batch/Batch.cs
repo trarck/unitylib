@@ -146,19 +146,19 @@ namespace YH
 
         void InitOperators()
         {
-            m_ConditionOperators[(int)FindCondition.Operation.Equal] = new Equal();
-            m_ConditionOperators[(int)FindCondition.Operation.NotEqual] = new NotEqual();
-            m_ConditionOperators[(int)FindCondition.Operation.Less] = new Less();
-            m_ConditionOperators[(int)FindCondition.Operation.LessEqual] = new LessEqual();
-            m_ConditionOperators[(int)FindCondition.Operation.Big] = new Big();
-            m_ConditionOperators[(int)FindCondition.Operation.BigEqual] = new BigEqual();
-            m_ConditionOperators[(int)FindCondition.Operation.Contains] = new Contains();
+            m_ConditionOperators[(int)FindOperation.Equal] = new Equal();
+            m_ConditionOperators[(int)FindOperation.NotEqual] = new NotEqual();
+            m_ConditionOperators[(int)FindOperation.Less] = new Less();
+            m_ConditionOperators[(int)FindOperation.LessEqual] = new LessEqual();
+            m_ConditionOperators[(int)FindOperation.Big] = new Big();
+            m_ConditionOperators[(int)FindOperation.BigEqual] = new BigEqual();
+            m_ConditionOperators[(int)FindOperation.Contains] = new Contains();
 
-            //m_ExpressionOperators[ModifyExpression.Operation.Set] = new Set();
-            m_ExpressionOperators[(int)ModifyExpression.Operation.Add] = new Add();
-            m_ExpressionOperators[(int)ModifyExpression.Operation.Sub] = new Sub();
-            m_ExpressionOperators[(int)ModifyExpression.Operation.Mul] = new Mul();
-            m_ExpressionOperators[(int)ModifyExpression.Operation.Div] = new Div();
+            //m_ExpressionOperators[ModifyOperation.Set] = new Set();
+            m_ExpressionOperators[(int)ModifyOperation.Add] = new Add();
+            m_ExpressionOperators[(int)ModifyOperation.Sub] = new Sub();
+            m_ExpressionOperators[(int)ModifyOperation.Mul] = new Mul();
+            m_ExpressionOperators[(int)ModifyOperation.Div] = new Div();
         }
 
         public void RefreshFindClassInfo(string className,bool inherit)
