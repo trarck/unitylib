@@ -86,25 +86,35 @@ namespace YH
         }
     }
 
-    [Serializable]
-    public class FindCondition
-    {
-        public enum Operation
-        {
-            Equal,//=
-            NotEqual,//!=
-            Less,//<
-            LessEqual,//<=
-            Big,//>
-            BigEqual,//>=
-            Contains,//contain
-        }
 
+    [Serializable]
+    public class BatchExpression
+    {
         public int index = 0;
         public string name;
-        public Operation op;
+        public int op;
         public object value;
         public Type type;
+    }
+
+    public enum FindOperation
+    {
+        Equal,//=
+        NotEqual,//!=
+        Less,//<
+        LessEqual,//<=
+        Big,//>
+        BigEqual,//>=
+        Contains,//contain
+    }
+
+    public enum ModifyOperation
+    {
+        Set,//=
+        Add,//+
+        Sub,//-
+        Mul,//*
+        Div,///
     }
 
     [Serializable]
@@ -120,33 +130,14 @@ namespace YH
         }
     }
 
-    [Serializable]
-    public class ModifyExpression
-    {
-        public enum Operation
-        {
-            Set,//=
-            Add,//+
-            Sub,//-
-            Mul,//*
-            Div,///
-        }
-
-        public int index = 0;
-        public string name;
-        public Operation op;
-        public object value;
-        public Type type;
-    }
-
     public class Batch
     {
         public ClassInfo findClassInfo=new ClassInfo();
         public List<FindResult> findResults=null;
 
 
-        Dictionary<FindCondition.Operation, RelationalOperator> m_ConditionOperators = new Dictionary<FindCondition.Operation, RelationalOperator>();
-        Dictionary<ModifyExpression.Operation, ValueOperator> m_ExpressionOperators = new Dictionary<ModifyExpression.Operation, ValueOperator>();
+        Dictionary<int, RelationalOperator> m_ConditionOperators = new Dictionary<int, RelationalOperator>();
+        Dictionary<int, ValueOperator> m_ExpressionOperators = new Dictionary<int, ValueOperator>();
 
         public void Init()
         {
@@ -155,19 +146,19 @@ namespace YH
 
         void InitOperators()
         {
-            m_ConditionOperators[FindCondition.Operation.Equal] = new Equal();
-            m_ConditionOperators[FindCondition.Operation.NotEqual] = new NotEqual();
-            m_ConditionOperators[FindCondition.Operation.Less] = new Less();
-            m_ConditionOperators[FindCondition.Operation.LessEqual] = new LessEqual();
-            m_ConditionOperators[FindCondition.Operation.Big] = new Big();
-            m_ConditionOperators[FindCondition.Operation.BigEqual] = new BigEqual();
-            m_ConditionOperators[FindCondition.Operation.Contains] = new Contains();
+            m_ConditionOperators[(int)FindCondition.Operation.Equal] = new Equal();
+            m_ConditionOperators[(int)FindCondition.Operation.NotEqual] = new NotEqual();
+            m_ConditionOperators[(int)FindCondition.Operation.Less] = new Less();
+            m_ConditionOperators[(int)FindCondition.Operation.LessEqual] = new LessEqual();
+            m_ConditionOperators[(int)FindCondition.Operation.Big] = new Big();
+            m_ConditionOperators[(int)FindCondition.Operation.BigEqual] = new BigEqual();
+            m_ConditionOperators[(int)FindCondition.Operation.Contains] = new Contains();
 
             //m_ExpressionOperators[ModifyExpression.Operation.Set] = new Set();
-            m_ExpressionOperators[ModifyExpression.Operation.Add] = new Add();
-            m_ExpressionOperators[ModifyExpression.Operation.Sub] = new Sub();
-            m_ExpressionOperators[ModifyExpression.Operation.Mul] = new Mul();
-            m_ExpressionOperators[ModifyExpression.Operation.Div] = new Div();
+            m_ExpressionOperators[(int)ModifyExpression.Operation.Add] = new Add();
+            m_ExpressionOperators[(int)ModifyExpression.Operation.Sub] = new Sub();
+            m_ExpressionOperators[(int)ModifyExpression.Operation.Mul] = new Mul();
+            m_ExpressionOperators[(int)ModifyExpression.Operation.Div] = new Div();
         }
 
         public void RefreshFindClassInfo(string className,bool inherit)
@@ -198,7 +189,7 @@ namespace YH
             return classInfo;
         }
 
-        public  List<FindResult> Search(string searchPath,string filter,ClassInfo classInfo, List<FindCondition> conditions)
+        public  List<FindResult> Search(string searchPath,string filter,ClassInfo classInfo, List<BatchExpression> conditions)
         {
             if (string.IsNullOrEmpty(searchPath))
             {
@@ -214,7 +205,7 @@ namespace YH
             return FindComponents(searchPath, filter, classInfo, conditions);
         }
 
-        List<FindResult> FindComponents(string searchPath, string filter, ClassInfo classInfo, List<FindCondition> conditions)
+        List<FindResult> FindComponents(string searchPath, string filter, ClassInfo classInfo, List<BatchExpression> conditions)
         {
             List<FindResult> results = new List<FindResult>();
 
@@ -265,7 +256,7 @@ namespace YH
                                         continue;
                                     }
 
-                                    FindCondition condition = conditions[k];
+                                    BatchExpression condition = conditions[k];
                          
                                     MemberInfo member = ReflectionUtils.GetMember(classInfo.type, condition.name);
 
@@ -292,17 +283,17 @@ namespace YH
             return results;
         }
 
-        public int Modify(List<ModifyExpression> expresstions)
+        public int Modify(List<BatchExpression> expresstions)
         {
             return ModifyComponents(findResults, findClassInfo, expresstions);
         }
 
-        public int Modify(List<ModifyExpression> expresstions, List<FindResult> results, ClassInfo classInfo)
+        public int Modify(List<BatchExpression> expresstions, List<FindResult> results, ClassInfo classInfo)
         {
             return ModifyComponents(results, classInfo, expresstions);
         }
 
-        int ModifyComponents(List<FindResult> results, ClassInfo classInfo, List<ModifyExpression> expresstions)
+        int ModifyComponents(List<FindResult> results, ClassInfo classInfo, List<BatchExpression> expresstions)
         {
             int n = 0;
 
@@ -336,7 +327,7 @@ namespace YH
 
                     for (int j = 0; j < expresstions.Count; ++j)
                     {
-                        ModifyExpression expression = expresstions[j];
+                        BatchExpression expression = expresstions[j];
 
                         if (expression.value != null)
                         {
