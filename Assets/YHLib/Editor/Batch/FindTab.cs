@@ -22,18 +22,6 @@ namespace YH
 
         public string name { get; set; }
 
-        object myValue;
-
-
-        string[] mma = new string[] { "1", "3", "2" };
-
-        string[][] aaa = new string[2][] { new string[] { "1", "3", "2" }, new string[] { "1", "3", "2" } };
-        SubObj subObj = new SubObj();
-
-        BaseField m_aField;
-        BaseField m_aaField;
-
-        BaseField m_objField;
         // Use this for initialization
         public void Init(EditorTabs owner)
         {
@@ -43,11 +31,8 @@ namespace YH
 
             m_FindConditionView = new FindConditionView();
             m_FindConditionView.Init(m_Owner.controller);
-            m_FindConditionView.expressionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
-
-            m_aField = YHEditor.BaseField.Create(mma, mma.GetType(), "a");
-            m_aaField = YHEditor.BaseField.Create(aaa, aaa.GetType(), "aa");
-            m_objField = YHEditor.BaseField.Create(subObj, typeof(SubObj), "SubObj");
+            if (m_Owner.controller.findClassInfo != null)
+                m_FindConditionView.expressionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
         }
 
         // Update is called once per frame
@@ -119,11 +104,6 @@ namespace YH
             {
                 DoSearch();
             }
-
-            //mma = (string[])YHEditor.YHGUI.DrawArray(mma, mma.GetType(), ref fodout, "test");
-            m_aField.Draw();
-            m_aaField.Draw();
-            m_objField.Draw();
         }
 
         void ChangeClassName()
@@ -137,34 +117,14 @@ namespace YH
             m_FindConditionView.ChangeExpressionNames(m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit), true);
         }
 
-        bool fodout = false;
         void DoSearch()
         {
-            if (string.IsNullOrEmpty(m_ClassName))
+            if (string.IsNullOrEmpty(m_ClassName) || m_Owner.controller.findClassInfo == null || m_Owner.controller.findClassInfo.type == null)
             {
                 return;
             }
-
-            //string[] a = new string[] { "1","3","2"};
-            int a=0;
-
-            MemberInfo[] ms = a.GetType().GetMembers();
-
-            MemberInfo[] ss = ReflectionUtils.GetAccessableFieldAndProperties(typeof(SubObj),false).ToArray();
-
-            a = 2;
-
-            //object aa = a.GetType().InvokeMember("Set", BindingFlags.CreateInstance, null, a, new object[] { 6 });
-
-            //MethodInfo m = a.GetType().GetMethod("GetValue",new Type[] { typeof(int)});
-
-            //object[] param = new object[] { 1 };
-
-            //object o=m.Invoke(a, param);
-
-            //fodout=YHEditor.YHGUI.DrawArray(a, a.GetType(), fodout, "test");
-            //  m_Owner.controller.findResults = m_Owner.controller.Search(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.GetNotNullExpressions());
-            // m_Owner.ChangeTab("Result");
+            m_Owner.controller.findResults = m_Owner.controller.Search(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.GetNotNullExpressions());
+            m_Owner.ChangeTab("Result");
         }
 
         private void BrowseForFolder()
