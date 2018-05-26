@@ -17,6 +17,7 @@ namespace YH
 
         static Stack<float> mLabelWidths;
         static Stack<float> mFieldWidths;
+        static Stack<int> mIndentLevels;
         /// <summary>
         /// Returns a blank usable 1x1 white texture.
         /// </summary>
@@ -37,9 +38,10 @@ namespace YH
         {
             get
             {
-                if (mBackdropTex == null) mBackdropTex = CreateCheckerTex(
-                    new Color(0.1f, 0.1f, 0.1f, 0.5f),
-                    new Color(0.2f, 0.2f, 0.2f, 0.5f));
+                if (mBackdropTex == null)
+                    mBackdropTex = CreateCheckerTex(
+new Color(0.1f, 0.1f, 0.1f, 0.5f),
+new Color(0.2f, 0.2f, 0.2f, 0.5f));
                 return mBackdropTex;
             }
         }
@@ -52,9 +54,10 @@ namespace YH
         {
             get
             {
-                if (mContrastTex == null) mContrastTex = CreateCheckerTex(
-                    new Color(0f, 0.0f, 0f, 0.5f),
-                    new Color(1f, 1f, 1f, 0.5f));
+                if (mContrastTex == null)
+                    mContrastTex = CreateCheckerTex(
+new Color(0f, 0.0f, 0f, 0.5f),
+new Color(1f, 1f, 1f, 0.5f));
                 return mContrastTex;
             }
         }
@@ -902,11 +905,11 @@ namespace YH
 
         static public void PopLabelWidth()
         {
-            if (mLabelWidths.Count > 1)
+            if (mLabelWidths!=null && mLabelWidths.Count > 1)
             {
                 mLabelWidths.Pop();
                 EditorGUIUtility.labelWidth = mLabelWidths.Peek();
-            }            
+            }
         }
 
         static public void PushFieldWidth(float width)
@@ -923,14 +926,14 @@ namespace YH
 
         static public void PopFieldWidth()
         {
-            if (mFieldWidths.Count > 1)
+            if (mFieldWidths!=null && mFieldWidths.Count > 1)
             {
                 mFieldWidths.Pop();
                 EditorGUIUtility.fieldWidth = mFieldWidths.Peek();
             }
         }
 
-        static public void PushLabelFieldWidth(float labelWidth,float fieldWidth)
+        static public void PushLabelFieldWidth(float labelWidth, float fieldWidth)
         {
             if (mLabelWidths == null)
             {
@@ -953,16 +956,40 @@ namespace YH
 
         static public void PopLabelFieldWidth()
         {
-            if (mLabelWidths.Count > 1)
+            if (mLabelWidths!=null && mLabelWidths.Count > 1)
             {
                 mLabelWidths.Pop();
                 EditorGUIUtility.labelWidth = mLabelWidths.Peek();
             }
 
-            if (mFieldWidths.Count > 1)
+            if (mFieldWidths!=null && mFieldWidths.Count > 1)
             {
                 mFieldWidths.Pop();
                 EditorGUIUtility.fieldWidth = mFieldWidths.Peek();
+            }
+        }
+
+        public static void PushIndentLevel(int level)
+        {
+            if (mIndentLevels == null)
+            {
+                mIndentLevels = new Stack<int>();
+
+                mIndentLevels.Push(EditorGUI.indentLevel);
+            }
+
+            mIndentLevels.Push(level);
+            EditorGUI.indentLevel = level;
+        }
+
+
+        public static void PopIndentLevel()
+        {
+            if (mIndentLevels != null && mIndentLevels.Count > 1)
+            {
+                mIndentLevels.Pop();
+
+                EditorGUI.indentLevel = mIndentLevels.Peek();
             }
         }
     }

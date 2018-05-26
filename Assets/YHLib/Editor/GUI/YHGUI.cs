@@ -47,6 +47,9 @@ namespace YHEditor
                     value = EditorGUILayout.CurveField(label, (AnimationCurve)value);
                     break;
 
+                case "System.String":
+                    value = EditorGUILayout.TextField(label, value != null ? value.ToString() : "");
+                    break;
                 default:
 
                     if (type.IsSubclassOf(typeof(UnityEngine.Object)))
@@ -55,7 +58,7 @@ namespace YHEditor
                     }
                     else
                     {
-                        value = EditorGUILayout.TextField(label, value != null ? value.ToString() : "");
+                        Debug.LogWarning("can't draw type " + type.ToString());
                     }
                     break;
             }
@@ -67,7 +70,7 @@ namespace YHEditor
             int len = 0;
             if (value == null)
             {
-                value = ReflectionUtils.InvokeConstructor(value, new object[] { 0 });
+                value = ReflectionUtils.InvokeConstructor(type, new object[] { 0 });
             }
             else
             {
@@ -84,7 +87,7 @@ namespace YHEditor
                 int newLen = EditorGUILayout.IntField("size", len);
                 if (newLen != len)
                 {
-                    object newValue = ReflectionUtils.InvokeConstructor(value, new object[] { newLen }); ;
+                    object newValue = ReflectionUtils.InvokeConstructor(type, new object[] { newLen }); ;
 
                     for (int i = 0; i < newLen; ++i)
                     {

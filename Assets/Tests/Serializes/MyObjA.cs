@@ -2,6 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class SubObj
+{
+    [SerializeField]
+    int[] tests;
+}
+
 public class MyObjA : MonoBehaviour {
 
     [SerializeField]
@@ -17,6 +24,9 @@ public class MyObjA : MonoBehaviour {
 
     [SerializeField]
     int[] indexs;
+
+    [SerializeField]
+    SubObj[] objs;
 
     int m_MyNormal;
 

@@ -3,6 +3,7 @@ using UnityEditor;
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using YHEditor;
 
 namespace YH
 {
@@ -15,6 +16,7 @@ namespace YH
         string[] m_ExpressionNames;
 
         List<BatchExpression> m_Expressions = new List<BatchExpression>();
+        Dictionary<BatchExpression ,BaseField> m_ValueFields = new Dictionary<BatchExpression, BaseField>();
 
         string m_Title;
 
@@ -112,58 +114,11 @@ namespace YH
 
         void DrawExpressionValue(BatchExpression be)
         {
-            if (be.type != null)
+            BaseField baseField = m_ValueFields[be];
+            baseField.Draw();
+            if (baseField.value != be.value)
             {
-                switch (be.type.ToString())
-                {
-                    case "System.Int32":
-                        be.value = EditorGUILayout.IntField(be.value!=null?(int)be.value:0);
-                        break;
-                    case "System.Int64":
-                        be.value = EditorGUILayout.LongField(be.value != null?(long)be.value:0);
-                        break;
-                    case "System.Single":
-                        be.value = EditorGUILayout.FloatField(be.value != null ? (float)be.value:0);
-                        break;
-                    case "System.Double":
-                        be.value = EditorGUILayout.DoubleField(be.value != null ? (double)be.value:0);
-                        break;
-
-                    case "UnityEngine.Vect2":
-                        be.value = EditorGUILayout.Vector2Field("", be.value != null ? (Vector2)be.value:Vector2.zero);
-                        break;
-                    case "UnityEngine.Vect3":
-                        be.value = EditorGUILayout.Vector3Field("", be.value != null ? (Vector3)be.value:Vector3.zero);
-                        break;
-                    case "UnityEngine.Vect4":
-                        be.value = EditorGUILayout.Vector4Field("", be.value != null ? (Vector4)be.value:Vector4.zero);
-                        break;
-                    case "UnityEngine.Rect":
-                        be.value = EditorGUILayout.RectField(be.value != null ? (Rect)be.value:Rect.zero);
-                        break;
-                    case "UnityEngine.Bounds":
-                        be.value = EditorGUILayout.BoundsField(be.value != null ? (Bounds)be.value:new Bounds(Vector3.zero,Vector3.zero));
-                        break;
-                    case "UnityEngine.Color":
-                        be.value = EditorGUILayout.ColorField(be.value != null ? (Color)be.value:Color.black);
-                        break;
-
-                    case "UnityEngine.AnimationCurve":
-                        be.value = EditorGUILayout.CurveField((AnimationCurve)be.value);
-                        break;
-
-                    default:
-
-                        if (be.type.IsSubclassOf(typeof(UnityEngine.Object)))
-                        {
-                            be.value = EditorGUILayout.ObjectField((UnityEngine.Object)be.value, be.type, false);
-                        }
-                        else
-                        {
-                            be.value = EditorGUILayout.TextField(be.value!=null?be.value.ToString():"");
-                        }
-                        break;
-                }
+                be.value = baseField.value;
             }
         }
 
@@ -172,6 +127,8 @@ namespace YH
             BatchExpression be = new BatchExpression();
             ChangeExpression(be,m_Expressions.Count,"");
             m_Expressions.Add(be);
+
+           
         }
 
         void ChangeExpression(BatchExpression be,int index,string name=null)
@@ -200,12 +157,20 @@ namespace YH
             {
                 be.type = newType;
                 be.value = null;
+
+                m_ValueFields[be]=BaseField.Create(be.value, be.type, "");
+            }
+
+            if (!m_ValueFields.ContainsKey(be))
+            {
+                m_ValueFields.Add(be, BaseField.Create(be.value, be.type, ""));
             }
         }
 
         public void RemoveExpression(BatchExpression be)
         {
             m_Expressions.Remove(be);
+            m_ValueFields.Remove(be);
         }
 
         public void ChangeExpressionNames(string[] names,bool keep)

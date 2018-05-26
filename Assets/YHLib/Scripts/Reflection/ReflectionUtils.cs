@@ -205,11 +205,10 @@ namespace YH
             return null;
         }
 
-        public static object InvokeConstructor(object obj, object[] args)
+        public static object InvokeConstructor(Type type, object[] args)
         {
-            if (obj != null)
+            if (type != null)
             {
-                Type type = obj.GetType();
                 ConstructorInfo[] constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic);
                 for (int i = 0; i < constructors.Length; ++i)
                 {
@@ -231,13 +230,13 @@ namespace YH
 
                             if (isMatch)
                             {
-                                return constructors[i].Invoke(obj, args);
+                                return constructors[i].Invoke(args);
                             }
                         }
                     }
                     else if (parameters == null || parameters.Length == 0)
                     {
-                        return constructors[i].Invoke(obj, args);
+                        return constructors[i].Invoke(args);
                     }
                 }
             }

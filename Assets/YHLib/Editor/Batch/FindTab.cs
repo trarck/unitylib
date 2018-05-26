@@ -22,6 +22,15 @@ namespace YH
         public string name { get; set; }
 
         object myValue;
+
+
+        string[] mma = new string[] { "1", "3", "2" };
+
+        string[][] aaa = new string[2][] { new string[] { "1", "3", "2" }, new string[] { "1", "3", "2" } };
+
+        YHEditor.BaseField m_objField;
+        YHEditor.BaseField m_aaaField;
+
         // Use this for initialization
         public void Init(EditorTabs owner)
         {
@@ -32,6 +41,9 @@ namespace YH
             m_FindConditionView = new FindConditionView();
             m_FindConditionView.Init(m_Owner.controller);
             m_FindConditionView.expressionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
+
+            m_objField = YHEditor.BaseField.Create(mma, mma.GetType(), "");
+            m_aaaField = YHEditor.BaseField.Create(aaa, aaa.GetType(), "");
         }
 
         // Update is called once per frame
@@ -104,10 +116,10 @@ namespace YH
                 DoSearch();
             }
 
-            mma = (string[])YHEditor.YHGUI.DrawArray(mma, mma.GetType(), ref fodout, "test");
+            //mma = (string[])YHEditor.YHGUI.DrawArray(mma, mma.GetType(), ref fodout, "test");
+            m_objField.Draw();
+            m_aaaField.Draw();
         }
-
-        string[] mma = new string[] { "1", "3", "2" };
 
         void ChangeClassName()
         {
