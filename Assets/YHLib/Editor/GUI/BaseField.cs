@@ -15,7 +15,6 @@ namespace YHEditor
         protected Type m_Type;
         protected int m_Deep=0;
 
-
         public BaseField()
         {
 
@@ -66,6 +65,12 @@ namespace YHEditor
                 ArrayField arrField = new ArrayField(value, type, label,deep);
                 arrField.Init();
                 return arrField;
+            }
+            else if (ReflectionUtils.IsUnityPrimitiveType(type))
+            {
+                PrimitiveField primField = new PrimitiveField(value, type, label, deep);
+                primField.Init();
+                return primField;
             }
             else
             {

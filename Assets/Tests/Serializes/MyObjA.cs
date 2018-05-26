@@ -7,6 +7,12 @@ public class SubObj
 {
     [SerializeField]
     int[] tests;
+
+    [SerializeField]
+    string myName;
+
+    [SerializeField]
+    int myAge;
 }
 
 public class MyObjA : MonoBehaviour {
@@ -27,6 +33,9 @@ public class MyObjA : MonoBehaviour {
 
     [SerializeField]
     SubObj[] objs;
+
+    [SerializeField]
+    SubObj m_Sub;
 
     int m_MyNormal;
 

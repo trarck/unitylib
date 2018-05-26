@@ -72,6 +72,40 @@ namespace YH
             return type;
         }
 
+        public static bool IsUnityPrimitiveType(Type type)
+        {
+            if (type.IsSubclassOf(typeof(UnityEngine.Object)))
+            {
+                return true;
+            }
+            else
+            {
+                switch (type.ToString())
+                {
+                    case "System.Sbyte":
+                    case "System.Byte":
+                    case "System.Int16":
+                    case "System.Int32":
+                    case "System.UInt32":
+                    case "System.Int64":
+                    case "System.UInt64":
+                    case "System.Single":
+                    case "System.Double":
+                    case "System.Boolean":
+                    case "System.String":
+
+                    case "UnityEngine.Vect2":
+                    case "UnityEngine.Vect3":
+                    case "UnityEngine.Vect4":
+                    case "UnityEngine.Rect":
+                    case "UnityEngine.Bounds":
+                    case "UnityEngine.Color":
+                    case "UnityEngine.AnimationCurve":
+                        return true;
+                }
+            }
+            return false;
+        }
 
         public static FieldInfo[] GetFields(Type type,bool declaredOnly=true)
         {
@@ -160,7 +194,7 @@ namespace YH
 
         public static void SetValue(MemberInfo memberInfo, object obj, object value)
         {
-            if (memberInfo != null)
+            if (memberInfo != null && obj!=null)
             {
                 if (memberInfo.MemberType == MemberTypes.Field)
                 {
@@ -175,7 +209,7 @@ namespace YH
 
         public static object GetValue(MemberInfo memberInfo, object obj)
         {
-            if (memberInfo != null)
+            if (memberInfo != null && obj!=null)
             {
                 if (memberInfo.MemberType == MemberTypes.Field)
                 {

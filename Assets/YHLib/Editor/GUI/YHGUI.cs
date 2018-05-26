@@ -11,10 +11,15 @@ namespace YHEditor
         {
             switch (type.ToString())
             {
+                case "System.Sbyte":
+                case "System.Byte":
+                case "System.Int16":
                 case "System.Int32":
+                case "System.UInt32":
                     value = EditorGUILayout.IntField(label, value != null ? (int)value : 0);
                     break;
                 case "System.Int64":
+                case "System.UInt64":
                     value = EditorGUILayout.LongField(label, value != null ? (long)value : 0);
                     break;
                 case "System.Single":
@@ -23,7 +28,9 @@ namespace YHEditor
                 case "System.Double":
                     value = EditorGUILayout.DoubleField(label, value != null ? (double)value : 0);
                     break;
-
+                case "System.Boolean":
+                    value = EditorGUILayout.Toggle(label, value != null ? (bool)value : false);
+                    break;
                 case "UnityEngine.Vect2":
                     value = EditorGUILayout.Vector2Field(label, value != null ? (Vector2)value : Vector2.zero);
                     break;
@@ -51,6 +58,7 @@ namespace YHEditor
                     value = EditorGUILayout.TextField(label, value != null ? value.ToString() : "");
                     break;
                 default:
+
 
                     if (type.IsSubclassOf(typeof(UnityEngine.Object)))
                     {

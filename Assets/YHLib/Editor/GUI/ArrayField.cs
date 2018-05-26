@@ -11,7 +11,7 @@ namespace YHEditor
     {
         protected bool m_Foldout;
 
-        protected List<BaseField> m_elements;
+        protected List<BaseField> m_Elements;
 
         public ArrayField(object value, Type type,  string label):base(value, type,label)
         {
@@ -26,17 +26,17 @@ namespace YHEditor
         public override void Init()
         {
             int len= m_Value==null?0: ReflectionUtils.GetLength(m_Value);
-            m_elements = new List<BaseField>();
+            m_Elements = new List<BaseField>();
             for(int i = 0; i < len; ++i)
             {
-                m_elements.Add(CreateElementField(i));
+                m_Elements.Add(CreateElementField(i));
             }
         }
 
         public override void Draw()
         {
             
-            int len = m_elements.Count;
+            int len = m_Elements.Count;
 
             m_Foldout = EditorGUILayout.Foldout(m_Foldout, m_Label);
 
@@ -55,14 +55,13 @@ namespace YHEditor
                 }
 
                 //数组元素
-                Type elementType = m_Type.GetElementType();
-                for (int i = 0; i < m_elements.Count; ++i)
+                for (int i = 0; i < m_Elements.Count; ++i)
                 {
-                    object oldElementValue = m_elements[i].value;
-                    m_elements[i].Draw();
-                    if (m_elements[i].value != oldElementValue)
+                    object oldElementValue = m_Elements[i].value;
+                    m_Elements[i].Draw();
+                    if (m_Elements[i].value != oldElementValue)
                     {
-                        ReflectionUtils.InvokeMethod(m_Value, "SetValue", new object[] { m_elements[i].value, i });
+                        ReflectionUtils.InvokeMethod(m_Value, "SetValue", new object[] { m_Elements[i].value, i });
                     }
                 }
                 GUILayout.EndVertical();
@@ -81,7 +80,7 @@ namespace YHEditor
 
         void ChangeLength(int newLen)
         {
-            int oldLen = m_elements.Count;
+            int oldLen = m_Elements.Count;
 
             //创建一个新的数组值
             object newValue = ReflectionUtils.InvokeConstructor(m_Type, new object[] { newLen });
@@ -99,7 +98,7 @@ namespace YHEditor
                 //添加
                 for(int i = oldLen; i < newLen; ++i)
                 {
-                    m_elements.Add(CreateElementField(i));
+                    m_Elements.Add(CreateElementField(i));
                 }
             }
             else
@@ -107,7 +106,7 @@ namespace YHEditor
                 //移除
                 for(int i=oldLen-1;i>=newLen;--i)
                 {
-                    m_elements.RemoveAt(i);
+                    m_Elements.RemoveAt(i);
                 }
             }
         }

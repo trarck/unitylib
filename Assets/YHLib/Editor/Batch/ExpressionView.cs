@@ -114,11 +114,14 @@ namespace YH
 
         void DrawExpressionValue(BatchExpression be)
         {
-            BaseField baseField = m_ValueFields[be];
-            baseField.Draw();
-            if (baseField.value != be.value)
+            if (m_ValueFields.ContainsKey(be))
             {
-                be.value = baseField.value;
+                BaseField baseField = m_ValueFields[be];
+                baseField.Draw();
+                if (baseField.value != be.value)
+                {
+                    be.value = baseField.value;
+                }
             }
         }
 
@@ -161,7 +164,7 @@ namespace YH
                 m_ValueFields[be]=BaseField.Create(be.value, be.type, "");
             }
 
-            if (!m_ValueFields.ContainsKey(be))
+            if (!m_ValueFields.ContainsKey(be) && be.type!=null)
             {
                 m_ValueFields.Add(be, BaseField.Create(be.value, be.type, ""));
             }
