@@ -60,7 +60,14 @@ namespace YH
                 {
                     GUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(results[i].path);
-                    results[i].obj = EditorGUILayout.ObjectField(results[i].obj, m_Owner.controller.findClassInfo.type, false);
+                    if (m_Owner.controller.findClassInfo != null)
+                    {
+                        results[i].obj = EditorGUILayout.ObjectField(results[i].obj, m_Owner.controller.findClassInfo.type, false);
+                    }
+                    else
+                    {
+                        results[i].obj = EditorGUILayout.ObjectField(results[i].obj, typeof(UnityEngine.Object), false);
+                    }
                     GUILayout.EndHorizontal();
                 }
 

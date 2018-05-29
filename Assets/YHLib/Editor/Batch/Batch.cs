@@ -364,5 +364,23 @@ namespace YH
 
             return n;
         }
+
+        public List<FindResult> FindRefrences(string searchPath, string filter, string asset)
+        {
+            List<FindResult> results = new List<FindResult>();
+
+            List<string> assets = FindAsset.FindAllAssets(searchPath, filter);
+
+            for (int i = 0; i < assets.Count; ++i)
+            {
+                string[] deps = AssetDatabase.GetDependencies(assets[i]);
+                if (ArrayUtility.Contains<string>(deps, asset))
+                {
+                    results.Add(new FindResult(assets[i], AssetDatabase.LoadAssetAtPath<GameObject>(assets[i])));
+                }
+            }
+
+            return results;
+        }
     }
 }
