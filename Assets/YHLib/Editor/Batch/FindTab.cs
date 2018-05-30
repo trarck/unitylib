@@ -153,7 +153,7 @@ namespace YH
                         return;
                     }
 
-                    m_Owner.controller.findResults = m_Owner.controller.FindComponents(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.GetNotNullExpressions(),m_FindConditionView.isAny);
+                    m_Owner.controller.findResults = m_Owner.controller.FindComponents(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.root);
                     break;
                 case SearchType.Refrence:
                     if (m_FindObject != null)
@@ -167,7 +167,7 @@ namespace YH
                         return;
                     }
 
-                    m_Owner.controller.findResults = m_Owner.controller.FindResources(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.GetNotNullExpressions(), m_FindConditionView.isAny);
+                    m_Owner.controller.findResults = m_Owner.controller.FindResources(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.root);
                     break;
             }
             

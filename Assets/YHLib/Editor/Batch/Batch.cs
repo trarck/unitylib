@@ -95,19 +95,42 @@ namespace YH
         public int op;
         public object value;
         public Type type;
+        public BatchExpressionGroup parent;
     }
 
-    [Serializable]
+    
     public class BatchExpressionGroup
     {
         public enum GroupType
         {
+            Normal,//no group
             And,
             Or
         }
-        public GroupType type;
+        public GroupType type=GroupType.Normal;
         public List<BatchExpression> expressions=new List<BatchExpression>();
         public List<BatchExpressionGroup> subGroups=new List<BatchExpressionGroup>();
+        public BatchExpressionGroup parent;
+
+        public void Clear()
+        {
+            expressions.Clear();
+            subGroups.Clear();
+        }
+
+        public List<BatchExpression> GetNotNullExpressions()
+        {
+            List<BatchExpression> result = new List<BatchExpression>();
+
+            for (int i = 0; i < expressions.Count; ++i)
+            {
+                if (expressions[i].value != null)
+                {
+                    result.Add(expressions[i]);
+                }
+            }
+            return result;
+        }
     }
 
     public enum FindOperation
@@ -225,6 +248,19 @@ namespace YH
             }
         }
 
+        void FixExpressionsValue(ClassInfo classInfo, BatchExpressionGroup group)
+        {
+            if (group != null)
+            {
+                FixExpressionsValue(classInfo, group.expressions);
+
+                for (int j = 0; j < group.subGroups.Count; ++j)
+                {
+                    FixExpressionsValue(classInfo, group);
+                }
+            }
+        }
+
         bool CheckConditions(ClassInfo classInfo, object obj, List<BatchExpression> conditions, bool isAny)
         {
             bool pass = true;
@@ -270,6 +306,52 @@ namespace YH
             return pass;
         }
 
+        bool CheckConditions(ClassInfo classInfo, object obj, BatchExpressionGroup group)
+        {
+            bool pass = true;
+
+            if (group != null && group.expressions.Count > 0)
+            {
+                pass=CheckConditions(classInfo, obj, group.expressions, group.type == BatchExpressionGroup.GroupType.Or);
+
+                if (group.type == BatchExpressionGroup.GroupType.And)
+                {
+                    if (!pass)
+                    {
+                        return false;
+                    }
+                }
+                else if (group.type == BatchExpressionGroup.GroupType.Or)
+                {
+                    if (pass)
+                    {
+                        return true;
+                    }
+                }
+
+                for(int i = 0; i < group.subGroups.Count; ++i)
+                {
+                    pass = CheckConditions(classInfo, obj, group.subGroups[i]);
+
+                    if (group.type == BatchExpressionGroup.GroupType.And)
+                    {
+                        if (!pass)
+                        {
+                            return false;
+                        }
+                    }
+                    else if (group.type == BatchExpressionGroup.GroupType.Or)
+                    {
+                        if (pass)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return pass;
+        }
+
         public List<FindResult> FindComponents(string searchPath, string filter, ClassInfo classInfo, List<BatchExpression> conditions,bool isAny=true)
         {
             List<FindResult> results = new List<FindResult>();
@@ -290,6 +372,38 @@ namespace YH
                         for (int j = 0; j < insts.Length; ++j)
                         {
                             if (CheckConditions(classInfo, insts[i], conditions, isAny))
+                            {
+                                results.Add(new FindResult(assets[i] + ":" + HierarchyUtil.FullPath(insts[j].transform), insts[j]));
+                            }
+                        }
+                    }
+                }
+            }
+
+            return results;
+        }
+
+
+        public List<FindResult> FindComponents(string searchPath, string filter, ClassInfo classInfo, BatchExpressionGroup root)
+        {
+            List<FindResult> results = new List<FindResult>();
+
+            List<string> assets = FindAsset.FindAllAssets(searchPath, filter);
+
+            FixExpressionsValue(classInfo, root);
+
+            for (int i = 0; i < assets.Count; ++i)
+            {
+                GameObject gameObj = AssetDatabase.LoadAssetAtPath<GameObject>(assets[i]);
+
+                if (gameObj != null)
+                {
+                    Component[] insts = gameObj.GetComponentsInChildren(classInfo.type);
+                    if (insts != null && insts.Length > 0)
+                    {
+                        for (int j = 0; j < insts.Length; ++j)
+                        {
+                            if (CheckConditions(classInfo, insts[i], root))
                             {
                                 results.Add(new FindResult(assets[i] + ":" + HierarchyUtil.FullPath(insts[j].transform), insts[j]));
                             }
@@ -394,6 +508,30 @@ namespace YH
                 if (obj!=null)
                 {
                     if (CheckConditions(classInfo, obj, conditions, isAny))
+                    {
+                        results.Add(new FindResult(assets[i], obj));
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        public List<FindResult> FindResources(string searchPath, string filter, ClassInfo classInfo, BatchExpressionGroup root)
+        {
+            List<FindResult> results = new List<FindResult>();
+
+            List<string> assets = FindAsset.FindAllAssets(searchPath, filter);
+
+            FixExpressionsValue(classInfo, root);
+
+            for (int i = 0; i < assets.Count; ++i)
+            {
+                UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath(assets[i], classInfo.type);
+
+                if (obj != null)
+                {
+                    if (CheckConditions(classInfo, obj, root))
                     {
                         results.Add(new FindResult(assets[i], obj));
                     }

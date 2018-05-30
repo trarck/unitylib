@@ -11,21 +11,21 @@ namespace YH
     public class ExpressionView
     {
 
-        Vector2 m_ExpressionScrollPosition = Vector2.zero;
+        protected Vector2 m_ExpressionScrollPosition = Vector2.zero;
 
-        string[] m_ExpressionNames;
+        protected string[] m_ExpressionNames;
+        protected Dictionary<BatchExpression, BaseField> m_ValueFields = new Dictionary<BatchExpression, BaseField>();
 
-        List<BatchExpression> m_Expressions = new List<BatchExpression>();
-        Dictionary<BatchExpression ,BaseField> m_ValueFields = new Dictionary<BatchExpression, BaseField>();
+        public BatchExpressionGroup m_Root;
 
-        string m_Title;
+        protected string m_Title;
 
         public bool isAny = true;
 
-        ClassInfo m_ClassInfo;
+        protected ClassInfo m_ClassInfo;
 
         // Use this for initialization
-        public void Init(ClassInfo classInfo)
+        public virtual void Init(ClassInfo classInfo)
         {
             m_ClassInfo = classInfo;
         }
@@ -37,28 +37,61 @@ namespace YH
 
         public virtual void DrawExpressions()
         {
-            GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(m_Title);
 
-            isAny = EditorGUILayout.Toggle("Any", isAny);
+        }
 
-            if (GUILayout.Button("+"))
+        public virtual void DrawGroup(BatchExpressionGroup group,int deep)
+        {
+            if (group != null)
             {
-                AddExpression();
-            }
+                YHEditorTools.PushIndentLevel(deep);
 
-            GUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
 
-            if (m_Expressions != null && m_Expressions.Count > 0)
-            {
-                m_ExpressionScrollPosition = EditorGUILayout.BeginScrollView(m_ExpressionScrollPosition);
+                EditorGUILayout.LabelField(group.type.ToString());
 
-                for (int i = 0; i < m_Expressions.Count; ++i)
+                if (GUILayout.Button("+", GUILayout.Width(100)))
                 {
-                    DrawExpression(m_Expressions[i]);
+                    AddExpressionToGroup(group);
                 }
 
-                EditorGUILayout.EndScrollView();
+                if (GUILayout.Button("And", GUILayout.Width(100)))
+                {
+                    AddSubGroupToGroup(group, BatchExpressionGroup.GroupType.And);
+                }
+
+                if (GUILayout.Button("Or", GUILayout.Width(100)))
+                {
+                    AddSubGroupToGroup(group, BatchExpressionGroup.GroupType.Or);
+                }
+
+                if (GUILayout.Button("-", GUILayout.Width(100)))
+                {
+                    RemoveGroup(group);
+                }
+
+                EditorGUILayout.EndHorizontal();
+
+                YHEditorTools.PushIndentLevel(deep + 1);
+                if (group.expressions.Count > 0)
+                {
+                    for (int i = 0; i < group.expressions.Count; ++i)
+                    {
+                        DrawExpression(group.expressions[i]);
+                    }
+                }
+
+                YHEditorTools.PopIndentLevel();
+
+                if (group.subGroups.Count > 0)
+                {
+                    for (int i = 0; i < group.subGroups.Count; ++i)
+                    {
+                        DrawGroup(group.subGroups[i], deep + 1);
+                    }
+                }
+
+                YHEditorTools.PopIndentLevel();
             }
         }
 
@@ -98,6 +131,19 @@ namespace YH
             //
         }
 
+        protected void DrawExpressionValue(BatchExpression be)
+        {
+            if (m_ValueFields.ContainsKey(be))
+            {
+                BaseField baseField = m_ValueFields[be];
+                baseField.Draw();
+                if (baseField.value != be.value)
+                {
+                    be.value = baseField.value;
+                }
+            }
+        }
+
         public virtual void DrawExpression(BatchExpression be)
         {
             GUILayout.BeginHorizontal();
@@ -116,27 +162,33 @@ namespace YH
             GUILayout.EndHorizontal();
         }
 
-        void DrawExpressionValue(BatchExpression be)
+        protected void AddExpressionToGroup(BatchExpressionGroup group)
         {
-            if (m_ValueFields.ContainsKey(be))
+            BatchExpression expr = new BatchExpression();
+            ChangeExpression(expr, group.expressions.Count, "");
+            expr.parent = group;
+            group.expressions.Add(expr);
+
+        }
+
+        protected void AddSubGroupToGroup(BatchExpressionGroup group, BatchExpressionGroup.GroupType subType)
+        {
+            BatchExpressionGroup subGroup = new BatchExpressionGroup();
+            subGroup.type = subType;
+            subGroup.parent = group;
+            group.subGroups.Add(subGroup);
+        }
+
+
+        protected void RemoveGroup(BatchExpressionGroup group)
+        {
+            if (group.parent != null)
             {
-                BaseField baseField = m_ValueFields[be];
-                baseField.Draw();
-                if (baseField.value != be.value)
-                {
-                    be.value = baseField.value;
-                }
+                group.parent.subGroups.Remove(group);
             }
         }
 
-        void AddExpression()
-        {
-            BatchExpression be = new BatchExpression();
-            ChangeExpression(be,m_Expressions.Count,"");
-            m_Expressions.Add(be);
-        }
-
-        void ChangeExpression(BatchExpression be,int index,string name=null)
+        protected void ChangeExpression(BatchExpression be,int index,string name=null)
         {
             if (m_ExpressionNames != null)
             {
@@ -174,7 +226,11 @@ namespace YH
 
         public void RemoveExpression(BatchExpression be)
         {
-            m_Expressions.Remove(be);
+            if (be.parent != null)
+            {
+                be.parent.expressions.Remove(be);
+            }
+
             m_ValueFields.Remove(be);
         }
 
@@ -183,42 +239,58 @@ namespace YH
             expressionNames = names;
             if (keep)
             {
-                for (int i = m_Expressions.Count-1;i>=0; --i)
-                {
-                    bool remove = true;
-                    for (int j = 0; j < m_ExpressionNames.Length; ++j)
-                    {
-                        if (m_Expressions[i].name == m_ExpressionNames[j])
-                        {
-                            m_Expressions[i].index = j;
-                            remove = false;
-                            break;
-                        }
-                    }
-
-                    if (remove)
-                    {
-                        m_Expressions.RemoveAt(i);
-                    }
-                }
+                CheckExpressionNames(names,m_Root,m_Root);
             }
             else
             {
-                m_Expressions.Clear();
+                if (m_Root != null)
+                {
+                    m_Root.Clear();
+                }
+            }
+        }
+
+
+        void CheckExpressionNames(string[] names,BatchExpressionGroup group, object a)
+        {
+            if (group != null)
+            {
+                if (group.expressions.Count > 0)
+                {
+                    for (int i = group.expressions.Count - 1; i >= 0; --i)
+                    {
+                        bool remove = true;
+                        for (int j = 0; j < names.Length; ++j)
+                        {
+                            if (group.expressions[i].name == names[j])
+                            {
+                                group.expressions[i].index = j;
+                                remove = false;
+                                break;
+                            }
+                        }
+
+                        if (remove)
+                        {
+                            group.expressions.RemoveAt(i);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < group.subGroups.Count; ++i)
+                {
+                    CheckExpressionNames(names, group.subGroups[i],null);
+                }
             }
         }
 
         public List<BatchExpression> GetNotNullExpressions()
         {
-            List<BatchExpression> keeps = new List<BatchExpression>();
-            for (int i = 0; i < m_Expressions.Count; ++i)
+            if (m_Root != null)
             {
-                if (m_Expressions[i].value != null)
-                {
-                    keeps.Add(m_Expressions[i]);
-                }
+                return m_Root.GetNotNullExpressions();
             }
-            return keeps;
+            return null;
         }        
 
         public string title
@@ -256,18 +328,56 @@ namespace YH
                 return m_ClassInfo;
             }
         }
+
+        public BatchExpressionGroup root
+        {
+            get
+            {
+                return m_Root;
+            }
+        }
     }
 
-    public class FindConditionView:ExpressionView
+    public class FindConditionView : ExpressionView
     {
-        public FindConditionView ()
+
+        public FindConditionView()
         {
             title = "Conditions";
+        }
+
+        public override void DrawExpressions()
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(title);
+
+            if (GUILayout.Button("And"))
+            {
+                CreateRoot(BatchExpressionGroup.GroupType.And);
+            }
+
+            if (GUILayout.Button("Or"))
+            {
+                CreateRoot(BatchExpressionGroup.GroupType.Or);
+            }
+
+            GUILayout.EndHorizontal();
+
+            DrawGroup(m_Root, 0);
         }
 
         public override void DrawExpresstionOp(BatchExpression be)
         {
             be.op = (int)((FindOperation)EditorGUILayout.EnumPopup((FindOperation)be.op));
+        }
+
+        void CreateRoot(BatchExpressionGroup.GroupType type)
+        {
+            if (m_Root==null || m_Root.type != type)
+            {
+                m_Root = new BatchExpressionGroup();
+                m_Root.type = type;
+            }
         }
     }
 
@@ -276,6 +386,38 @@ namespace YH
         public ModifyExpressionView()
         {
             title = "Expressions";
+        }
+
+        public override void Init(ClassInfo classInfo)
+        {
+            base.Init(classInfo);
+
+            m_Root = new BatchExpressionGroup();
+        }
+
+        public override void DrawExpressions()
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(m_Title);
+
+            if (GUILayout.Button("+"))
+            {
+                AddExpressionToGroup(m_Root);
+            }
+
+            GUILayout.EndHorizontal();
+
+            if (m_Root.expressions.Count > 0)
+            {
+                m_ExpressionScrollPosition = EditorGUILayout.BeginScrollView(m_ExpressionScrollPosition);
+
+                for (int i = 0; i < m_Root.expressions.Count; ++i)
+                {
+                    DrawExpression(m_Root.expressions[i]);
+                }
+
+                EditorGUILayout.EndScrollView();
+            }
         }
 
         public override void DrawExpresstionOp(BatchExpression be)
