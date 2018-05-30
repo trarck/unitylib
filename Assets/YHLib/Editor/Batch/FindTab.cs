@@ -11,19 +11,24 @@ namespace YH
     [Serializable]
     public class FindTab:IEditorTab
     {
-        public enum FindType
+        public enum SearchType
         {
-            Component,
-            Refrence
+            //查找内容
+            Content,
+            //查找引用
+            Refrence,
+            //查找自己
+            Resource
         }
 
         BatchMain m_Owner;
 
         string m_SearchPath= "Assets/Tests/Prefabs/Find";
-        string m_Filter= "t:Prefab t:Scene";
-        FindType m_FindType = FindType.Component;
+        SearchType m_SearchType = SearchType.Content;
+        string m_Filter = "t:Prefab t:Scene";
 
         string m_ClassName ="";
+
         bool m_Inherit=false;
 
         UnityEngine.Object m_FindObject;
@@ -40,7 +45,7 @@ namespace YH
             m_Owner.controller.findClassInfo = Batch.GetClassInfo(m_ClassName,m_Inherit);
 
             m_FindConditionView = new FindConditionView();
-            m_FindConditionView.Init(m_Owner.controller);
+            m_FindConditionView.Init(m_Owner.controller.findClassInfo);
             if (m_Owner.controller.findClassInfo != null)
                 m_FindConditionView.expressionNames = m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit);
         }
@@ -82,12 +87,13 @@ namespace YH
             GUILayout.EndHorizontal();
             EditorGUILayout.Space();
 
+            m_SearchType = (SearchType)EditorGUILayout.EnumPopup("Search Type", m_SearchType, GUILayout.Width(300));
+            EditorGUILayout.Space();
+
             m_Filter = EditorGUILayout.TextField("Filter", m_Filter);
             EditorGUILayout.Space();
 
-            m_FindType = (FindType)EditorGUILayout.EnumPopup("Find Type", m_FindType);
-            EditorGUILayout.Space();
-            if (m_FindType == FindType.Component)
+            if (m_SearchType == SearchType.Content || m_SearchType==SearchType.Resource)
             {
 
                 GUILayout.BeginHorizontal();
@@ -109,16 +115,15 @@ namespace YH
                     ChangeInherit();
                 }
 
-
                 YHEditorTools.PopLabelWidth();
                 GUILayout.EndHorizontal();
+
+                m_FindConditionView.OnGUI(pos);
             }
             else
             {
                 m_FindObject = EditorGUILayout.ObjectField("Object", m_FindObject, typeof(UnityEngine.Object), false);
             }
-
-            m_FindConditionView.OnGUI(pos);
 
             if (GUILayout.Button("Search"))
             {
@@ -129,6 +134,7 @@ namespace YH
         void ChangeClassName()
         {
             m_Owner.controller.RefreshFindClassInfo(m_ClassName,m_Inherit);
+            m_FindConditionView.classInfo = m_Owner.controller.findClassInfo;
             m_FindConditionView.ChangeExpressionNames(m_Owner.controller.findClassInfo.GetMemberNames(m_Inherit), false);
         }
 
@@ -139,23 +145,32 @@ namespace YH
 
         void DoSearch()
         {
-            if (m_FindType == FindType.Component)
+            switch (m_SearchType)
             {
-                if (string.IsNullOrEmpty(m_ClassName) || m_Owner.controller.findClassInfo == null || m_Owner.controller.findClassInfo.type == null)
-                {
-                    return;
-                }
+                case SearchType.Content:
+                    if ( m_Owner.controller.findClassInfo == null || m_Owner.controller.findClassInfo.type == null)
+                    {
+                        return;
+                    }
 
-                m_Owner.controller.findResults = m_Owner.controller.Search(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.GetNotNullExpressions());
-            }
-            else if (m_FindType == FindType.Refrence)
-            {
-                if (m_FindObject != null)
-                {
-                    m_Owner.controller.findResults = m_Owner.controller.FindRefrences(m_SearchPath, m_Filter, AssetDatabase.GetAssetPath(m_FindObject));
-                }
-            }
+                    m_Owner.controller.findResults = m_Owner.controller.FindComponents(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.GetNotNullExpressions(),m_FindConditionView.isAny);
+                    break;
+                case SearchType.Refrence:
+                    if (m_FindObject != null)
+                    {
+                        m_Owner.controller.findResults = m_Owner.controller.FindRefrences(m_SearchPath, m_Filter, AssetDatabase.GetAssetPath(m_FindObject));
+                    }
+                    break;
+                case SearchType.Resource:
+                    if (m_Owner.controller.findClassInfo == null || m_Owner.controller.findClassInfo.type == null)
+                    {
+                        return;
+                    }
 
+                    m_Owner.controller.findResults = m_Owner.controller.FindResources(m_SearchPath, m_Filter, m_Owner.controller.findClassInfo, m_FindConditionView.GetNotNullExpressions(), m_FindConditionView.isAny);
+                    break;
+            }
+            
             m_Owner.ChangeTab("Result");
         }
 

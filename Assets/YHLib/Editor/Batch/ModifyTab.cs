@@ -21,12 +21,7 @@ namespace YH
         {
             m_Owner = (BatchMain)owner;
             m_ModifyExpressionView = new ModifyExpressionView();
-            m_ModifyExpressionView.Init(m_Owner.controller);
-        }
-
-        void InitOperators()
-        {
-
+            m_ModifyExpressionView.Init(m_Owner.controller.findClassInfo);
         }
 
         // Update is called once per frame

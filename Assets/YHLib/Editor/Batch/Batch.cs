@@ -97,6 +97,19 @@ namespace YH
         public Type type;
     }
 
+    [Serializable]
+    public class BatchExpressionGroup
+    {
+        public enum GroupType
+        {
+            And,
+            Or
+        }
+        public GroupType type;
+        public List<BatchExpression> expressions=new List<BatchExpression>();
+        public List<BatchExpressionGroup> subGroups=new List<BatchExpressionGroup>();
+    }
+
     public enum FindOperation
     {
         Equal,//=
@@ -189,51 +202,81 @@ namespace YH
             return classInfo;
         }
 
-        public  List<FindResult> Search(string searchPath,string filter,ClassInfo classInfo, List<BatchExpression> conditions)
+        void FixExpressionsValue(ClassInfo classInfo,List<BatchExpression> expressions)
         {
-            if (string.IsNullOrEmpty(searchPath))
+            for (int j = 0; j < expressions.Count; ++j)
             {
-                searchPath = "Assets";
-            }
+                BatchExpression expression = expressions[j];
 
-            if (classInfo == null)
-            {
-                //TODO
-            }
+                if (expression.value != null)
+                {
+                    MemberInfo member = ReflectionUtils.GetMember(classInfo.type, expression.name);
 
-            //Find Component
-            return FindComponents(searchPath, filter, classInfo, conditions);
+                    if (member != null)
+                    {
+                        Type memberType = ReflectionUtils.GetFieldOrPropertyType(member);
+
+                        if (expression.value.GetType() != memberType)
+                        {
+                            expression.value = Convert.ChangeType(expression.value, memberType);
+                        }
+                    }
+                }
+            }
         }
 
-        List<FindResult> FindComponents(string searchPath, string filter, ClassInfo classInfo, List<BatchExpression> conditions)
+        bool CheckConditions(ClassInfo classInfo, object obj, List<BatchExpression> conditions, bool isAny)
+        {
+            bool pass = true;
+
+            if (conditions != null && conditions.Count > 0)
+            {
+                pass = !isAny;
+
+                for (int k = 0; k < conditions.Count; ++k)
+                {
+                    BatchExpression condition = conditions[k];
+
+                    MemberInfo member = ReflectionUtils.GetMember(classInfo.type, condition.name);
+
+                    if (member != null)
+                    {
+                        object fieldValue = ReflectionUtils.GetValue(member, obj);
+                        object conditionValue = condition.value;
+
+                        if (m_ConditionOperators.ContainsKey(condition.op))
+                        {
+                            if (m_ConditionOperators[condition.op].Execute(fieldValue, conditionValue))
+                            {
+                                if (isAny)
+                                {
+                                    pass = true;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                if (!isAny)
+                                {
+                                    pass = false;
+                                    break;
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+            return pass;
+        }
+
+        public List<FindResult> FindComponents(string searchPath, string filter, ClassInfo classInfo, List<BatchExpression> conditions,bool isAny=true)
         {
             List<FindResult> results = new List<FindResult>();
 
-            //convert conditions value type
-            List<object> conditionsValue = new List<object>();
-            for (int i = 0; i < conditions.Count; ++i)
-            {
-                object conditionValue = conditions[i].value;
-                //这里必须从类里查找，条件可能是自定义的
-                MemberInfo member = ReflectionUtils.GetMember(classInfo.type, conditions[i].name);
-                if (member != null)
-                {
-                    Type conditionType = ReflectionUtils.GetFieldOrPropertyType(member);
-
-                    if (conditionValue.GetType() != conditionType)
-                    {
-                        conditionValue = Convert.ChangeType(conditionValue, conditionType);
-                    }
-                    conditionsValue.Add(conditionValue);
-                }
-                else
-                {
-                    conditionsValue.Add(null);
-                }
-            }
-
-
             List<string> assets = FindAsset.FindAllAssets(searchPath, filter);
+
+            FixExpressionsValue(classInfo, conditions);
 
             for (int i = 0; i < assets.Count; ++i)
             {
@@ -246,32 +289,7 @@ namespace YH
                     {
                         for (int j = 0; j < insts.Length; ++j)
                         {
-                            if (conditions != null && conditions.Count > 0)
-                            {
-                                for (int k = 0; k < conditions.Count; ++k)
-                                {
-                                    object conditionValue = conditionsValue[k];
-                                    if (conditionValue == null)
-                                    {
-                                        continue;
-                                    }
-
-                                    BatchExpression condition = conditions[k];
-                         
-                                    MemberInfo member = ReflectionUtils.GetMember(classInfo.type, condition.name);
-
-                                    if (member != null)
-                                    {
-                                        object fieldValue = ReflectionUtils.GetValue(member,insts[j]);
-
-                                        if (m_ConditionOperators.ContainsKey(condition.op) && m_ConditionOperators[condition.op].Execute(fieldValue, conditionValue))
-                                        {
-                                            results.Add(new FindResult(assets[i] + ":" + HierarchyUtil.FullPath(insts[j].transform), insts[j]));
-                                        }
-                                    }
-                                }
-                            }
-                            else
+                            if (CheckConditions(classInfo, insts[i], conditions, isAny))
                             {
                                 results.Add(new FindResult(assets[i] + ":" + HierarchyUtil.FullPath(insts[j].transform), insts[j]));
                             }
@@ -293,41 +311,19 @@ namespace YH
             return ModifyComponents(results, classInfo, expresstions);
         }
 
-        int ModifyComponents(List<FindResult> results, ClassInfo classInfo, List<BatchExpression> expresstions)
+        int ModifyComponents(List<FindResult> results, ClassInfo classInfo, List<BatchExpression> expressions)
         {
             int n = 0;
 
-            //convert expressions value type
-            //List<object> expressionsValue = new List<object>();
-            //for (int i = 0; i < expresstions.Count; ++i)
-            //{
-            //    //get from class type
-            //    FieldInfo field = classInfo.type.GetField(expresstions[i].field, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-            //    if (field != null)
-            //    {
-            //        object expressionValue = expresstions[i].value;
-
-            //        if (expressionValue.GetType() != field.FieldType)
-            //        {
-            //            expressionValue = Convert.ChangeType(expressionValue, field.FieldType);
-            //        }
-            //        expressionsValue.Add(expressionValue);
-            //    }
-            //    else
-            //    {
-            //        expressionsValue.Add(null);
-            //    }
-            //}
-
-            if (results != null && results.Count > 0 && expresstions != null && expresstions.Count > 0)
+            if (results != null && results.Count > 0 && expressions != null && expressions.Count > 0)
             {
                 for (int i = 0; i < results.Count; ++i)
                 {
                     FindResult result = results[i];
 
-                    for (int j = 0; j < expresstions.Count; ++j)
+                    for (int j = 0; j < expressions.Count; ++j)
                     {
-                        BatchExpression expression = expresstions[j];
+                        BatchExpression expression = expressions[j];
 
                         if (expression.value != null)
                         {
@@ -335,9 +331,9 @@ namespace YH
 
                             if (member != null)
                             {
-                                object expressionValue = expression.value;
-                                Type memberType = ReflectionUtils.GetFieldOrPropertyType(member);
+                                object expressionValue = expression.value;                                
                                 object memberValue = ReflectionUtils.GetValue(member, result.obj);
+                                Type memberType = ReflectionUtils.GetFieldOrPropertyType(member);
 
                                 if (expressionValue.GetType() != memberType)
                                 {
@@ -377,6 +373,30 @@ namespace YH
                 if (ArrayUtility.Contains<string>(deps, asset))
                 {
                     results.Add(new FindResult(assets[i], AssetDatabase.LoadAssetAtPath<GameObject>(assets[i])));
+                }
+            }
+
+            return results;
+        }
+
+        public List<FindResult> FindResources(string searchPath, string filter, ClassInfo classInfo, List<BatchExpression> conditions,bool isAny=true)
+        {
+            List<FindResult> results = new List<FindResult>();
+
+            List<string> assets = FindAsset.FindAllAssets(searchPath, filter);
+
+            FixExpressionsValue(classInfo, conditions);
+
+            for (int i = 0; i < assets.Count; ++i)
+            {
+                UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath(assets[i],classInfo.type);
+
+                if (obj!=null)
+                {
+                    if (CheckConditions(classInfo, obj, conditions, isAny))
+                    {
+                        results.Add(new FindResult(assets[i], obj));
+                    }
                 }
             }
 

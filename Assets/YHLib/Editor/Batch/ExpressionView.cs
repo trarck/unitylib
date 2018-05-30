@@ -20,12 +20,14 @@ namespace YH
 
         string m_Title;
 
-        Batch m_Controller;
+        public bool isAny = true;
+
+        ClassInfo m_ClassInfo;
 
         // Use this for initialization
-        public void Init(Batch controller)
+        public void Init(ClassInfo classInfo)
         {
-            m_Controller = controller;
+            m_ClassInfo = classInfo;
         }
 
         public void OnGUI(Rect pos)
@@ -37,6 +39,8 @@ namespace YH
         {
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(m_Title);
+
+            isAny = EditorGUILayout.Toggle("Any", isAny);
 
             if (GUILayout.Button("+"))
             {
@@ -130,8 +134,6 @@ namespace YH
             BatchExpression be = new BatchExpression();
             ChangeExpression(be,m_Expressions.Count,"");
             m_Expressions.Add(be);
-
-           
         }
 
         void ChangeExpression(BatchExpression be,int index,string name=null)
@@ -155,7 +157,7 @@ namespace YH
                 be.name = name;
             }
 
-            Type newType = m_Controller.findClassInfo.GetMemberType(be.name);
+            Type newType = m_ClassInfo.GetMemberType(be.name);
             if (newType != be.type)
             {
                 be.type = newType;
@@ -240,6 +242,18 @@ namespace YH
             set
             {
                 m_ExpressionNames = value;  
+            }
+        }
+
+        public ClassInfo classInfo
+        {
+            set
+            {
+                m_ClassInfo = value;
+            }
+            get
+            {
+                return m_ClassInfo;
             }
         }
     }
