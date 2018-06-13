@@ -366,7 +366,7 @@ namespace YH
 
                 if (gameObj != null)
                 {
-                    Component[] insts = gameObj.GetComponentsInChildren(classInfo.type);
+                    Component[] insts = gameObj.GetComponentsInChildren(classInfo.type,true);
                     if (insts != null && insts.Length > 0)
                     {
                         for (int j = 0; j < insts.Length; ++j)
