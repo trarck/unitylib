@@ -109,10 +109,23 @@ namespace YH
             }
         }
 		
-		public static string Relative(string from,string to)
+		public static string Relative(string fromPath,string toPath)
 		{
-			string[] froms = from.Replace("\\", "/").Split('/');
-			string[] tos = to.Replace("\\", "/").Split('/');
+			fromPath = fromPath.Replace("\\", "/");
+            toPath = toPath.Replace("\\", "/");
+
+            if (fromPath[fromPath.Length - 1] == '/')
+            {
+                fromPath = fromPath.Substring(0, fromPath.Length - 1);
+            }
+
+            if (toPath[toPath.Length - 1] == '/')
+            {
+                toPath = toPath.Substring(0, toPath.Length - 1);
+            }
+
+            string[] froms = fromPath.Split('/');
+            string[] tos = toPath.Split('/');
 
 			int i = 0;
 			//look for same part
@@ -126,9 +139,9 @@ namespace YH
 
 			if (i == 0)
 			{
-				//just windows. eg.from=c:\a\b\c,to=d:\e\f\g
-				//if linux the first is empty always same. eg. from=/a/b/c,to=/d/e/f
-				return to;
+				//just windows. eg.fromPath=c:\a\b\c,toPath=d:\e\f\g
+				//if linux the first is empty always same. eg. fromPath=/a/b/c,toPath=/d/e/f
+				return toPath;
 			}
 			else
 			{
