@@ -23,37 +23,22 @@ namespace YH
         //		}
         //	}
 
-        public static GameObject FindGameObject(string path, GameObject parent)
+        public static GameObject SearchGameObject(string path, GameObject parent)
         {
-            return FindGameObject(path, parent.transform);
+            return SearchGameObject(path, parent.transform);
         }
 
-        public static GameObject FindGameObject(string path, Transform parent)
+        public static GameObject SearchGameObject(string path, Transform parent)
         {
-            Transform objTransform = parent.Find(path);
-
+            Transform objTransform = SearchTransform(path, parent);
             if (objTransform)
             {
                 return objTransform.gameObject;
             }
-            else
-            {
-                //在子元素中查找
-                for (int i = 0, l = parent.childCount; i < l; ++i)
-                {
-                    GameObject childFind = FindGameObject(path, parent.GetChild(i));
-
-                    if (childFind)
-                    {
-                        return childFind;
-                    }
-                }
-
-                return null;
-            }
+            return null;
         }
 
-        public static Transform FindTransform(string path, Transform parent)
+        public static Transform SearchTransform(string path, Transform parent)
         {
             Transform objTransform = parent.Find(path);
 
@@ -64,13 +49,26 @@ namespace YH
             else
             {
                 //在子元素中查找
-                for (int i = 0, l = parent.childCount; i < l; ++i)
-                {
-                    Transform childFind = FindTransform(path, parent.GetChild(i));
+                Queue<Transform> checkList = new Queue<Transform>();
+                checkList.Enqueue(parent);
 
-                    if (childFind)
+                Transform current, child,fined;
+                while (checkList.Count > 0)
+                {
+                    current = checkList.Dequeue();
+
+                    for (int i = 0, l = current.childCount; i < l; ++i)
                     {
-                        return childFind;
+                        child = current.GetChild(i);
+                        fined = child.Find(path);
+                        if (fined != null)
+                        {
+                            return fined;
+                        }
+                        else
+                        {
+                            checkList.Enqueue(child);
+                        }
                     }
                 }
 
@@ -78,51 +76,59 @@ namespace YH
             }
         }
 
-        public static List<GameObject> FindGameObjects(string path, GameObject parent)
+        public static List<GameObject> SearchGameObjects(string path, GameObject parent)
         {
-            return FindGameObjects(path, parent.transform);
+            return SearchGameObjects(path, parent.transform);
         }
 
-        public static List<GameObject> FindGameObjects(string path, Transform parent)
+        public static List<GameObject> SearchGameObjects(string path, Transform parent)
         {
             List<GameObject> list = new List<GameObject>();
 
-            Transform objTransform = parent.Find(path);
+            Queue<Transform> checkList = new Queue<Transform>();
+            checkList.Enqueue(parent);
 
-            if (objTransform)
+            Transform current, child, fined;
+            while (checkList.Count > 0)
             {
-                list.Add(objTransform.gameObject);
-            }
-            else
-            {
-                //在子元素中查找
-                for (int i = 0, l = parent.childCount; i < l; ++i)
+                current = checkList.Dequeue();
+                fined = current.Find(path);
+                if (fined)
                 {
-                    List<GameObject> childFinds = FindGameObjects(path, parent.GetChild(i));
-                    list.AddRange(childFinds);
+                    list.Add(fined.gameObject);
+                }
+
+                for (int i = 0, l = current.childCount; i < l; ++i)
+                {
+                    child = current.GetChild(i);
+                    checkList.Enqueue(child);
                 }
             }
-
+                       
             return list;
         }
 
-        public static List<Transform> FindTransforms(string path, Transform parent)
+        public static List<Transform> SearchTransforms(string path, Transform parent)
         {
             List<Transform> list = new List<Transform>();
 
-            Transform objTransform = parent.Find(path);
+            Queue<Transform> checkList = new Queue<Transform>();
+            checkList.Enqueue(parent);
 
-            if (objTransform)
+            Transform current, child, fined;
+            while (checkList.Count > 0)
             {
-                list.Add(objTransform);
-            }
-            else
-            {
-                //在子元素中查找
-                for (int i = 0, l = parent.childCount; i < l; ++i)
+                current = checkList.Dequeue();
+                fined = current.Find(path);
+                if (fined)
                 {
-                    List<Transform> childFinds = FindTransforms(path, parent.GetChild(i));
-                    list.AddRange(childFinds);
+                    list.Add(fined);
+                }
+
+                for (int i = 0, l = current.childCount; i < l; ++i)
+                {
+                    child = current.GetChild(i);
+                    checkList.Enqueue(child);
                 }
             }
 
@@ -160,7 +166,7 @@ namespace YH
 
         }
 
-        public static List<Transform> SearchTransforms(string path, Transform parent)
+        public static List<Transform> FindTransforms(string path, Transform parent)
         {
 
             string[] paths = path.Split('/');
@@ -190,9 +196,9 @@ namespace YH
             return checkList;
         }
 
-        public static List<GameObject> SearchGameObjects(string path, Transform parent)
+        public static List<GameObject> FindGameObjects(string path, Transform parent)
         {
-            List<Transform> transforms = SearchTransforms(path, parent);
+            List<Transform> transforms = FindTransforms(path, parent);
 
             List<GameObject> list = new List<GameObject>(transforms.Count);
 
@@ -203,7 +209,7 @@ namespace YH
             return list;
         }
 
-        public static List<GameObject> SearchGameObjects(string path, GameObject parent)
+        public static List<GameObject> FindGameObjects(string path, GameObject parent)
         {
             return SearchGameObjects(path, parent.transform);
         }
