@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace YH.Pool
 {
-    internal static class ListPool<T>
+    public static class ListPool<T>
     {
         // Object pool to avoid allocations.
         private static readonly ObjectPool<List<T>> s_ListPool = new ObjectPool<List<T>>(null, l => l.Clear());
@@ -20,7 +20,7 @@ namespace YH.Pool
         }
     }
 
-    internal static class StackPool<T>
+    public static class StackPool<T>
     {
         private static readonly ObjectPool<Stack<T>> m_StackPool = new ObjectPool<Stack<T>>(null,l=>l.Clear());
 
@@ -35,7 +35,7 @@ namespace YH.Pool
         }
     }
 
-    internal static class QueuePool<T>
+    public static class QueuePool<T>
     {
         private static readonly ObjectPool<Queue<T>> m_QueuePool = new ObjectPool<Queue<T>>(null, l => l.Clear());
 
@@ -50,7 +50,7 @@ namespace YH.Pool
         }
     }
 
-    internal static class LinkedListPool<T>
+    public static class LinkedListPool<T>
     {
         private static readonly ObjectPool<LinkedList<T>> m_LinkedListPool = new ObjectPool<LinkedList< T>>(null, l => l.Clear());
 

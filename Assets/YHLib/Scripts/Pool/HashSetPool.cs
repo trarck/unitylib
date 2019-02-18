@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace YH.Pool
 {
-    internal static class HashSetPool<T>
+    public static class HashSetPool<T>
     {
         // Object pool to avoid allocations.
         private static readonly ObjectPool<HashSet<T>> s_HashSetPool = new ObjectPool<HashSet<T>>(null, l => l.Clear());
