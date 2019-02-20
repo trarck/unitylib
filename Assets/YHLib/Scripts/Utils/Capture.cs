@@ -10,7 +10,7 @@ namespace YH
 #if UNITY_2017_OR_NEWER
             ScreenCapture.CaptureScreenshot(file);
 #else
-            Application.CaptureScreenshot(file);
+            ScreenCapture.CaptureScreenshot(file);
 #endif
         }
 

@@ -69,8 +69,8 @@ namespace YH
                 }
             }
         }
-		
-		public static void RemoveDirectoryFiles(string path,string pattern)
+
+        public static void RemoveDirectoryFiles(string path, string pattern)
         {
             DirectoryInfo root;
             Stack<DirectoryInfo> fols;
@@ -88,7 +88,7 @@ namespace YH
                     Debug.Log(f.Name + ":" + reg.IsMatch(f.Name));
 
                     if (reg.IsMatch(f.Name))
-                    { 
+                    {
                         f.Attributes = f.Attributes & ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
                         f.Delete();
                     }
@@ -108,10 +108,10 @@ namespace YH
                 }
             }
         }
-		
-		public static string Relative(string fromPath,string toPath)
-		{
-			fromPath = fromPath.Replace("\\", "/");
+
+        public static string Relative(string fromPath, string toPath)
+        {
+            fromPath = fromPath.Replace("\\", "/");
             toPath = toPath.Replace("\\", "/");
 
             if (fromPath[fromPath.Length - 1] == '/')
@@ -127,41 +127,42 @@ namespace YH
             string[] froms = fromPath.Split('/');
             string[] tos = toPath.Split('/');
 
-			int i = 0;
-			//look for same part
-			for(; i < froms.Length; ++i)
-			{
-				if (froms[i] != tos[i])
-				{
-					break;
-				}
-			}
+            int i = 0;
+            //look for same part
+            for (; i < froms.Length; ++i)
+            {
+                if (froms[i] != tos[i])
+                {
+                    break;
+                }
+            }
 
-			if (i == 0)
-			{
-				//just windows. eg.fromPath=c:\a\b\c,toPath=d:\e\f\g
-				//if linux the first is empty always same. eg. fromPath=/a/b/c,toPath=/d/e/f
-				return toPath;
-			}
-			else
-			{
-				System.Text.StringBuilder result = new System.Text.StringBuilder();
-				System.Text.StringBuilder toSB = new System.Text.StringBuilder();
+            if (i == 0)
+            {
+                //just windows. eg.fromPath=c:\a\b\c,toPath=d:\e\f\g
+                //if linux the first is empty always same. eg. fromPath=/a/b/c,toPath=/d/e/f
+                return toPath;
+            }
+            else
+            {
+                System.Text.StringBuilder result = new System.Text.StringBuilder();
+                System.Text.StringBuilder toSB = new System.Text.StringBuilder();
 
-				for (int j=i; j < froms.Length; ++j)
-				{
-					result.Append("../");
-				}
+                for (int j = i; j < froms.Length; ++j)
+                {
+                    result.Append("../");
+                }
 
-				for (int j = i; j < tos.Length; ++j)
-				{
-					result.Append(tos[j]);
-					if (j < tos.Length - 1)
-					{
-						result.Append("/");
-					}
-				}            
-				return result.ToString();
-			}
-		}
+                for (int j = i; j < tos.Length; ++j)
+                {
+                    result.Append(tos[j]);
+                    if (j < tos.Length - 1)
+                    {
+                        result.Append("/");
+                    }
+                }
+                return result.ToString();
+            }
+        }
+    }
 }
