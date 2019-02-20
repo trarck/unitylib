@@ -142,7 +142,7 @@ namespace YH
                             //比如根结点有个Name，Panel有个Name,把Name移到，PanelTT下，则可能无法正确找到PanelTT下的Name
 
                             //获取被移动GameObject
-                            animatedObject = FindUtil.SearchGameObject(result[1], root);
+                            animatedObject = HierarchyUtil.SearchGameObject(result[1], root);
                             if (!animatedObject)
                             {
                                 Debug.LogWarning("can't find:" + result[1]);

@@ -13,7 +13,7 @@ namespace Simple
         // Use this for initialization
         void Start()
         {
-            RegisterButtonEvents(FindUtil.SearchComponents<Button>(transform), OnClick);
+            RegisterButtonEvents(HierarchyUtil.SearchComponents<Button>(transform), OnClick);
         }
 
         // Update is called once per frame
