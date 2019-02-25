@@ -169,7 +169,7 @@ namespace YH
         {
             List<Transform> checkList = FindTransforms(path, parent);
 
-            return checkList.Count > 0 ? checkList[0] : null;
+            return checkList!=null && checkList.Count > 0 ? checkList[0] : null;
         }
 
         public static List<Transform> FindTransforms(string path, Transform parent)
@@ -189,14 +189,14 @@ namespace YH
 
             for (int i = 0; i < l; ++i)
             {
-                name = paths[i];
-
+                name = paths[i];                
+                
                 for (int j = 0, len = checkList.Count; j < len; ++j)
                 {
                     current = checkList.Dequeue();
                     for (int k = 0, kl = current.childCount; k < kl; ++k)
                     {
-                        child = parent.GetChild(k);
+                        child = current.GetChild(k);
                         if (child.name == name)
                         {
                             checkList.Enqueue(child);
