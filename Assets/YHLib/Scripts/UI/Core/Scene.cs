@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-
+using UnityEngine.UI;
 namespace YH.UI
 {
     public class Scene : MonoBehaviour

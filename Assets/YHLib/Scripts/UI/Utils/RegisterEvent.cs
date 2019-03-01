@@ -10,7 +10,7 @@ namespace YH.UI
         public delegate void ButtonClickHandle(GameObject obj);
         public delegate void ToggleValueChangeHandle(GameObject obj, bool value);
 
-        public static void RegisterButtonEvents(List<Button> buttons, ButtonClickHandle handle)
+        public static void RegisterButtonsEvent(List<Button> buttons, ButtonClickHandle handle)
         {
             foreach (Button btn in buttons)
             {
@@ -22,7 +22,7 @@ namespace YH.UI
             }
         }
 
-        public static void RegisterButtonEvents(Button[] buttons, ButtonClickHandle handle)
+        public static void RegisterButtonsEvent(Button[] buttons, ButtonClickHandle handle)
         {
             foreach (Button btn in buttons)
             {
@@ -34,7 +34,7 @@ namespace YH.UI
             }
         }
 
-        public static void RegisterToggleEvents(List<Toggle> toggles, ToggleValueChangeHandle handle)
+        public static void RegisterTogglesEvent(List<Toggle> toggles, ToggleValueChangeHandle handle)
         {
             foreach (Toggle toggle in toggles)
             {
@@ -46,7 +46,7 @@ namespace YH.UI
             }
         }
 
-        public static void RegisterToggleEvents(Toggle[] toggles, ToggleValueChangeHandle handle)
+        public static void RegisterTogglesEvent(Toggle[] toggles, ToggleValueChangeHandle handle)
         {
             foreach (Toggle toggle in toggles)
             {
