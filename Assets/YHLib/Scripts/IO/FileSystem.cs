@@ -237,7 +237,7 @@ namespace YH
 
             int i = 0;
             //look for same part
-            for (; i < froms.Length; ++i)
+            for (int l=froms.Length>tos.Length?tos.Length: froms.Length; i < l; ++i)
             {
                 if (froms[i] != tos[i])
                 {
