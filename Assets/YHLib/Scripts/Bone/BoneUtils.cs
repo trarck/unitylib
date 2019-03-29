@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace YH.Bone
 {
-    public static class BoneManager 
+    public static class BoneUtils 
     {
         /// <summary>
         /// Searches for a transform with the given name in the given parent transformation recursively
