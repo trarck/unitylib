@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using System;
 using System.IO;
+using YH;
 
-namespace YH
+namespace YHEditor
 {
     public class AutoBuild
     {     

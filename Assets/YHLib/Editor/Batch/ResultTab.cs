@@ -3,8 +3,9 @@ using UnityEditor;
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using YH;
 
-namespace YH
+namespace YHEditor
 {
     public class ResultTab:IEditorTab
     {

@@ -6,8 +6,9 @@ using UnityEditor;
 using Newtonsoft.Json;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
+using YH;
 
-namespace YH
+namespace YHEditor
 {
     public class SceneSaver
     {

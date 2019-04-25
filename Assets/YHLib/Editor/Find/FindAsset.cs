@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using UnityEditor;
 using System;
 using Object = UnityEngine.Object;
+using YH;
 
-namespace YH
+namespace YHEditor
 {
     public class FindAsset
     {

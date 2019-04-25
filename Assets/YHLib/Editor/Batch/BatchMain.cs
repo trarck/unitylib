@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using YH;
 
-namespace YH
+namespace YHEditor
 {
 
     public class BatchMain : EditorTabs

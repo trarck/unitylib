@@ -3,9 +3,9 @@ using UnityEditor;
 using System;
 using System.Reflection;
 using System.Collections.Generic;
-using YHEditor;
+using YH;
 
-namespace YH
+namespace YHEditor
 {
     
     public class ExpressionView

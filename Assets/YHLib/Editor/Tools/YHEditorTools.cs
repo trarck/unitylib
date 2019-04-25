@@ -1,8 +1,9 @@
 using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
+using YH;
 
-namespace YH
+namespace YHEditor
 {
     /// <summary>
     /// Tools for the editor

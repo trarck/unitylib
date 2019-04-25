@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using YH;
 
-namespace YH
+namespace YHEditor
 {
     public class CmdArguments
     {

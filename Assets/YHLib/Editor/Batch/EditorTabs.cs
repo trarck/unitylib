@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using YH;
 
-namespace YH
+namespace YHEditor
 {
     public interface IEditorTab
     {
