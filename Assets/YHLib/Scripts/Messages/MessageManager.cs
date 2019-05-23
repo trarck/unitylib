@@ -3,18 +3,18 @@ using System.Collections.Generic;
 
 namespace YH.Messages
 {
-    public class MessageManager
+    public class MessageManager: Singleton<MessageManager>
     {
         //全局接收id
-        public const UInt32 GlobalReceiver = 0;
+        public const int GlobalReceiver = 0;
         //全局发送id
-        public const UInt32 GlobalSender = 0;
+        public const int GlobalSender = 0;
         //对象池
-        private static readonly YH.Pool.ObjectPool<MessageHandler> s_MessageHandlerPool = new YH.Pool.ObjectPool<MessageHandler>(null, l => l.Clear());
-        private static readonly YH.Pool.ObjectPool<Message> s_MessagePool = new YH.Pool.ObjectPool<Message>(null, l => l.Clear());
+        private static readonly Pool.ObjectPool<MessageHandler> s_MessageHandlerPool = new Pool.ObjectPool<MessageHandler>(null, l => l.Clear());
+        private static readonly Pool.ObjectPool<Message> s_MessagePool = new Pool.ObjectPool<Message>(null, l => l.Clear());
 
         //这里使用List，是因为处理队列有优先级。
-        protected Dictionary<UInt32, Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>>> m_Messages;
+        protected Dictionary<int, Dictionary<int, Dictionary<int, List<MessageHandler>>>> m_Messages=new Dictionary<int, Dictionary<int, Dictionary<int, List<MessageHandler>>>>();
 
         /// <summary>
         /// 注册消息
@@ -25,21 +25,21 @@ namespace YH.Messages
         /// <param name="handle"></param>
         /// <param name="priority"></param>
         /// <returns></returns>
-        public MessageHandler Register(UInt32 receiver, UInt32 type, UInt32 sender, MessageHandler.Handle handle, int priority=0)
+        public MessageHandler Register(int receiver, int type, int sender, MessageHandler.Handle handle, int priority=0)
         {
             //get msg data
-            Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>> msgMap = null;
+            Dictionary<int, Dictionary<int, List<MessageHandler>>> msgMap = null;
             if (!m_Messages.TryGetValue(type,out msgMap))
             {
-                msgMap = YH.Pool.DictionaryPool<UInt32, Dictionary<UInt32, List<MessageHandler>>>.Get();// new Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>>();
+                msgMap = Pool.DictionaryPool<int, Dictionary<int, List<MessageHandler>>>.Get();// new Dictionary<int, Dictionary<int, List<MessageHandler>>>();
                 m_Messages[type] = msgMap;
             }
 
             //get receiver map
-            Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+            Dictionary<int, List<MessageHandler>> receiverMap = null;
             if(!msgMap.TryGetValue(receiver,out receiverMap))
             {
-                receiverMap = YH.Pool.DictionaryPool<UInt32, List<MessageHandler>>.Get();//new Dictionary<uint, List<MessageHandler>>();
+                receiverMap = Pool.DictionaryPool<int, List<MessageHandler>>.Get();//new Dictionary<uint, List<MessageHandler>>();
                 msgMap[receiver] = receiverMap;
             }
 
@@ -47,7 +47,7 @@ namespace YH.Messages
             List<MessageHandler> handlerList = null;
             if(!receiverMap.TryGetValue(sender,out handlerList))
             {
-                handlerList = YH.Pool.ListPool<MessageHandler>.Get();// new List<MessageHandler>();
+                handlerList = Pool.ListPool<MessageHandler>.Get();// new List<MessageHandler>();
                 receiverMap[sender] = handlerList;
             }
 
@@ -77,21 +77,26 @@ namespace YH.Messages
             return handler;
         }
 
-        //private bool Register(UInt32 receiver, UInt32 type, UInt32 sender, MessageHandler handler)
+        public MessageHandler Register(int receiver, int type,  MessageHandler.Handle handle, int priority = 0)
+        {
+            return Register(receiver, type, GlobalSender, handle, priority);
+        }
+
+        //private bool Register(int receiver, int type, int sender, MessageHandler handler)
         //{
         //    //get msg data
-        //    Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>> msgMap = null;
+        //    Dictionary<int, Dictionary<int, List<MessageHandler>>> msgMap = null;
         //    if (!m_Messages.TryGetValue(type, out msgMap))
         //    {
-        //        msgMap = YH.Pool.DictionaryPool<UInt32, Dictionary<UInt32, List<MessageHandler>>>.Get();// new Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>>();
+        //        msgMap = Pool.DictionaryPool<int, Dictionary<int, List<MessageHandler>>>.Get();// new Dictionary<int, Dictionary<int, List<MessageHandler>>>();
         //        m_Messages[type] = msgMap;
         //    }
 
         //    //get receiver map
-        //    Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+        //    Dictionary<int, List<MessageHandler>> receiverMap = null;
         //    if (!msgMap.TryGetValue(receiver, out receiverMap))
         //    {
-        //        receiverMap = YH.Pool.DictionaryPool<UInt32, List<MessageHandler>>.Get();//new Dictionary<uint, List<MessageHandler>>();
+        //        receiverMap = Pool.DictionaryPool<int, List<MessageHandler>>.Get();//new Dictionary<uint, List<MessageHandler>>();
         //        msgMap[receiver] = receiverMap;
         //    }
 
@@ -99,7 +104,7 @@ namespace YH.Messages
         //    List<MessageHandler> handlerList = null;
         //    if (!receiverMap.TryGetValue(sender, out handleList))
         //    {
-        //        handleList = YH.Pool.ListPool<MessageHandler>.Get();// new List<MessageHandler>();
+        //        handleList = Pool.ListPool<MessageHandler>.Get();// new List<MessageHandler>();
         //        receiverMap[sender] = handleList;
         //    }
 
@@ -140,17 +145,17 @@ namespace YH.Messages
         /// <param name="sender"></param>
         /// <param name="handle"></param>
         /// <returns></returns>
-        public bool IsRegister(UInt32 receiver, UInt32 type, UInt32 sender, MessageHandler.Handle handle)
+        public bool IsRegister(int receiver, int type, int sender, MessageHandler.Handle handle)
         {
             //get msg data
-            Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>> msgMap = null;
+            Dictionary<int, Dictionary<int, List<MessageHandler>>> msgMap = null;
             if (!m_Messages.TryGetValue(type, out msgMap))
             {
                 return false;
             }
 
             //get receiver map
-            Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+            Dictionary<int, List<MessageHandler>> receiverMap = null;
             if (!msgMap.TryGetValue(receiver, out receiverMap))
             {
                 return false;
@@ -179,17 +184,17 @@ namespace YH.Messages
         /// <param name="type"></param>
         /// <param name="sender"></param>
         /// <returns></returns>
-        public bool IsRegister(UInt32 receiver, UInt32 type, UInt32 sender)
+        public bool IsRegister(int receiver, int type, int sender)
         {
             //get msg data
-            Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>> msgMap = null;
+            Dictionary<int, Dictionary<int, List<MessageHandler>>> msgMap = null;
             if (!m_Messages.TryGetValue(type, out msgMap))
             {
                 return false;
             }
 
             //get receiver map
-            Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+            Dictionary<int, List<MessageHandler>> receiverMap = null;
             if (!msgMap.TryGetValue(receiver, out receiverMap))
             {
                 return false;
@@ -212,14 +217,14 @@ namespace YH.Messages
         /// <param name="type"></param>
         /// <param name="sender"></param>
         /// <param name="handle"></param>
-        public void Unregister(UInt32 receiver, UInt32 type, UInt32 sender, MessageHandler.Handle handle)
+        public void Unregister(int receiver, int type, int sender, MessageHandler.Handle handle)
         {
             //get msg data
-            Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>> msgMap = null;
+            Dictionary<int, Dictionary<int, List<MessageHandler>>> msgMap = null;
             if (m_Messages.TryGetValue(type, out msgMap))
             {
                 //get receiver map
-                Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+                Dictionary<int, List<MessageHandler>> receiverMap = null;
                 if (msgMap.TryGetValue(receiver, out receiverMap))
                 {
                     if (sender > 0)
@@ -234,7 +239,7 @@ namespace YH.Messages
                             if (handlerList.Count == 0)
                             {
                                 receiverMap.Remove(sender);
-                                YH.Pool.ListPool<MessageHandler>.Release(handlerList);
+                                Pool.ListPool<MessageHandler>.Release(handlerList);
                             }
                         }
                     }
@@ -246,12 +251,12 @@ namespace YH.Messages
                     if (receiverMap.Count == 0)
                     {
                         msgMap.Remove(receiver);
-                        YH.Pool.DictionaryPool<UInt32, List<MessageHandler>>.Release(receiverMap);
+                        Pool.DictionaryPool<int, List<MessageHandler>>.Release(receiverMap);
 
                         if (msgMap.Count == 0)
                         {
                             m_Messages.Remove(type);
-                            YH.Pool.DictionaryPool<UInt32, Dictionary<UInt32, List<MessageHandler>>>.Release(msgMap);
+                            Pool.DictionaryPool<int, Dictionary<int, List<MessageHandler>>>.Release(msgMap);
                         }
                     }
                 }
@@ -264,14 +269,14 @@ namespace YH.Messages
         /// <param name="receiver"></param>
         /// <param name="type"></param>
         /// <param name="handle"></param>
-        public void Unregister(UInt32 receiver, UInt32 type, MessageHandler.Handle handle)
+        public void Unregister(int receiver, int type, MessageHandler.Handle handle)
         {
             //get msg data
-            Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>> msgMap = null;
+            Dictionary<int, Dictionary<int, List<MessageHandler>>> msgMap = null;
             if (m_Messages.TryGetValue(type, out msgMap))
             {
                 //get receiver map
-                Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+                Dictionary<int, List<MessageHandler>> receiverMap = null;
                 if (msgMap.TryGetValue(receiver, out receiverMap))
                 {
                     RemoveReceiverMap(receiverMap, handle);
@@ -279,12 +284,12 @@ namespace YH.Messages
                     if (receiverMap.Count == 0)
                     {
                         msgMap.Remove(receiver);
-                        YH.Pool.DictionaryPool<UInt32, List<MessageHandler>>.Release(receiverMap);
+                        Pool.DictionaryPool<int, List<MessageHandler>>.Release(receiverMap);
 
                         if (msgMap.Count == 0)
                         {
                             m_Messages.Remove(type);
-                            YH.Pool.DictionaryPool<UInt32, Dictionary<UInt32, List<MessageHandler>>>.Release(msgMap);
+                            Pool.DictionaryPool<int, Dictionary<int, List<MessageHandler>>>.Release(msgMap);
                         }
                     }
                 }
@@ -296,11 +301,11 @@ namespace YH.Messages
         /// </summary>
         /// <param name="receiver"></param>
         /// <param name="handle"></param>
-        public void Unregister(UInt32 receiver, MessageHandler.Handle handle)
+        public void Unregister(int receiver, MessageHandler.Handle handle)
         {
             foreach (var msgIter in m_Messages)
             {
-                Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+                Dictionary<int, List<MessageHandler>> receiverMap = null;
                 if (msgIter.Value.TryGetValue(receiver, out receiverMap))
                 {
                     RemoveReceiverMap(receiverMap, handle);
@@ -318,14 +323,14 @@ namespace YH.Messages
         /// <param name="receiver"></param>
         /// <param name="type"></param>
         /// <param name="sender"></param>
-        public void Unregister(UInt32 receiver, UInt32 type, UInt32 sender)
+        public void Unregister(int receiver, int type, int sender)
         {
             //get msg data
-            Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>> msgMap = null;
+            Dictionary<int, Dictionary<int, List<MessageHandler>>> msgMap = null;
             if (m_Messages.TryGetValue(type, out msgMap))
             {
                 //get receiver map
-                Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+                Dictionary<int, List<MessageHandler>> receiverMap = null;
                 if (msgMap.TryGetValue(receiver, out receiverMap))
                 {
                     if (sender > 0)
@@ -335,7 +340,7 @@ namespace YH.Messages
                         if (receiverMap.TryGetValue(sender, out handlerList))
                         {
                             receiverMap.Remove(sender);
-                            YH.Pool.ListPool<MessageHandler>.Release(handlerList);
+                            Pool.ListPool<MessageHandler>.Release(handlerList);
                         }
                     }
                     else
@@ -346,12 +351,12 @@ namespace YH.Messages
                     if (receiverMap.Count == 0)
                     {
                         msgMap.Remove(receiver);
-                        YH.Pool.DictionaryPool<UInt32, List<MessageHandler>>.Release(receiverMap);
+                        Pool.DictionaryPool<int, List<MessageHandler>>.Release(receiverMap);
 
                         if (msgMap.Count == 0)
                         {
                             m_Messages.Remove(type);
-                            YH.Pool.DictionaryPool<UInt32, Dictionary<UInt32, List<MessageHandler>>>.Release(msgMap);
+                            Pool.DictionaryPool<int, Dictionary<int, List<MessageHandler>>>.Release(msgMap);
                         }
                     }
                 }
@@ -363,25 +368,25 @@ namespace YH.Messages
         /// </summary>
         /// <param name="receiver"></param>
         /// <param name="type"></param>
-        public void Unregister(UInt32 receiver, UInt32 type)
+        public void Unregister(int receiver, int type)
         {
             //get msg data
-            Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>> msgMap = null;
+            Dictionary<int, Dictionary<int, List<MessageHandler>>> msgMap = null;
             if (m_Messages.TryGetValue(type, out msgMap))
             {
                 //get receiver map
-                Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+                Dictionary<int, List<MessageHandler>> receiverMap = null;
                 if (msgMap.TryGetValue(receiver, out receiverMap))
                 {
 
                     RemoveReceiverMap(receiverMap);
                     msgMap.Remove(receiver);
-                    YH.Pool.DictionaryPool<UInt32, List<MessageHandler>>.Release(receiverMap);
+                    Pool.DictionaryPool<int, List<MessageHandler>>.Release(receiverMap);
 
                     if (msgMap.Count == 0)
                     {
                         m_Messages.Remove(type);
-                        YH.Pool.DictionaryPool<UInt32, Dictionary<UInt32, List<MessageHandler>>>.Release(msgMap);
+                        Pool.DictionaryPool<int, Dictionary<int, List<MessageHandler>>>.Release(msgMap);
                     }
 
                 }
@@ -394,12 +399,12 @@ namespace YH.Messages
         /// <param name="receiver"></param>
         /// <param name="sender"></param>
         /// <param name="handle"></param>
-        public void UnregisterAll(UInt32 receiver,UInt32 sender, MessageHandler.Handle handle)
+        public void UnregisterAll(int receiver,int sender, MessageHandler.Handle handle)
         {
-            Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+            Dictionary<int, List<MessageHandler>> receiverMap = null;
             List<MessageHandler> handlerList = null;
 
-            List<UInt32> emptyMsgTypes = YH.Pool.ListPool<UInt32>.Get();
+            List<int> emptyMsgTypes = Pool.ListPool<int>.Get();
 
             foreach (var msgIter in m_Messages)
             {
@@ -413,12 +418,12 @@ namespace YH.Messages
                         if (handlerList.Count == 0)
                         {
                             receiverMap.Remove(sender);
-                            YH.Pool.ListPool<MessageHandler>.Release(handlerList);
+                            Pool.ListPool<MessageHandler>.Release(handlerList);
 
                             if (receiverMap.Count == 0)
                             {
                                 msgIter.Value.Remove(receiver);
-                                YH.Pool.DictionaryPool<UInt32, List<MessageHandler>>.Release(receiverMap);
+                                Pool.DictionaryPool<int, List<MessageHandler>>.Release(receiverMap);
                                 
                                 if (msgIter.Value.Count == 0)
                                 {
@@ -432,11 +437,11 @@ namespace YH.Messages
 
             for(int i = 0, l = emptyMsgTypes.Count; i < l; ++i)
             {
-                YH.Pool.DictionaryPool<UInt32, Dictionary<UInt32, List<MessageHandler>>>.Release(m_Messages[emptyMsgTypes[i]]);
+                Pool.DictionaryPool<int, Dictionary<int, List<MessageHandler>>>.Release(m_Messages[emptyMsgTypes[i]]);
                 m_Messages.Remove(emptyMsgTypes[i]);
             }
 
-            YH.Pool.ListPool<UInt32>.Release(emptyMsgTypes);
+            Pool.ListPool<int>.Release(emptyMsgTypes);
         }
 
         /// <summary>
@@ -444,12 +449,12 @@ namespace YH.Messages
         /// </summary>
         /// <param name="receiver"></param>
         /// <param name="sender"></param>
-        public void UnregisterAll(UInt32 receiver, UInt32 sender)
+        public void UnregisterAll(int receiver, int sender)
         {
-            Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+            Dictionary<int, List<MessageHandler>> receiverMap = null;
             List<MessageHandler> handlerList = null;
 
-            List<UInt32> emptyMsgTypes = YH.Pool.ListPool<UInt32>.Get();
+            List<int> emptyMsgTypes = Pool.ListPool<int>.Get();
 
             foreach (var msgIter in m_Messages)
             {
@@ -458,12 +463,12 @@ namespace YH.Messages
                     if (receiverMap.TryGetValue(sender, out handlerList))
                     {
                         receiverMap.Remove(sender);
-                        YH.Pool.ListPool<MessageHandler>.Release(handlerList);
+                        Pool.ListPool<MessageHandler>.Release(handlerList);
 
                         if (receiverMap.Count == 0)
                         {
                             msgIter.Value.Remove(receiver);
-                            YH.Pool.DictionaryPool<UInt32, List<MessageHandler>>.Release(receiverMap);
+                            Pool.DictionaryPool<int, List<MessageHandler>>.Release(receiverMap);
 
                             if (msgIter.Value.Count == 0)
                             {
@@ -476,11 +481,11 @@ namespace YH.Messages
 
             for (int i = 0, l = emptyMsgTypes.Count; i < l; ++i)
             {
-                YH.Pool.DictionaryPool<UInt32, Dictionary<UInt32, List<MessageHandler>>>.Release(m_Messages[emptyMsgTypes[i]]);
+                Pool.DictionaryPool<int, Dictionary<int, List<MessageHandler>>>.Release(m_Messages[emptyMsgTypes[i]]);
                 m_Messages.Remove(emptyMsgTypes[i]);
             }
 
-            YH.Pool.ListPool<UInt32>.Release(emptyMsgTypes);
+            Pool.ListPool<int>.Release(emptyMsgTypes);
         }
 
         /// <summary>
@@ -488,16 +493,16 @@ namespace YH.Messages
         /// </summary>
         /// <param name="receiverMap"></param>
         /// <param name="handle"></param>
-        protected void RemoveReceiverMap(Dictionary<UInt32, List<MessageHandler>> receiverMap, MessageHandler.Handle handle)
+        protected void RemoveReceiverMap(Dictionary<int, List<MessageHandler>> receiverMap, MessageHandler.Handle handle)
         {
-            List<UInt32> emptyKeys = YH.Pool.ListPool<UInt32>.Get();
+            List<int> emptyKeys = Pool.ListPool<int>.Get();
             foreach(var iter in receiverMap)
             {
                 RemoveHandle(iter.Value,handle);
                 if (iter.Value.Count == 0)
                 {
                     emptyKeys.Add(iter.Key);
-                    YH.Pool.ListPool<MessageHandler>.Release(iter.Value);
+                    Pool.ListPool<MessageHandler>.Release(iter.Value);
                 }
             }
 
@@ -506,20 +511,20 @@ namespace YH.Messages
                 receiverMap.Remove(emptyKeys[i]);
             }
 
-            YH.Pool.ListPool<UInt32>.Release(emptyKeys);
+            Pool.ListPool<int>.Release(emptyKeys);
         }
 
         /// <summary>
         /// 移除接收表中的处理数据
         /// </summary>
         /// <param name="receiverMap"></param>
-        protected void RemoveReceiverMap(Dictionary<UInt32, List<MessageHandler>> receiverMap)
+        protected void RemoveReceiverMap(Dictionary<int, List<MessageHandler>> receiverMap)
         {
-            List<UInt32> emptyKeys = YH.Pool.ListPool<UInt32>.Get();
+            List<int> emptyKeys = Pool.ListPool<int>.Get();
             foreach (var iter in receiverMap)
             {
                 emptyKeys.Add(iter.Key);
-                YH.Pool.ListPool<MessageHandler>.Release(iter.Value);
+                Pool.ListPool<MessageHandler>.Release(iter.Value);
             }
 
             for (int i = 0, l = emptyKeys.Count; i < l; ++i)
@@ -527,7 +532,7 @@ namespace YH.Messages
                 receiverMap.Remove(emptyKeys[i]);
             }
 
-            YH.Pool.ListPool<UInt32>.Release(emptyKeys);
+            Pool.ListPool<int>.Release(emptyKeys);
         }
 
         /// <summary>
@@ -538,7 +543,7 @@ namespace YH.Messages
         {
             if (message!=null)
             {
-                Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>> msgMap = null;
+                Dictionary<int, Dictionary<int, List<MessageHandler>>> msgMap = null;
                 if (message.type != Message.GlobalMessageType)
                 {
                     //trigger global message
@@ -563,7 +568,7 @@ namespace YH.Messages
         /// <param name="sender"></param>
         /// <param name="receiver"></param>
         /// <param name="data"></param>
-        public void Dispatch(UInt32 type,UInt32 sender,UInt32 receiver,object data)
+        public void Dispatch(int type,int sender,int receiver,object data)
         {
             Message message = s_MessagePool.Get();
             message.type = type;
@@ -579,7 +584,7 @@ namespace YH.Messages
         /// <param name="type"></param>
         /// <param name="sender"></param>
         /// <param name="data"></param>
-        public void Dispatch(UInt32 type, UInt32 sender,object data)
+        public void Dispatch(int type, int sender,object data)
         {
             Message message = s_MessagePool.Get();
             message.type = type;
@@ -588,13 +593,26 @@ namespace YH.Messages
             Dispatch(message);
         }
 
-        protected void DispatchMap(Dictionary<UInt32, Dictionary<UInt32, List<MessageHandler>>> msgMap,Message message)
+        /// <summary>
+        /// 发送消息
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="sender"></param>
+        public void Dispatch(int type, int sender)
         {
-            UInt32 receiver = message.receiver;
-            UInt32 sender = message.sender;
+            Message message = s_MessagePool.Get();
+            message.type = type;
+            message.sender = sender;
+            Dispatch(message);
+        }
+
+        protected void DispatchMap(Dictionary<int, Dictionary<int, List<MessageHandler>>> msgMap,Message message)
+        {
+            int receiver = message.receiver;
+            int sender = message.sender;
             if (receiver !=GlobalReceiver)
             {
-                Dictionary<UInt32, List<MessageHandler>> receiverMap = null;
+                Dictionary<int, List<MessageHandler>> receiverMap = null;
                 if (msgMap.TryGetValue(receiver, out receiverMap))
                 {
                     List<MessageHandler> handlerList = null;
@@ -644,7 +662,7 @@ namespace YH.Messages
             //在执行handle的时间，有可能会调用反注册函数。
             //如果反注册函数和当前handleList相关，则下面的执行会出错。
 
-            List<MessageHandler> copyedHandlers = YH.Pool.ListPool<MessageHandler>.Get();
+            List<MessageHandler> copyedHandlers = Pool.ListPool<MessageHandler>.Get();
             copyedHandlers.AddRange(handlerList);
             for(int i=0,l= copyedHandlers.Count; i < l; ++i)
             {
@@ -709,9 +727,12 @@ namespace YH.Messages
                 {
                     if (handlers[i].priority > handler.priority)
                     {
-                        handlers.Add(handler);
+                        handlers.Insert(i, handler);
+                        return;
                     }
                 }
+                //append
+                handlers.Add(handler);
             }
         }
 

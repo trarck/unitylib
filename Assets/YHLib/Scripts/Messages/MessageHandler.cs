@@ -6,9 +6,9 @@ namespace YH.Messages
     {
         //反回值表示消息是否传递下去
         public delegate bool Handle(Message message);
-        //public static UInt32 sId=0;
+        //public static int sId=0;
 
-        //public UInt32 id;
+        //public int id;
 
         //处理函数
         public Handle handle;
