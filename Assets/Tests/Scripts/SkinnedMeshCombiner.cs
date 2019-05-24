@@ -39,7 +39,7 @@ public class SkinnedMeshCombiner : MonoBehaviour {
                 bones.Add( bone );
  
             if( smr.material.mainTexture != null )
-                textures.Add( smr.renderer.material.mainTexture as Texture2D );
+                textures.Add( smr.GetComponent<Renderer>().material.mainTexture as Texture2D );
  
             CombineInstance ci = new CombineInstance();
             ci.mesh = smr.sharedMesh;
