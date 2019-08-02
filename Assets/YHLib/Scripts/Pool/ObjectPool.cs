@@ -4,7 +4,14 @@ using UnityEngine.Events;
 
 namespace YH.Pool
 {
-    public class ObjectPool<T> where T : new()
+    public interface IObjectPool
+    {
+        int countAll { get;}
+        int countActive { get; }
+        int countInactive { get; }
+    }
+
+    public class ObjectPool<T>:IObjectPool where T : new()
     {
         private readonly Stack<T> m_Stack = new Stack<T>();
         private readonly UnityAction<T> m_ActionOnGet;
@@ -18,6 +25,9 @@ namespace YH.Pool
         {
             m_ActionOnGet = actionOnGet;
             m_ActionOnRelease = actionOnRelease;
+#if POOL_ANALIZE
+            PoolManager.AddPool(this);
+#endif
         }
 
         public T Get()
