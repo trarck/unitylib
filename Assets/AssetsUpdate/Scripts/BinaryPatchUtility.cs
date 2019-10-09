@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using Ionic.BZip2;
 
-namespace BsDiff
+namespace YH.Update
 {
 	/*
 	The original bsdiff.c source code (http://www.daemonology.net/bsdiff/) is

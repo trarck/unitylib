@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using Ionic.Zip;
 
-namespace YH.AM
+namespace YH.Update
 {
     public class GeneratePatch
     {

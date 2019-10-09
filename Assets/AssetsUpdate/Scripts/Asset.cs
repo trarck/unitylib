@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace YH.AM
+namespace YH.Update
 {
     [System.Serializable]
     public class Asset

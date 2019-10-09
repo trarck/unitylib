@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace YH.AM
+namespace YH.Update
 {
     public class GenerateManifest
     {
@@ -452,7 +452,7 @@ namespace YH.AM
 
                         //如果目标文件只读，则copy会失败.
                         FileInfo outFileInfo = new FileInfo(outFilePath);
-                        if( (outFileInfo.Attributes & FileAttributes.ReadOnly)!=0)
+                        if(outFileInfo.Exists && (outFileInfo.Attributes & FileAttributes.ReadOnly)!=0)
                         {
                             outFileInfo.Attributes &= ~FileAttributes.ReadOnly;//outFileInfo.Attributes -= FileAttributes.ReadOnly;
                             outFileInfo.Refresh();
@@ -473,7 +473,7 @@ namespace YH.AM
 
                         using (FileStream output = new FileStream(patchFile, FileMode.Create))
                         {
-                            BsDiff.BinaryPatchUtility.Create(File.ReadAllBytes(srcfilePath), File.ReadAllBytes(destFilePath), output);
+                            BinaryPatchUtility.Create(File.ReadAllBytes(srcfilePath), File.ReadAllBytes(destFilePath), output);
                         }
                         break;
                 }

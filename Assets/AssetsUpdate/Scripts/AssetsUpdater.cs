@@ -2,12 +2,20 @@
 using System.Collections;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 using Ionic.Zip;
-using YH.Net;
 
-namespace YH.AM
+namespace YH.Update
 {
-    public class AssetsUpdater : MonoBehaviour
+    class AcceptAllCertificatesSignedHandler : CertificateHandler
+    {
+        protected override bool ValidateCertificate(byte[] certificateData)
+        {
+            return true;
+        }
+    }
+
+    public class AssetsUpdater : UnitySingleton<AssetsUpdater>
     {
 
         public enum UpdateSegment
@@ -70,17 +78,6 @@ namespace YH.AM
         public delegate void UpdatingHandle(UpdateSegment segment, UpdateError err, string msg, float percent);
         public event UpdatingHandle OnUpdating;
 
-        [SerializeField]
-        HttpRequest m_HttpRequest;
-
-        void Awake()
-        {
-            if (m_HttpRequest == null)
-            {
-                m_HttpRequest = gameObject.AddComponent<HttpRequest>();
-            }
-        }
-
         /// <summary>
         /// 开始更新
         /// 因为不是同步，执行流程分散在各个子函数里。
@@ -93,33 +90,66 @@ namespace YH.AM
             return 0;
         }
 
+        IEnumerator HandleProgress(UnityWebRequest request, System.Action<float> progressCallback,float progressInterval=0.1f)
+        {
+            while (!request.isDone)
+            {
+                progressCallback(request.downloadProgress);
+                yield return new WaitForSeconds(progressInterval); // WaitForEndOfFrame();
+            }
+            //这里不需要再调用百分白时候的回调,在这以前已经执行RequestCallback的回调.可以在RequestCallback里把显示进度设置成100%
+            //progressCallback(1.0f);
+        }
+
+        IEnumerator HttpGet(string url, System.Action<UnityWebRequest> callback)
+        {
+            UnityWebRequest webRequest = UnityWebRequest.Get(url);
+#if SSH_ACCEPT_ALL
+            webRequest.certificateHandler = new AcceptAllCertificatesSignedHandler();
+#endif
+            yield return webRequest.SendWebRequest();
+            callback(webRequest);
+        }
+
+        IEnumerator HttpGet(string url, System.Action<UnityWebRequest> callback, System.Action<float> progressCallback)
+        {
+            UnityWebRequest webRequest = UnityWebRequest.Get(url);
+#if SSH_ACCEPT_ALL
+            webRequest.certificateHandler = new AcceptAllCertificatesSignedHandler();
+#endif
+            StartCoroutine(HandleProgress(webRequest, progressCallback));
+            yield return webRequest.SendWebRequest();
+            callback(webRequest);
+        }
+
         public void GetRemoteVersion()
         {
             string remoteVersionUrl = m_UpdateUrl + "/version.txt";
-            TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Get Remote Version", 0);
-            m_HttpRequest.Get(remoteVersionUrl, (err, www) =>
+            TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Get remote version", 0);
+
+            StartCoroutine(HttpGet(remoteVersionUrl, (request) =>
             {
-                if (err != null)
+                if (request.error != null)
                 {
                     //获取远程版本信息失败
-                    TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.DownloadRemoteVersionError, "download fail:" + remoteVersionUrl, 1);
+                    TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.DownloadRemoteVersionError, "Download remote version "+ remoteVersionUrl + " fail:" + request.error, 1);
                 }
                 else
                 {
                     //获取远程版本信息成功
-                    TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Get Remote Version", 0.2f);
+                    TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Get remote version", 0.2f);
                     RemoteVersions remoteVersions = new RemoteVersions();
-                    if (remoteVersions.Parse(www.text))
+                    if (remoteVersions.Parse(request.downloadHandler.text))
                     {
                         //比较版本
                         CompareVersion(remoteVersions); //Step
                     }
                     else
                     {
-                        TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.ParseRemoteVersionError, "parse fail:" + www.text, 1);
+                        TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.ParseRemoteVersionError, "Parse remote version fail:" + request.downloadHandler.text, 1);
                     }
                 }
-            });
+            }));
         }
 
         public void InitLocalVersion()
@@ -192,14 +222,14 @@ namespace YH.AM
             if (remoteVersions.MinHostVersion > m_NativeHostVersion)
             {
                 //the host is out data
-                TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.HostIsOutOfDate, "please download the newest application", 1);
+                TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.HostIsOutOfDate, "Please download the newest application.", 1);
                 return;
             }
 
             //check min support version
             if (remoteVersions.MinSupportVersion > m_CurrentVersion)
             {
-                TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.CurrentVersionOutOfDate, "please download the newest application", 1);
+                TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.CurrentVersionOutOfDate, "Please download the newest application.", 1);
                 return;
             }
 
@@ -207,11 +237,11 @@ namespace YH.AM
             if (m_CurrentVersion >= remoteVersions.LatestVersion)
             {
                 //the current is latest version,complete the update
-                TriggerUpdating(UpdateSegment.Complete, UpdateError.OK, "the assets is latest did not need update", 1);
+                TriggerUpdating(UpdateSegment.Complete, UpdateError.OK, "The assets is latest did not need update.", 1);
                 return;
             }
 
-            TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Compare Complete", 1);
+            TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Compare complete.", 1);
 
             //do update
             string patchPath = GetPatchPath(m_CurrentVersion, remoteVersions.LatestVersion);
@@ -228,25 +258,25 @@ namespace YH.AM
         {
             string manifestUrl = m_UpdateUrl + "/" + patchPath + ".manifest";
 
-            m_HttpRequest.Get(manifestUrl, (err, www) =>
+            StartCoroutine(HttpGet(manifestUrl, (request) =>
             {
-                if (err != null)
+                if (request.error != null)
                 {
                     //获取manifest信息失败
-                    TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "download fail:" + manifestUrl, 1);
+                    TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "Download manifest "+ manifestUrl + " fail:" + request.error, 1);
                 }
                 else
                 {
-                    if (string.IsNullOrEmpty(www.text))
+                    if (string.IsNullOrEmpty(request.downloadHandler.text))
                     {
                         TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "Manifest file is empty:" + manifestUrl, 1);
                     }
                     else
                     {
-                        ManifestHeader manifestHeader = JsonUtility.FromJson<ManifestHeader>(www.text);
+                        ManifestHeader manifestHeader = JsonUtility.FromJson<ManifestHeader>(request.downloadHandler.text);
                         if (manifestHeader == null)
                         {
-                            TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "parse fail:" + www.text, 1);
+                            TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "Parse manifest fail:" + request.downloadHandler.text, 1);
                         }
                         else
                         {
@@ -254,7 +284,7 @@ namespace YH.AM
                         }
                     }
                 }
-            });
+            }));
         }
 
         /// <summary>
@@ -266,43 +296,149 @@ namespace YH.AM
         {
             string patchPacktUrl = m_UpdateUrl + "/" + patchPath + ".zip";
 
-            TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "download patch pack", 0);
-            m_HttpRequest.Get(patchPacktUrl, (err, www) =>
+            TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "Download patch pack", 0);
+            StartCoroutine(HttpGet(patchPacktUrl, (request) =>
             {
-                if (err != null)
+                if (request.error != null)
                 {
                     //获取manifest信息失败
-                    TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadPatchPackError, "download fail:" + patchPacktUrl, 1);
+                    TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadPatchPackError, "Download patch pack "+ patchPacktUrl + " fail:" + request.error, 1);
                 }
                 else
                 {
-                    TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "download patch pack", 1);
+                    TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "Download patch pack", 1);
                     //save to temp file
                     string localPackFile = Path.Combine(m_StoragePath, patchPath + ".zip");
                     if (!Directory.Exists(Path.GetDirectoryName(localPackFile)))
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(localPackFile));
                     }
-                    File.WriteAllBytes(localPackFile, www.bytes);
 
-                    StartCoroutine(ApplayPatch(localPackFile));
+                    MemoryStream stream = new MemoryStream(request.downloadHandler.data);
+                    StartCoroutine(ApplayPatch(stream));
+                    
+                    if (!m_DeletePatchPack)
+                    {
+                        File.WriteAllBytes(localPackFile, request.downloadHandler.data);
+                    }                    
                 }
             },
             (percent) =>
             {
-                TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "downloading", percent);
-            });
+                TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "Downloading", percent);
+            }));
         }
 
         /// <summary>
-        /// 应用补丁
+        /// 应用补丁。不使用了，
         /// </summary>
         /// <param name="localPakFile"></param>
-        protected IEnumerator ApplayPatch(string localPakFile)
+//        protected IEnumerator ApplayPatch(string localPakFile)
+//        {
+//            TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", 0);
+//            bool haveError = false;
+//            using (ZipFile zipFile = new ZipFile(localPakFile, System.Text.Encoding.UTF8))
+//            {
+//                bool haveManifest = false;
+//                Manifest manifest = null;
+//                Dictionary<string, Asset> assetsMap = null;
+//                int i = 0;
+//                foreach (ZipEntry zipEntry in zipFile)
+//                {
+//                    if (!haveManifest)
+//                    {
+//                        //get manifest
+//                        haveManifest = true;
+//                        string manfestContent = null;
+//                        using (MemoryStream entryContent = new MemoryStream((int)zipEntry.UncompressedSize))
+//                        {
+//                            zipEntry.Extract(entryContent);
+//                            manfestContent = System.Text.Encoding.Default.GetString(entryContent.GetBuffer());
+//                        }
+
+//                        if (!string.IsNullOrEmpty(manfestContent))
+//                        {
+//                            manifest = JsonUtility.FromJson<Manifest>(manfestContent);
+//                            //parse assets
+//                            assetsMap = ParseManifest(manifest);
+//                        }
+//                        else
+//                        {
+//                            //error to extract manifest file
+//                            //stop 
+//                            break;
+//                        }
+//                    }
+//                    else
+//                    {
+//                        if (assetsMap != null && assetsMap.ContainsKey(zipEntry.FileName))
+//                        {
+//                            Asset asset = assetsMap[zipEntry.FileName];
+//                            switch (asset.type)
+//                            {
+//                                case Asset.AssetType.Full:
+//                                    //extract to the target path
+//                                    zipEntry.Extract(m_StoragePath, ExtractExistingFileAction.OverwriteSilently);
+//                                    TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", (float)(++i) / assetsMap.Count);
+//                                    break;
+//                                case Asset.AssetType.Patch:
+//                                    //apply patch
+//#if USE_BSDIFF
+//                                    zipEntry.Extract(PatchTempPath, ExtractExistingFileAction.OverwriteSilently);
+//                                    if (AllpyPatchFile(zipEntry.FileName))
+//                                    {
+//                                        TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", (float)(++i) / assetsMap.Count);
+//                                    }
+//                                    else
+//                                    {
+//                                        TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.ApplyPatchError, "patch fail file:" + zipEntry.FileName, (float)(++i) / assetsMap.Count);
+//                                        haveError = true;
+//                                    }
+//#endif
+//                                    break;
+//                            }
+//                            //stop 
+//                            if (!m_ContinueWithApplyError && haveError)
+//                            {
+//                                break;
+//                            }
+//                            yield return new WaitForEndOfFrame();
+//                        }
+//                        else
+//                        {
+//                            //the file is not in the manifest ignore
+//                        }
+//                    }
+//                }
+//            }
+
+//            //update CurrentVersion
+//            if (!haveError)
+//            {
+//                WriteCurrentVersionToFile();
+//            }
+
+//            DeleteTempDir();
+
+//            if (m_DeletePatchPack && File.Exists(localPakFile))
+//            {
+//                File.Delete(localPakFile);
+//            }
+
+//            TriggerUpdating(UpdateSegment.Complete, UpdateError.OK, "update complete", 1);
+//        }
+
+        /// <summary>
+        /// 应用补丁。
+        /// 保存到文件后再解压，没有从内存中直接解压同时保存文件快。
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        protected IEnumerator ApplayPatch(Stream stream)
         {
-            TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", 0);
+            TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "Apply patch", 0);
             bool haveError = false;
-            using (ZipFile zipFile = new ZipFile(localPakFile, System.Text.Encoding.UTF8))
+            using (ZipFile zipFile = ZipFile.Read(stream))
             {
                 bool haveManifest = false;
                 Manifest manifest = null;
@@ -344,7 +480,7 @@ namespace YH.AM
                                 case Asset.AssetType.Full:
                                     //extract to the target path
                                     zipEntry.Extract(m_StoragePath, ExtractExistingFileAction.OverwriteSilently);
-                                    TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", (float)(++i) / assetsMap.Count);
+                                    TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "Apply patch", (float)(++i) / assetsMap.Count);
                                     break;
                                 case Asset.AssetType.Patch:
                                     //apply patch
@@ -352,11 +488,11 @@ namespace YH.AM
                                     zipEntry.Extract(PatchTempPath, ExtractExistingFileAction.OverwriteSilently);
                                     if (AllpyPatchFile(zipEntry.FileName))
                                     {
-                                        TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "apply patch", (float)(++i) / assetsMap.Count);
+                                        TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.OK, "Apply patch", (float)(++i) / assetsMap.Count);
                                     }
                                     else
                                     {
-                                        TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.ApplyPatchError, "patch fail file:" + zipEntry.FileName, (float)(++i) / assetsMap.Count);
+                                        TriggerUpdating(UpdateSegment.ApplyAssets, UpdateError.ApplyPatchError, "Patch fail file:" + zipEntry.FileName, (float)(++i) / assetsMap.Count);
                                         haveError = true;
                                     }
 #endif
@@ -385,12 +521,9 @@ namespace YH.AM
 
             DeleteTempDir();
 
-            if (m_DeletePatchPack && File.Exists(localPakFile))
-            {
-                File.Delete(localPakFile);
-            }
+            stream.Dispose();
 
-            TriggerUpdating(UpdateSegment.Complete, UpdateError.OK, "update complete", 1);
+            TriggerUpdating(UpdateSegment.Complete, UpdateError.OK, "Update complete", 1);
         }
 
         protected bool AllpyPatchFile(string filename)
@@ -447,6 +580,7 @@ namespace YH.AM
             }
             return assets;
         }
+
         public string GetPatchPath(Version from, Version to)
         {
             return from.ToString() + "_" + to.ToString();
@@ -668,19 +802,6 @@ namespace YH.AM
             get
             {
                 return m_ContinueWithApplyError;
-            }
-        }
-
-        public HttpRequest httpRequest
-        {
-            set
-            {
-                m_HttpRequest = value;
-            }
-
-            get
-            {
-                return m_HttpRequest;
             }
         }
 
