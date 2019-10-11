@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using YH.AM;
+using YH.Update;
 using UnityEngine.UI;
 
 public class TestAssetUpdate : MonoBehaviour {

@@ -18,9 +18,7 @@ public class TestCustomYield : MonoBehaviour {
 
     void TestStart()
     {
-        //StartCoroutine(TestA());
-
-        StartCoroutine(TestB());
+        StartCoroutine(TestA());
     }
 
     IEnumerator TestA()
@@ -41,27 +39,6 @@ public class TestCustomYield : MonoBehaviour {
             yield return result;
         }
         Debug.Log("TestA End "+result+"-->" + Time.frameCount);
-    }
-
-    IEnumerator TestB()
-    {
-        Debug.Log("TestB Start-->" + Time.frameCount);
-
-        var my=new WaitForCallback<string>( fun =>
-        {
-            Debug.Log(fun);
-            AsyncFunc("BBB", fun);
-        });
-        yield return my;
-        Debug.Log("TestB End " + my.Result + "-->" + Time.frameCount);
-
-        my = new WaitForCallback<string>(fun =>
-        {
-            Debug.Log(fun);
-            AsyncFunc("bbbb", fun);
-        });
-        yield return my;
-        Debug.Log("TestB bbb End " + my.Result + "-->" + Time.frameCount);
     }
 
     void AsyncFunc(string param,Action<string> callback)

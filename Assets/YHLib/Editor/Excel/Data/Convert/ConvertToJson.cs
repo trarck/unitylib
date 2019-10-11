@@ -3,6 +3,7 @@ using UnityEditor;
 using System.IO;
 using System.Collections.Generic;
 using NPOI.SS.UserModel;
+using YHEditor;
 
 namespace YH.Excel.Data
 {
@@ -182,16 +183,16 @@ namespace YH.Excel.Data
 
         void SaveToJsonFile(string jsonfile, object data)
         {
-            fastJSON.JSONParameters param = new fastJSON.JSONParameters();
-            param.UseEscapedUnicode = false;
+            //fastJSON.JSONParameters param = new fastJSON.JSONParameters();
+            //param.UseEscapedUnicode = false;
 
-            string jsonString = fastJSON.JSON.ToJSON(data, param);
-            if (m_BeautifyJson)
-            {
-                jsonString = fastJSON.JSON.Beautify(jsonString);
-            }
+            //string jsonString = fastJSON.JSON.ToJSON(data, param);
+            //if (m_BeautifyJson)
+            //{
+            //    jsonString = fastJSON.JSON.Beautify(jsonString);
+            //}
 
-            File.WriteAllText(jsonfile, jsonString);
+            //File.WriteAllText(jsonfile, jsonString);
         }
 
         bool IsTableSheet(ISheet sheet)

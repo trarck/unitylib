@@ -66,7 +66,7 @@ namespace YH.Bone
             
             foreach (PoseTransform bonePose in pose.bonePoses) 
             {
-                Transform poseBone = BoneManager.Find (skinnedRenderer.rootBone, bonePose.name);
+                Transform poseBone = BoneUtils.Find (skinnedRenderer.rootBone, bonePose.name);
                 if (poseBone != null) 
                 {
                     #if UNITY_EDITOR

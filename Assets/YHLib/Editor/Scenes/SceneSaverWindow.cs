@@ -93,9 +93,9 @@ namespace YHEditor
         {
             EditorGUILayout.BeginHorizontal();
             m_AutoSave = EditorGUILayout.ToggleLeft("AutoSave",m_AutoSave, GUILayout.MinWidth(60));
-            YH.YHEditorTools.PushLabelWidth(80);
+            YHEditorTools.PushLabelWidth(80);
             m_Interval = EditorGUILayout.FloatField("Interval(s)：", m_Interval, GUILayout.MinWidth(30));
-            YH.YHEditorTools.PopLabelWidth();
+            YHEditorTools.PopLabelWidth();
             EditorGUILayout.EndHorizontal();
 
             m_ListScrollPosition=EditorGUILayout.BeginScrollView(m_ListScrollPosition);

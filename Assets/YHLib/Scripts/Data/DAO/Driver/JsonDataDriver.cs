@@ -25,7 +25,7 @@ namespace YH
             if (File.Exists(file))
             {
                 string content = File.ReadAllText(file);
-                object dataTable = fastJSON.JSON.Parse(content);
+                object dataTable = null;// fastJSON.JSON.Parse(content);
                 return dataTable;
             }
 			else
@@ -35,7 +35,7 @@ namespace YH
                 if (text)
                 {
                     string content = text.text;
-                    object dataTable = fastJSON.JSON.Parse(content);
+                    object dataTable = null;// fastJSON.JSON.Parse(content);
                     return dataTable;
                 }
                 return null;
@@ -44,7 +44,7 @@ namespace YH
 
         public override void SaveDataToFile(string file, object data)
         {
-            string content = fastJSON.JSON.ToJSON(data);
+            string content = null;// fastJSON.JSON.ToJSON(data);
 			//check Directory
             string dirPath = Path.GetDirectoryName(file);
             if (!Directory.Exists(dirPath))

@@ -544,7 +544,7 @@ namespace YH.Update
             using (FileStream input = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (FileStream output = new FileStream(outFile, FileMode.Create))
             {
-                BsDiff.BinaryPatchUtility.Apply(input, () => new FileStream(patchFile, FileMode.Open, FileAccess.Read, FileShare.Read), output);
+                BinaryPatchUtility.Apply(input, () => new FileStream(patchFile, FileMode.Open, FileAccess.Read, FileShare.Read), output);
             }
 
             //copy patched file to source file

@@ -25,7 +25,7 @@ namespace YH.Bone
                 {
                     int parentBoneIndex = bones.FindIndex ((Transform b) => b.name == bone.parent.name);
                     if (parentBoneIndex >= 0)
-                        localTrans = BoneManager.GetLocalMatrix (bindPoses[boneCnt], bindPoses[parentBoneIndex]);
+                        localTrans = BoneUtils.GetLocalMatrix (bindPoses[boneCnt], bindPoses[parentBoneIndex]);
                     else
                         localTrans = bindPoses[boneCnt].inverse;
                 }
@@ -66,9 +66,9 @@ namespace YH.Bone
         public PoseTransform (string poseName, Matrix4x4 localTrans) 
         {
             name = poseName;
-            position = BoneManager.DecodePosition (localTrans);
-            rotation = BoneManager.DecodeRotation (localTrans);
-            scale = BoneManager.DecodeScale (localTrans);
+            position = BoneUtils.DecodePosition (localTrans);
+            rotation = BoneUtils.DecodeRotation (localTrans);
+            scale = BoneUtils.DecodeScale (localTrans);
         }
 
         public PoseTransform (string poseName, Vector3 localPos, Quaternion localRot, Vector3 localScale) 

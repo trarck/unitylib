@@ -4,7 +4,7 @@ using System.IO;
 using UnityEditor;
 using Ionic.Zip;
 using YH;
-using YH.AM;
+using YH.Update;
 using YH.Net;
 
 public class MyEditor : Editor
