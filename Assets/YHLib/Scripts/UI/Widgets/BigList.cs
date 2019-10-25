@@ -81,6 +81,7 @@ namespace YH.UI
             m_Items = new LinkedList<Item>();
             CalculateShowCount();
             CreateItems();
+            UpdateItems();
             //set content size
             content.SetSizeWithCurrentAnchors(vertical ? RectTransform.Axis.Vertical : RectTransform.Axis.Horizontal, m_DataProvider.itemSize * m_DataProvider.count);
         }
@@ -119,6 +120,12 @@ namespace YH.UI
             Vector2 oldPosition = content.anchoredPosition;
             base.LateUpdate();
             Vector2 delta = content.anchoredPosition - oldPosition;
+#if UNITY_EDITOR
+            if (m_DataProvider == null)
+            {
+                return;
+            }
+#endif
             LayoutItems(delta);
         }
         
@@ -205,7 +212,7 @@ namespace YH.UI
                 m_Items.AddLast(item);
             }
 
-            UpdateItems();
+            
         }
 
         protected void UpdateItems()
@@ -307,43 +314,47 @@ namespace YH.UI
                 //check is need change
                 float rate = distance / m_DataProvider.itemSize;
                 float safeThreshold = safeCount + m_Threshold;
-                //Debug.Log("rate:" + rate);
-                while (rate >= safeThreshold)
+                bool needMove = rate >= safeThreshold;
+                if (needMove)
                 {
-                    //move to another side
-                    if (moveDirection > 0)
+                    LinkedListNode<Item> iter = null;
+                    while (rate >= safeThreshold)
                     {
-                        //检查是不是到最后一个元素
-                        if (m_Items.Last.Value.index < m_DataProvider.count-1)
+                        //move to another side
+                        if (moveDirection > 0)
                         {
-                            item = m_Items.First.Value;
-                            m_Items.RemoveFirst();
-                            item.index = m_Items.Last.Value.index + 1;
-                            m_Items.AddLast(item);
+                            //检查是不是到最后一个元素
+                            if (m_Items.Last.Value.index < m_DataProvider.count - 1)
+                            {
+                                iter = m_Items.First;
+                                m_Items.RemoveFirst();
+                                iter.Value.index = m_Items.Last.Value.index + 1;
+                                m_Items.AddLast(iter);
+                            }
+                            else
+                            {
+                                break;
+                            }
                         }
-                        else
+                        else if (moveDirection < 0)
                         {
-                            break;
+                            //检查是不是到第一个元素
+                            if (m_Items.First.Value.index > 0)
+                            {
+                                iter = m_Items.Last;
+                                m_Items.RemoveLast();
+                                iter.Value.index = m_Items.First.Value.index - 1;
+                                m_Items.AddFirst(item);
+                            }
+                            else
+                            {
+                                break;
+                            }
                         }
+                        rate -= 1;
                     }
-                    else if (moveDirection < 0)
-                    {
-                        //检查是不是到第一个元素
-                        if (m_Items.First.Value.index > 0)
-                        {
-                            item = m_Items.Last.Value;
-                            m_Items.RemoveLast();
-                            item.index = m_Items.First.Value.index - 1;
-                            m_Items.AddFirst(item);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    rate -= 1;
+                    UpdateItems();
                 }
-                UpdateItems();
             }
 
             //Type t = this.GetType().BaseType;

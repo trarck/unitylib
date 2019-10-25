@@ -77,6 +77,7 @@ namespace YH.UI
             m_Cells = new LinkedList<Cell>();
             CalculateShowCount();
             CreateItems();
+            UpdateItems();
             //set content size
             ResizeContent();
         }
@@ -99,19 +100,19 @@ namespace YH.UI
                 //m_VisibleColumn = Mathf.CeilToInt(viewRect.rect.height / m_DataProvider.cellSize.y);
             }
             m_VisibleRow = Mathf.CeilToInt(viewRect.rect.size[m_RowAxis] / m_DataProvider.cellSize[m_RowAxis]);
-            m_VisibleColumn = Mathf.CeilToInt(viewRect.rect.size[m_ColAxis] / m_DataProvider.cellSize[m_ColAxis]);
+            m_VisibleColumn = Mathf.FloorToInt(viewRect.rect.size[m_ColAxis] / m_DataProvider.cellSize[m_ColAxis]);
 
             m_ShowCount = m_VisibleRow * m_VisibleColumn;
         }
 
         protected void ResizeContent()
         {
-            int totalRow = Mathf.CeilToInt(m_DataProvider.count / m_VisibleColumn);
+            int totalRow = Mathf.CeilToInt((float)m_DataProvider.count / m_VisibleColumn);
             if (vertical)
             {
                 float height = (m_DataProvider.cellSize.y + spacing.y) * totalRow - spacing.y;
                 height += padding.y + padding.w;
-                content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, );
+                content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             }
             else
             {
@@ -126,7 +127,7 @@ namespace YH.UI
             Vector2 oldPosition = content.anchoredPosition;
             base.OnScroll(data);
             Vector2 delta = content.anchoredPosition - oldPosition;
-            LayoutItems(delta);
+            LayoutCells(delta);
         }
 
         public override void OnDrag(PointerEventData eventData)
@@ -134,7 +135,7 @@ namespace YH.UI
             Vector2 oldPosition = content.anchoredPosition;
             base.OnDrag(eventData);
             Vector2 delta = content.anchoredPosition - oldPosition;
-            LayoutItems(delta);
+            LayoutCells(delta);
         }
 
         protected override void LateUpdate()
@@ -142,7 +143,7 @@ namespace YH.UI
             Vector2 oldPosition = content.anchoredPosition;
             base.LateUpdate();
             Vector2 delta = content.anchoredPosition - oldPosition;
-            LayoutItems(delta);
+            LayoutCells(delta);
         }
 
         #region Item
@@ -175,7 +176,7 @@ namespace YH.UI
             return bounds;
         }
 
-        protected Cell CreateItem(int row,int col, int tag)
+        protected Cell CreateItem(int row,int col,int index, int tag)
         {
             Cell item = null;
             if (m_DataProvider != null)
@@ -192,6 +193,7 @@ namespace YH.UI
 
             if (item != null)
             {
+                item.index = index;
                 item.row = row;
                 item.col = col;
                 item.tag = tag;
@@ -207,18 +209,21 @@ namespace YH.UI
         protected void CreateItems()
         {
             int tagIndex = 0;
-            int startIdnex = m_DataProvider.startIndex;
-            int startRow = Mathf.FloorToInt(startIdnex / m_VisibleColumn);
+            int startIndex = m_DataProvider.startIndex;
+            //保证startIndex显示在第一排。
+            int startRow = Mathf.FloorToInt(startIndex / m_VisibleColumn);
 
             int beforeRow = Mathf.Min(safeRow, startRow);
             int afterRow = safeRow - beforeRow + safeRow;
-            
+            //前面的每一排都要显示满，startIndex不一定出现在第一排的第一列，但要保证在第一排。
+            //这里的startIndex>=0
+            startIndex = startIndex - beforeRow * m_VisibleColumn;
             //before
             for (int j = 0; j < beforeRow; ++j)
             {
                 for (int i = 0; i < m_VisibleColumn; ++i)
                 {
-                    Cell item = CreateItem(startRow-beforeRow+j,i, tagIndex++);
+                    Cell item = CreateItem(startRow-beforeRow+j,i,startIndex++, tagIndex++);
                     m_Cells.AddLast(item);
                 }
             }
@@ -227,7 +232,7 @@ namespace YH.UI
             {
                 for (int i = 0; i < m_VisibleColumn; ++i)
                 {
-                    Cell item = CreateItem(startRow + j, i, tagIndex++);
+                    Cell item = CreateItem(startRow + j, i, startIndex++,tagIndex++);
                     m_Cells.AddLast(item);
                 }
             }
@@ -236,25 +241,20 @@ namespace YH.UI
             {
                 for (int i = 0; i < m_VisibleColumn; ++i)
                 {
-                    Cell item = CreateItem(startRow +m_VisibleRow+ j, i, tagIndex++);
+                    Cell item = CreateItem(startRow +m_VisibleRow+ j, i,startIndex++, tagIndex++);
                     m_Cells.AddLast(item);
                 }
             }
-
-            UpdateItems();
         }
 
         protected void UpdateItems()
         {
-            float p = 0;
-            int index = -1;
             foreach (Cell cell in m_Cells)
             {
-                index = cell.row * m_VisibleColumn + cell.col;
-
-                if (index>= 0 && index < m_DataProvider.count)
+                if (cell.index>= 0 && cell.index < m_DataProvider.count)
                 {
-                    if (index != cell.lastIndex)
+                    Debug.LogFormat("Update:{0},{1},{2},{3}", cell.index, cell.lastIndex, cell.row, cell.col);
+                    if (cell.index != cell.lastIndex)
                     {
                         if (m_DataProvider != null)
                         {
@@ -263,9 +263,18 @@ namespace YH.UI
                         }
 
                         //update position
-                        Vector2 pos = new Vector2( cell.col * m_DataProvider.cellSize[m_ColAxis], cell.row * m_DataProvider.cellSize[m_RowAxis]);
-
-                        cell.content.SetInsetAndSizeFromParentEdge(vertical ? RectTransform.Edge.Top : RectTransform.Edge.Left, p, m_DataProvider.cellSize);
+                        if (vertical)
+                        {
+                            Vector2 pos = new Vector2(cell.col * m_DataProvider.cellSize.x, cell.row * m_DataProvider.cellSize.y);
+                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, pos.y, m_DataProvider.cellSize.y);
+                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, pos.x, m_DataProvider.cellSize.x);
+                        }
+                        else if(horizontal)
+                        {
+                            Vector2 pos = new Vector2(cell.row * m_DataProvider.cellSize.x, cell.col * m_DataProvider.cellSize.y);
+                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, pos.y, m_DataProvider.cellSize.y);
+                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, pos.x, m_DataProvider.cellSize.x);
+                        }
                     }
                 }
                 //else
@@ -276,7 +285,7 @@ namespace YH.UI
             }
         }
 
-        protected void LayoutItems(Vector2 delta)
+        protected void LayoutCells(Vector2 delta)
         {
             //Debug.LogFormat(delta.ToString());
             //计算移动方向
@@ -292,21 +301,22 @@ namespace YH.UI
 
             //计算距离
             float distance = 0;
-            Cell item = null;
+            Cell cell = null;
 
             if (moveDirection > 0)
             {
                 //提前做个判断
+                Debug.LogFormat("{0},{1}", m_Cells.Last.Value.index , m_DataProvider.count - 1);
                 if (m_Cells.Last.Value.index >= m_DataProvider.count - 1)
                 {
                     //已经到最后一个元素，不能再移动。
                     return;
                 }
 
-                item = m_Cells.First.Value;
+                cell = m_Cells.First.Value;
                 Bounds viewBounds = new Bounds(viewRect.rect.center, viewRect.rect.size);
 
-                Bounds itemBounds = GetItemBounds(item.content);
+                Bounds itemBounds = GetItemBounds(cell.content);
 
                 if (vertical)
                 {
@@ -325,9 +335,9 @@ namespace YH.UI
                     return;
                 }
 
-                item = m_Cells.Last.Value;
+                cell = m_Cells.Last.Value;
                 Bounds viewBounds = new Bounds(viewRect.rect.center, viewRect.rect.size);
-                Bounds itemBounds = GetItemBounds(item.content);
+                Bounds itemBounds = GetItemBounds(cell.content);
 
                 if (vertical)
                 {
@@ -344,45 +354,86 @@ namespace YH.UI
             if (distance > 0)
             {
                 //check is need change
-                float rate = distance / m_DataProvider.cellSize;
+                float rate = distance / m_DataProvider.cellSize[m_RowAxis];
                 float safeThreshold = safeRow + m_Threshold;
                 //Debug.Log("rate:" + rate);
-                while (rate >= safeThreshold)
+                bool needMove = rate >= safeThreshold;
+                if (needMove)
                 {
-                    //move to another side
-                    if (moveDirection > 0)
+                    while (rate >= safeThreshold)
                     {
-                        //检查是不是到最后一个元素
-                        if (m_Cells.Last.Value.index < m_DataProvider.count - 1)
+                        //move to another side
+                        if (moveDirection > 0)
                         {
-                            item = m_Cells.First.Value;
-                            m_Cells.RemoveFirst();
-                            item.index = m_Cells.Last.Value.index + 1;
-                            m_Cells.AddLast(item);
+                            //把同一row的元素都移走。
+                            var iter = m_Cells.First;
+                            var currentRow = iter.Value.row;
+                            while (iter.Value.row == currentRow)
+                            {
+                                //检查是不是到最后一个元素
+                                if (m_Cells.Last.Value.index < m_DataProvider.count - 1)
+                                {
+                                    m_Cells.RemoveFirst();
+                                    if (m_Cells.Last.Value.col < m_VisibleColumn - 1)
+                                    {
+                                        iter.Value.row = m_Cells.Last.Value.row;
+                                        iter.Value.col = m_Cells.Last.Value.col + 1;
+                                    }
+                                    else
+                                    {
+                                        iter.Value.row = m_Cells.Last.Value.row + 1;
+                                        iter.Value.col = 0;
+                                    }
+                                    iter.Value.index = m_Cells.Last.Value.index + 1;
+
+                                    m_Cells.AddLast(iter);
+                                    iter = m_Cells.First;
+                                }
+                                else
+                                {
+                                    //提前结束
+                                    UpdateItems();
+                                    return;
+                                }
+                            }
                         }
-                        else
+                        else if (moveDirection < 0)
                         {
-                            break;
+                            //把同一row的元素都移走。
+                            var iter = m_Cells.Last;
+                            var currentRow = iter.Value.row;
+                            while (iter.Value.row == currentRow)
+                            {
+                                //检查是不是到第一个元素
+                                if (m_Cells.First.Value.index > 0)
+                                {
+                                    m_Cells.RemoveLast();
+                                    if (m_Cells.First.Value.col > 0)
+                                    {
+                                        iter.Value.row = m_Cells.First.Value.row;
+                                        iter.Value.col = m_Cells.First.Value.col - 1;
+                                    }
+                                    else
+                                    {
+                                        iter.Value.row = m_Cells.First.Value.row - 1;
+                                        iter.Value.col = m_VisibleColumn - 1;
+                                    }
+                                    iter.Value.index = m_Cells.First.Value.index - 1;
+                                    m_Cells.AddFirst(iter);
+                                    iter = m_Cells.Last;
+                                }
+                                else
+                                {
+                                    //提前结束
+                                    UpdateItems();
+                                    return;
+                                }
+                            }
                         }
+                        rate -= 1;
                     }
-                    else if (moveDirection < 0)
-                    {
-                        //检查是不是到第一个元素
-                        if (m_Cells.First.Value.index > 0)
-                        {
-                            item = m_Cells.Last.Value;
-                            m_Cells.RemoveLast();
-                            item.index = m_Cells.First.Value.index - 1;
-                            m_Cells.AddFirst(item);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    rate -= 1;
+                    UpdateItems();
                 }
-                UpdateItems();
             }
 
             //Type t = this.GetType().BaseType;
