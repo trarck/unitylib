@@ -22,14 +22,6 @@ public class TestListPanel : MonoBehaviour,BigList.IDataProvider
         }
     }
 
-    public float itemSize
-    {
-        get
-        {
-            return 100;
-        }
-    }
-
     public int startIndex
     {
         get

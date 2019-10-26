@@ -26,8 +26,6 @@ namespace YH.UI
         {
             //总数量
             int count { get; }
-            //元素大小
-            Vector2 cellSize { get; }
             //开始元素号
             int startIndex { get; }
             //创建元素
@@ -53,9 +51,10 @@ namespace YH.UI
             }
         }
 
-        public Vector4 padding=Vector4.zero;
+        public RectOffset padding= null;
         public Vector2 spacing=Vector2.zero;
-
+        //这个是显示数据，不应该放在dataprovider里。
+        public Vector2 cellSize = Vector2.zero;
         //安全列或排
         public int safeRow = 2;
         protected int m_VisibleRow = 0;
@@ -99,8 +98,8 @@ namespace YH.UI
                 //m_VisibleRow = Mathf.CeilToInt(viewRect.rect.width / m_DataProvider.cellSize.x);
                 //m_VisibleColumn = Mathf.CeilToInt(viewRect.rect.height / m_DataProvider.cellSize.y);
             }
-            m_VisibleRow = Mathf.CeilToInt(viewRect.rect.size[m_RowAxis] / m_DataProvider.cellSize[m_RowAxis]);
-            m_VisibleColumn = Mathf.FloorToInt(viewRect.rect.size[m_ColAxis] / m_DataProvider.cellSize[m_ColAxis]);
+            m_VisibleRow = Mathf.CeilToInt(viewRect.rect.size[m_RowAxis] / cellSize[m_RowAxis]);
+            m_VisibleColumn = Mathf.FloorToInt(viewRect.rect.size[m_ColAxis] / cellSize[m_ColAxis]);
 
             m_ShowCount = m_VisibleRow * m_VisibleColumn;
         }
@@ -110,14 +109,14 @@ namespace YH.UI
             int totalRow = Mathf.CeilToInt((float)m_DataProvider.count / m_VisibleColumn);
             if (vertical)
             {
-                float height = (m_DataProvider.cellSize.y + spacing.y) * totalRow - spacing.y;
-                height += padding.y + padding.w;
+                float height = (cellSize.y + spacing.y) * totalRow - spacing.y;
+                height += padding.top + padding.bottom;
                 content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             }
             else
             {
-                float width = (m_DataProvider.cellSize.x + spacing.x) * totalRow - spacing.x;
-                width += padding.x + padding.z;
+                float width = (cellSize.x + spacing.x) * totalRow - spacing.x;
+                width += padding.left + padding.right;
                 content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
             }
         }
@@ -139,10 +138,17 @@ namespace YH.UI
         }
 
         protected override void LateUpdate()
-        {
+        { 
+ #if UNITY_EDITOR
+            if (m_DataProvider == null)
+            {
+                return;
+            }
+#endif
             Vector2 oldPosition = content.anchoredPosition;
             base.LateUpdate();
             Vector2 delta = content.anchoredPosition - oldPosition;
+
             LayoutCells(delta);
         }
 
@@ -253,7 +259,7 @@ namespace YH.UI
             {
                 if (cell.index>= 0 && cell.index < m_DataProvider.count)
                 {
-                    Debug.LogFormat("Update:{0},{1},{2},{3}", cell.index, cell.lastIndex, cell.row, cell.col);
+                    //Debug.LogFormat("Update:{0},{1},{2},{3}", cell.index, cell.lastIndex, cell.row, cell.col);
                     if (cell.index != cell.lastIndex)
                     {
                         if (m_DataProvider != null)
@@ -265,15 +271,15 @@ namespace YH.UI
                         //update position
                         if (vertical)
                         {
-                            Vector2 pos = new Vector2(cell.col * m_DataProvider.cellSize.x, cell.row * m_DataProvider.cellSize.y);
-                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, pos.y, m_DataProvider.cellSize.y);
-                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, pos.x, m_DataProvider.cellSize.x);
+                            Vector2 pos = new Vector2(cell.col * cellSize.x, cell.row * cellSize.y);
+                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, pos.y, cellSize.y);
+                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, pos.x, cellSize.x);
                         }
                         else if(horizontal)
                         {
-                            Vector2 pos = new Vector2(cell.row * m_DataProvider.cellSize.x, cell.col * m_DataProvider.cellSize.y);
-                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, pos.y, m_DataProvider.cellSize.y);
-                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, pos.x, m_DataProvider.cellSize.x);
+                            Vector2 pos = new Vector2(cell.row * cellSize.x, cell.col * cellSize.y);
+                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, pos.y, cellSize.y);
+                            cell.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, pos.x, cellSize.x);
                         }
                     }
                 }
@@ -306,7 +312,7 @@ namespace YH.UI
             if (moveDirection > 0)
             {
                 //提前做个判断
-                Debug.LogFormat("{0},{1}", m_Cells.Last.Value.index , m_DataProvider.count - 1);
+                //Debug.LogFormat("{0},{1}", m_Cells.Last.Value.index , m_DataProvider.count - 1);
                 if (m_Cells.Last.Value.index >= m_DataProvider.count - 1)
                 {
                     //已经到最后一个元素，不能再移动。
@@ -354,7 +360,7 @@ namespace YH.UI
             if (distance > 0)
             {
                 //check is need change
-                float rate = distance / m_DataProvider.cellSize[m_RowAxis];
+                float rate = distance / cellSize[m_RowAxis];
                 float safeThreshold = safeRow + m_Threshold;
                 //Debug.Log("rate:" + rate);
                 bool needMove = rate >= safeThreshold;

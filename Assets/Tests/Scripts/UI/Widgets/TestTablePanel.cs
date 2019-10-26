@@ -23,14 +23,6 @@ public class TestTablePanel : MonoBehaviour,BigTable.IDataProvider
         }
     }
 
-    public Vector2 cellSize
-    {
-        get
-        {
-            return new Vector2(200, 100);
-        }
-    }
-
     public int startIndex
     {
         get

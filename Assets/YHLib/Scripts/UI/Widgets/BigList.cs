@@ -24,8 +24,6 @@ namespace YH.UI
         {
             //总数量
             int count { get; }
-            //元素大小
-            float itemSize { get; }
             //开始元素号
             int startIndex { get; }
             //创建元素
@@ -53,8 +51,8 @@ namespace YH.UI
 
         ////总的个数
         //public int count=0;
-        ////item的高或宽。根据显示方式来定
-        //public float itemSize;
+        //item的高或宽。根据显示方式来定
+        public float itemSize;
 
         //安全个数。前后各多创建的个数
         public int safeCount=2;
@@ -83,7 +81,7 @@ namespace YH.UI
             CreateItems();
             UpdateItems();
             //set content size
-            content.SetSizeWithCurrentAnchors(vertical ? RectTransform.Axis.Vertical : RectTransform.Axis.Horizontal, m_DataProvider.itemSize * m_DataProvider.count);
+            content.SetSizeWithCurrentAnchors(vertical ? RectTransform.Axis.Vertical : RectTransform.Axis.Horizontal, itemSize * m_DataProvider.count);
         }
 
         protected void CalculateShowCount()
@@ -91,11 +89,11 @@ namespace YH.UI
             //计算要显示的元素个数
             if (vertical)
             {
-                m_ShowCount = Mathf.CeilToInt(viewRect.rect.height / m_DataProvider.itemSize);
+                m_ShowCount = Mathf.CeilToInt(viewRect.rect.height / itemSize);
             }
             else
             {
-                m_ShowCount = Mathf.CeilToInt(viewRect.rect.width / m_DataProvider.itemSize);
+                m_ShowCount = Mathf.CeilToInt(viewRect.rect.width / itemSize);
             }
         }
 
@@ -117,15 +115,15 @@ namespace YH.UI
 
         protected override void LateUpdate()
         {
-            Vector2 oldPosition = content.anchoredPosition;
-            base.LateUpdate();
-            Vector2 delta = content.anchoredPosition - oldPosition;
 #if UNITY_EDITOR
             if (m_DataProvider == null)
             {
                 return;
             }
 #endif
+            Vector2 oldPosition = content.anchoredPosition;
+            base.LateUpdate();
+            Vector2 delta = content.anchoredPosition - oldPosition;
             LayoutItems(delta);
         }
         
@@ -231,15 +229,15 @@ namespace YH.UI
                         }
 
                         //update position
-                        p = item.index * m_DataProvider.itemSize;
+                        p = item.index * itemSize;
 
-                        item.content.SetInsetAndSizeFromParentEdge(vertical?RectTransform.Edge.Top:RectTransform.Edge.Left, p, m_DataProvider.itemSize);
+                        item.content.SetInsetAndSizeFromParentEdge(vertical?RectTransform.Edge.Top:RectTransform.Edge.Left, p, itemSize);
                     }
                 }
                 else
                 {
                     //not show.position set far away
-                    item.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, -10000, m_DataProvider.itemSize);
+                    item.content.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, -10000, itemSize);
                 }
             }
         }
@@ -312,7 +310,7 @@ namespace YH.UI
             if (distance > 0)
             {
                 //check is need change
-                float rate = distance / m_DataProvider.itemSize;
+                float rate = distance / itemSize;
                 float safeThreshold = safeCount + m_Threshold;
                 bool needMove = rate >= safeThreshold;
                 if (needMove)
@@ -326,6 +324,7 @@ namespace YH.UI
                             //检查是不是到最后一个元素
                             if (m_Items.Last.Value.index < m_DataProvider.count - 1)
                             {
+                                //Debug.LogFormat("{0},{1},{2},{3}", distance, moveDirection, m_Items.First.Value.index, m_Items.Last.Value.index);
                                 iter = m_Items.First;
                                 m_Items.RemoveFirst();
                                 iter.Value.index = m_Items.Last.Value.index + 1;
@@ -341,10 +340,11 @@ namespace YH.UI
                             //检查是不是到第一个元素
                             if (m_Items.First.Value.index > 0)
                             {
+                                //Debug.LogFormat("{0},{1},{2},{3}", distance, moveDirection, m_Items.First.Value.index, m_Items.Last.Value.index);
                                 iter = m_Items.Last;
                                 m_Items.RemoveLast();
                                 iter.Value.index = m_Items.First.Value.index - 1;
-                                m_Items.AddFirst(item);
+                                m_Items.AddFirst(iter);
                             }
                             else
                             {
