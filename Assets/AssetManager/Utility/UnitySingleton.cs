@@ -1,37 +1,33 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace YH
+namespace YH.AssetManager
 {
     public class UnitySingleton<T> : MonoBehaviour
         where T : Component
     {
         private static T m_Instance;
 
-        static bool m_IsDestroy = false;
-
         public static T Instance
         {
             get
             {
-                if (m_Instance == null && !m_IsDestroy)
+                if (m_Instance == null)
                 {
-                    Debug.Log("####Find instance:" + typeof(T).ToString());
                     m_Instance = FindObjectOfType(typeof(T)) as T;
                     if (m_Instance == null)
                     {
-                        Debug.Log("####create instance:" + typeof(T).ToString());
+                        //Debug.Log("create instance");
 
                         GameObject singletonObj = new GameObject();
-                        singletonObj.name = "(singleton) " + typeof(T).ToString();
-                        if (Application.isPlaying)
-                        {
-                            //方法一
-                            DontDestroyOnLoad(singletonObj);
-                        }
+
+                        //方法一
+                        //singletonObj.name = "(singleton) " + typeof(T).ToString();
+                        //DontDestroyOnLoad(singletonObj);
+
                         //方法二
                         //DontSave标志表示不会在加载新场景删除，所以不用DontDestroyOnLoad
-                        //singletonObj.hideFlags = HideFlags.HideAndDontSave;
+                        singletonObj.hideFlags = HideFlags.HideAndDontSave;
 
                         //Debug.Log("add instance before");
                         m_Instance = singletonObj.AddComponent<T>();
@@ -41,21 +37,6 @@ namespace YH
                 }
                 return m_Instance;
             }
-        }
-
-        protected virtual void Awake()
-        {
-            Debug.Log("####Awake instance:" + typeof(T).ToString());
-            m_Instance = this as T;
-            if (Application.isPlaying)
-            {
-                DontDestroyOnLoad(gameObject);
-            }
-        }
-
-        protected void OnDestroy()
-        {
-            m_IsDestroy = true;
         }
 
         public static void DestroyInstance()
