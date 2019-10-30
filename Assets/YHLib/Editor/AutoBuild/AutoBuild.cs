@@ -60,7 +60,7 @@ namespace YHEditor
 			}else if(Directory.Exists(outPath))
 			{
                 //Directory.Delete(outPath, true);
-                FileSystemUtil.ForceDeleteDirectory(outPath);
+                FileSystem.ForceDeleteDirectory(outPath);
             }
 			
             //call unity build function
