@@ -1,9 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using YH;
-
-namespace UI
+﻿namespace YH.UI
 {
     public interface IDirector
     {

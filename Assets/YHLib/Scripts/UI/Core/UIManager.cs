@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using YH;
 
-namespace UI
+namespace YH.UI
 {
     public class UIManager : UnitySingleton<UIManager>
     {
@@ -191,7 +191,7 @@ namespace UI
             return null;
         }
     
-        public void ShowPanel(string panelPath, object data,int depth=0)
+        public void ShowPanel(string panelPath, object data=null,int depth=0)
         {
             UIPanel activePanel = null;
             if (m_Actives.TryGetValue(panelPath, out activePanel))
@@ -253,6 +253,13 @@ namespace UI
         }
         #endregion
 
+        public void ShowDefault()
+        {
+            if (!string.IsNullOrEmpty(m_DefaultPanel))
+            {
+                m_Director.Replace(m_DefaultPanel);
+            }
+        }
         #region GetSet
         public RectTransform root
         {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UI
+namespace YH.UI
 {
     /// <summary>
     /// 作用相当于mvc中的Controller。
