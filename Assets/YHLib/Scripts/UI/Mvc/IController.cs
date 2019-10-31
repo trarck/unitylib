@@ -8,5 +8,9 @@ namespace YH.UI.Mvc
 {
     public interface IController
     {
+        IView view { get; set; }
+        void Init();
+        void Init(string viewAsset);
+        void LoadView();
     }
 }
