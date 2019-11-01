@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-namespace YH.UI.Mvc
+namespace YH.UI.MonoMvc
 {
-    public class MonoController : MonoBehaviour, IController
+    public class MonoController : MonoBehaviour
     {
         protected virtual void Awake()
         {
