@@ -68,9 +68,15 @@ namespace YH.UI.Mvc
                 m_Controller.ViewWillAppear();
             }
 
-            view.rectTransorm.SetParent(rectTransorm, false);
+            if (view.rectTransorm.parent != rectTransorm)
+            {
+                view.rectTransorm.SetParent(rectTransorm, false);
+            }
+
             m_Children.Add(view);
             DidAddSubView(view);
+
+            view.Show();
 
             if (m_Controller != null)
             {
@@ -85,11 +91,15 @@ namespace YH.UI.Mvc
                 m_Controller.ViewWillAppear();
             }
 
-            view.rectTransorm.SetParent(rectTransorm, false);
+            if (view.rectTransorm.parent != rectTransorm)
+            {
+                view.rectTransorm.SetParent(rectTransorm, false);
+            }
             view.rectTransorm.SetSiblingIndex(index);
             m_Children.Insert(index,view);
-
             DidAddSubView(view);
+
+            view.Show();
 
             if (m_Controller != null)
             {
@@ -112,8 +122,15 @@ namespace YH.UI.Mvc
                 {
                     m_Controller.ViewWillDisappear();
                 }
-
-                rectTransorm.SetParent(null);
+                ////fix transform 
+                //Vector3 pos = rectTransorm.localPosition;
+                //Quaternion quaternion = rectTransorm.localRotation;
+                //Vector3 scale = rectTransorm.localScale;
+                //rectTransorm.SetParent(null);
+                //rectTransorm.localPosition = pos;
+                //rectTransorm.localRotation = quaternion;
+                //rectTransorm.localScale = scale;
+                Hide();
                 parentView.children.Remove(this);
                 parentView.WillRemoveSubView(this);
 
@@ -132,13 +149,13 @@ namespace YH.UI.Mvc
                 {
                     v.controller.ViewWillDisappear();
 
-                    v.rectTransorm.SetParent(null);
+                    v.Dispose();
 
                     v.controller.ViewDidDisappear();
                 }
                 else
                 {
-                    v.rectTransorm.SetParent(null);
+                    v.Dispose();
                 }
             }
             m_Children.Clear();
@@ -165,6 +182,7 @@ namespace YH.UI.Mvc
         #region Event
         protected override void Awake()
         {
+            Debug.LogFormat("Inner Awak:[{0}]", m_Controller);
             base.Awake();
             if (m_Controller != null)
             {
@@ -174,17 +192,22 @@ namespace YH.UI.Mvc
 
         protected override void OnDestroy()
         {
-            base.OnDestroy();
+            Debug.LogFormat("Inner destroy:[{0}]", m_Controller);
+           
             if (m_Controller != null)
             {
                 m_Controller.OnViewDestroy();
+                m_Controller = null;
             }
             //删除子视图的引用
             m_Children.Clear();
+
+            base.OnDestroy();
         }
 
         protected override void OnEnable()
         {
+            Debug.LogFormat("Inner Enable:[{0}]", m_Controller);
             base.OnEnable();
             if (m_Controller != null)
             {
@@ -194,6 +217,7 @@ namespace YH.UI.Mvc
 
         protected override void OnDisable()
         {
+            Debug.LogFormat("Inner desable:[{0}]", m_Controller);
             base.OnDisable();
             if (m_Controller != null)
             {
@@ -202,11 +226,20 @@ namespace YH.UI.Mvc
         }
         #endregion
 
+        public virtual void Show()
+        {
+            gameObject.SetActive(true);
+        }
+
+        public virtual void Hide()
+        {
+            gameObject.SetActive(false);
+        }
+
         public virtual void Dispose()
         {
             RemoveFromSuperView();
             Destroy(gameObject);
-            controller = null;
         }
     }
 }

@@ -12,6 +12,16 @@ public class TestMvc : MonoBehaviour
     [SerializeField]
     View m_Root;
 
+    static NavigateController m_RootController;
+
+    public static NavigateController rootController
+    {
+        get
+        {
+            return m_RootController;
+        }
+    }
+
     private void Awake()
     {
         AssetManager.Instance.Init();
@@ -21,6 +31,11 @@ public class TestMvc : MonoBehaviour
         {
             m_Root = GetComponent < View> ();
         }
+
+        m_RootController = new NavigateController();
+        m_RootController.Init();
+        m_RootController.view = m_Root;
+        m_Root.controller = m_RootController;
     }
 
     // Start is called before the first frame update
@@ -28,11 +43,14 @@ public class TestMvc : MonoBehaviour
     {
         MainController mainController = new MainController();
         mainController.Init("Assets/Tests/Prefabs/UI/Mvc/MainPanel.prefab");
-        mainController.viewDidLoadHandle = (view) =>
-        {
-            m_Root.AddSubView(view);
-        };
-        mainController.LoadViewIfNeed();
+
+        m_RootController.Push(mainController);
+
+        //mainController.viewDidLoadHandle = (view) =>
+        //{
+        //    m_Root.AddSubView(view);
+        //};
+        //mainController.LoadViewIfNeed();
     }
 
     // Update is called once per frame

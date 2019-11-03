@@ -10,18 +10,45 @@ namespace Test.UI.Mvc
 
     public class SubAController : Controller
     {
-        public override void ViewDidLoad()
+        ~SubAController()
         {
-            base.ViewDidLoad();
+            Debug.Log("@@@Destroy SubAController");
+        }
+
+        public override void OnViewAwake()
+        {
+            Debug.Log("View Awake");
+            base.OnViewAwake();
             //bind events
             BindEvents();
+        }
+
+        public override void OnViewDestroy()
+        {
+            Debug.Log("View destory");
+            base.OnViewDestroy();
+        }
+
+        public override void OnViewEnable()
+        {
+            Debug.Log("View Enable");
+            base.OnViewEnable();
+
+        }
+
+        public override void OnViewDisable()
+        {
+            Debug.Log("View Disable");
+            base.OnViewDisable();
         }
 
         protected void BindEvents()
         {
             Dictionary<string, UnityEngine.Events.UnityAction> buttonClickEvents = new Dictionary<string, UnityEngine.Events.UnityAction>()
             {
-                 {"Button",GotoB }
+                 {"GotoBtn",GotoB },
+                 {"PushBtn",PushB },
+                 {"PopBtn",Pop }
             };
 
             foreach (var iter in buttonClickEvents)
@@ -35,19 +62,31 @@ namespace Test.UI.Mvc
             }
         }
 
-
         public void GotoB()
         {
             IView root = view.superView;
 
             SubBController subB= new SubBController();
             subB.Init("Assets/Tests/Prefabs/UI/Mvc/SubBPanel.prefab");
-            subB.viewDidLoadHandle = (subBView) =>
-            {
-                root.AddSubView(subBView);
-                Dispose();
-            };
-            subB.LoadViewIfNeed();
+            TestMvc.rootController.Replace(subB);
+            //subB.viewDidLoadHandle = (subBView) =>
+            //{
+            //    root.AddSubView(subBView);
+            //    Dispose();
+            //};
+            //subB.LoadViewIfNeed();
+        }
+
+        public void PushB()
+        {
+            SubBController subB = new SubBController();
+            subB.Init("Assets/Tests/Prefabs/UI/Mvc/SubBPanel.prefab");
+            TestMvc.rootController.Push(subB);
+        }
+
+        public void Pop()
+        {
+            TestMvc.rootController.Pop();
         }
     }
 }

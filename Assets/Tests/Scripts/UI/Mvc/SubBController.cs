@@ -9,9 +9,14 @@ namespace Test.UI.Mvc
 {
     public class SubBController : Controller
     {
-        public override void ViewDidLoad()
+        ~SubBController()
         {
-            base.ViewDidLoad();
+            Debug.Log("@@@Destroy SubBController");
+        }
+
+        public override void OnViewAwake()
+        {
+            base.OnViewAwake();
             //bind events
             BindEvents();
         }
@@ -20,7 +25,9 @@ namespace Test.UI.Mvc
         {
             Dictionary<string, UnityEngine.Events.UnityAction> buttonClickEvents = new Dictionary<string, UnityEngine.Events.UnityAction>()
             {
-                 {"Button",GotoMain }
+                 {"GotoBtn",GotoMain },
+                 {"PushBtn",PushMain },
+                 {"PopBtn",Pop }
             };
 
             foreach (var iter in buttonClickEvents)
@@ -40,12 +47,25 @@ namespace Test.UI.Mvc
 
             MainController mainController = new MainController();
             mainController.Init("Assets/Tests/Prefabs/UI/Mvc/MainPanel.prefab");
-            mainController.viewDidLoadHandle= (view) =>
-            {
-                root.AddSubView(view);
-                Dispose();
-            };
-            mainController.LoadViewIfNeed();
+            TestMvc.rootController.Replace(mainController);
+            //mainController.viewDidLoadHandle= (view) =>
+            //{
+            //    root.AddSubView(view);
+            //    Dispose();
+            //};
+            //mainController.LoadViewIfNeed();
+        }
+
+        public void PushMain()
+        {
+            MainController mainController = new MainController();
+            mainController.Init("Assets/Tests/Prefabs/UI/Mvc/MainPanel.prefab");
+            TestMvc.rootController.Push(mainController);
+        }
+
+        public void Pop()
+        {
+            TestMvc.rootController.Pop();
         }
     }
 }

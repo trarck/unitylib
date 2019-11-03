@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 namespace YH.UI.Mvc
@@ -56,18 +55,18 @@ namespace YH.UI.Mvc
 
         public Action<IView> viewDidLoadHandle { get; set; }
 
-        public virtual void LoadView()
+        public virtual void LoadView(Transform parent=null)
         {
             //Load from asset file
-            LoadFromAsset();
+            LoadFromAsset(parent);
         }
 
-        public virtual void LoadViewIfNeed()
+        public virtual void LoadViewIfNeed(Transform parent = null)
         {
             if (m_View == null)
             {
                 //Load from asset file
-                LoadFromAsset();
+                LoadFromAsset(parent);
             }
             else
             {
@@ -75,7 +74,7 @@ namespace YH.UI.Mvc
             }
         }
 
-        protected void LoadFromAsset()
+        protected void LoadFromAsset(Transform parent)
         {
             if (string.IsNullOrEmpty(m_ViewAsset))
             {
@@ -83,28 +82,27 @@ namespace YH.UI.Mvc
                 int dotIndx = fullName.LastIndexOf(".");
                 m_ViewAsset = fullName.Substring(dotIndx)+".prefab";
             }
-            AssetManager.AssetManager.Instance.LoadAsset(m_ViewAsset, OnAssetLoaded);
-        }
-
-        void OnAssetLoaded(AssetManager.AssetReference ar)
-        {
-            GameObject viewPrefab = ar != null ? ar.asset as GameObject : null;
-            if (viewPrefab != null)
+            AssetManager.AssetManager.Instance.LoadAsset(m_ViewAsset, (ar)=>
             {
-                GameObject viewObj = GameObject.Instantiate<GameObject>(viewPrefab);
-                m_View = viewObj.GetComponent<IView>();
-                if (m_View == null)
+                GameObject viewPrefab = ar != null ? ar.asset as GameObject : null;
+                if (viewPrefab != null)
                 {
-                    m_View = viewObj.AddComponent<View>();
+                    viewPrefab.SetActive(false);
+                    GameObject viewObj = GameObject.Instantiate<GameObject>(viewPrefab,parent,false);
+                    m_View = viewObj.GetComponent<IView>();
+                    if (m_View == null)
+                    {
+                        m_View = viewObj.AddComponent<View>();
+                    }
+                    m_View.controller = this;
                 }
-                m_View.controller = this;
-            }
-            else
-            {
-                CreateEmpyView();
-            }
+                else
+                {
+                    CreateEmpyView();
+                }
 
-            ViewDidLoad();
+                ViewDidLoad();
+            });
         }
 
         protected void CreateEmpyView()

@@ -19,6 +19,10 @@ namespace YH.UI.Mvc
         void DidAddSubView(IView subView);
         void WillRemoveSubView(IView subView);
         void CleanSubView();
+
+        void Show();
+        void Hide();
+
         void Dispose();
     }
 }

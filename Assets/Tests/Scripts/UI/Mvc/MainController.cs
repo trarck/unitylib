@@ -10,13 +10,43 @@ namespace Test.UI.Mvc
 
     public class MainController : Controller
     {
+        ~MainController()
+        {
+            Debug.Log("@@@Destroy MainController");
+        }
+
+        public override void OnViewAwake()
+        {
+            Debug.Log("Main View Awake");
+            base.OnViewAwake();
+            //bind events
+            BindEvents();
+        }
+
+        public override void OnViewDestroy()
+        {
+            Debug.Log("Main View destory");
+            base.OnViewDestroy();
+        }
+
+        public override void OnViewEnable()
+        {
+            Debug.Log("Main View Enable");
+            base.OnViewEnable();
+
+        }
+
+        public override void OnViewDisable()
+        {
+            Debug.Log("Main View Disable");
+            base.OnViewDisable();
+        }
 
         public override void ViewDidLoad()
         {
             base.ViewDidLoad();
+            Debug.Log("Main ViewDidLoad");
 
-            //bind events
-            BindEvents();
 
         }
 
@@ -26,6 +56,7 @@ namespace Test.UI.Mvc
             {
                  {"GotoABtn",GotoA },
                  {"ShowDaligBtn",ShowDialog },
+                 {"PopBtn",Pop },
             };
 
             foreach (var iter in buttonClickEvents)
@@ -41,17 +72,24 @@ namespace Test.UI.Mvc
 
         public void GotoA()
         {
+            Debug.Log("### GotoA");
             IView root = view.superView;
 
             SubAController subA = new SubAController();
             subA.Init("Assets/Tests/Prefabs/UI/Mvc/SubAPanel.prefab");
-            subA.viewDidLoadHandle= (subAView) =>
-            {
-                root.AddSubView(subAView);
-                Dispose();
-            };
-            subA.LoadViewIfNeed();
 
+            TestMvc.rootController.Replace(subA);
+            //subA.viewDidLoadHandle= (subAView) =>
+            //{
+            //    root.AddSubView(subAView);
+            //    Dispose();
+            //};
+            //subA.LoadViewIfNeed();
+        }
+
+        public void Pop()
+        {
+            TestMvc.rootController.Pop();
         }
 
         public void ShowDialog()

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using UnityEngine;
 
 namespace YH.UI.Mvc
 {
@@ -13,8 +11,8 @@ namespace YH.UI.Mvc
         void Init(string viewAsset);
         void Dispose();
         //view
-        void LoadView();
-        void LoadViewIfNeed();
+        void LoadView(Transform parent=null);
+        void LoadViewIfNeed(Transform parent=null);
         void ViewDidLoad();
         void UnloadView();
         bool isViewLoaded { get; }
