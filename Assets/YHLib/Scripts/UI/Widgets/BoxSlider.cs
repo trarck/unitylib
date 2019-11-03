@@ -14,27 +14,27 @@ namespace YH.UI
         /// <summary>
         /// Setting that indicates one of four directions.
         /// </summary>
-        public enum Direction
+        public enum Origin
         {
             /// <summary>
             /// From the left to the right
             /// </summary>
-            LeftToRight,
+            LeftBottom,
 
             /// <summary>
             /// From the right to the left
             /// </summary>
-            RightToLeft,
+            RightBottom,
 
             /// <summary>
             /// From the bottom to the top.
             /// </summary>
-            BottomToTop,
+            LeftTop,
 
             /// <summary>
             /// From the top to the bottom.
             /// </summary>
-            TopToBottom,
+            RightTop,
         }
 
         [Serializable]
@@ -94,33 +94,9 @@ namespace YH.UI
         [Space]
 
         [SerializeField]
-        private Direction m_Direction = Direction.LeftToRight;
+        private Origin m_Origin = Origin.LeftBottom;
 
-        /// <summary>
-        /// The direction of the slider, from minimum to maximum value.
-        /// </summary>
-        /// <example>
-        /// <code>
-        /// using UnityEngine;
-        /// using System.Collections;
-        /// using UnityEngine.UI; // Required when Using UI elements.
-        ///
-        /// public class Example : MonoBehaviour
-        /// {
-        ///     public Slider mainSlider;
-        ///
-        ///     public void Start()
-        ///     {
-        ///         //Changes the direction of the slider.
-        ///         if (mainSlider.direction == Slider.Direction.BottomToTop)
-        ///         {
-        ///             mainSlider.direction = Slider.Direction.TopToBottom;
-        ///         }
-        ///     }
-        /// }
-        /// </code>
-        /// </example>
-        public Direction direction { get { return m_Direction; } set { if (SetStruct(ref m_Direction, value)) UpdateVisuals(); } }
+        public Origin direction { get { return m_Origin; } set { if (SetStruct(ref m_Origin, value)) UpdateVisuals(); } }
 
         [SerializeField]
         private Vector2 m_MinValue = Vector2.zero;
@@ -135,54 +111,10 @@ namespace YH.UI
         [SerializeField]
         private bool m_WholeNumbers = false;
 
-        /// <summary>
-        /// Should the value only be allowed to be whole numbers?
-        /// </summary>
-        /// <example>
-        /// <code>
-        /// using UnityEngine;
-        /// using System.Collections;
-        /// using UnityEngine.UI; // Required when Using UI elements.
-        ///
-        /// public class Example : MonoBehaviour
-        /// {
-        ///     public Slider mainSlider;
-        ///
-        ///     public void Start()
-        ///     {
-        ///         //sets the slider's value to accept whole numbers only.
-        ///         mainSlider.wholeNumbers = true;
-        ///     }
-        /// }
-        /// </code>
-        /// </example>
         public bool wholeNumbers { get { return m_WholeNumbers; } set { if (SetStruct(ref m_WholeNumbers, value)) { Set(m_Value); UpdateVisuals(); } } }
 
         [SerializeField]
         protected Vector2 m_Value;
-
-        /// <summary>
-        /// The current value of the slider.
-        /// </summary>
-        /// <example>
-        /// <code>
-        /// using UnityEngine;
-        /// using System.Collections;
-        /// using UnityEngine.UI; // Required when Using UI elements.
-        ///
-        /// public class Example : MonoBehaviour
-        /// {
-        ///     public Slider mainSlider;
-        ///
-        ///     //Invoked when a submit button is clicked.
-        ///     public void SubmitSliderSetting()
-        ///     {
-        ///         //Displays the value of the slider in the console.
-        ///         Debug.Log(mainSlider.value);
-        ///     }
-        /// }
-        /// </code>
-        /// </example>
         public virtual Vector2 value
         {
             get
@@ -199,28 +131,6 @@ namespace YH.UI
             }
         }
 
-        /// <summary>
-        /// The current value of the slider normalized into a value between 0 and 1.
-        /// </summary>
-        /// <example>
-        /// <code>
-        /// using UnityEngine;
-        /// using System.Collections;
-        /// using UnityEngine.UI; // Required when Using UI elements.
-        ///
-        /// public class Example : MonoBehaviour
-        /// {
-        ///     public Slider mainSlider;
-        ///
-        ///     //Set to invoke when "OnValueChanged" method is called.
-        ///     void CheckNormalisedValue()
-        ///     {
-        ///         //Displays the normalised value of the slider everytime the value changes.
-        ///         Debug.Log(mainSlider.normalizedValue);
-        ///     }
-        /// }
-        /// </code>
-        /// </example>
         public Vector2 normalizedValue
         {
             get
@@ -261,33 +171,6 @@ namespace YH.UI
         [SerializeField]
         private SliderEvent m_OnValueChanged = new SliderEvent();
 
-        /// <summary>
-        /// Callback executed when the value of the slider is changed.
-        /// </summary>
-        /// <example>
-        /// <code>
-        /// using UnityEngine;
-        /// using System.Collections;
-        /// using UnityEngine.UI; // Required when Using UI elements.
-        ///
-        /// public class Example : MonoBehaviour
-        /// {
-        ///     public Slider mainSlider;
-        ///
-        ///     public void Start()
-        ///     {
-        ///         //Adds a listener to the main slider and invokes a method when the value changes.
-        ///         mainSlider.onValueChanged.AddListener(delegate {ValueChangeCheck(); });
-        ///     }
-        ///
-        ///     // Invoked when the value of the slider changes.
-        ///     public void ValueChangeCheck()
-        ///     {
-        ///         Debug.Log(mainSlider.value);
-        ///     }
-        /// }
-        /// </code>
-        /// </example>
         public SliderEvent onValueChanged { get { return m_OnValueChanged; } set { m_OnValueChanged = value; } }
 
         // Private fields
@@ -376,8 +259,8 @@ namespace YH.UI
             Vector2 oldNormalizedValue = normalizedValue;
             if (m_HandleContainerRect != null)
             {
-                oldNormalizedValue.x = (reverseValue ? 1 - m_HandleRect.anchorMin[0] : m_HandleRect.anchorMin[0]);
-                oldNormalizedValue.y = (reverseValue ? 1 - m_HandleRect.anchorMin[1] : m_HandleRect.anchorMin[1]);
+                oldNormalizedValue.x = (reverseValueX ? 1 - m_HandleRect.anchorMin[0] : m_HandleRect.anchorMin[0]);
+                oldNormalizedValue.y = (reverseValueY ? 1 - m_HandleRect.anchorMin[1] : m_HandleRect.anchorMin[1]);
             }
             UpdateVisuals();
 
@@ -460,14 +343,20 @@ namespace YH.UI
             UpdateVisuals();
         }
 
-        enum Axis
+        bool reverseValueX
         {
-            Horizontal = 0,
-            Vertical = 1
+            get
+            {
+                return m_Origin == Origin.RightBottom || m_Origin == Origin.RightTop;
+            }
         }
-
-        Axis axis { get { return (m_Direction == Direction.LeftToRight || m_Direction == Direction.RightToLeft) ? Axis.Horizontal : Axis.Vertical; } }
-        bool reverseValue { get { return m_Direction == Direction.RightToLeft || m_Direction == Direction.TopToBottom; } }
+        bool reverseValueY
+        {
+            get
+            {
+                return m_Origin == Origin.LeftTop || m_Origin == Origin.RightTop;
+            }
+        }
 
         // Force-update the slider. Useful if you've changed the properties and want it to update visually.
         private void UpdateVisuals()
@@ -484,8 +373,8 @@ namespace YH.UI
                 m_Tracker.Add(this, m_HandleRect, DrivenTransformProperties.Anchors);
                 Vector2 anchorMin = Vector2.zero;
                 Vector2 anchorMax = Vector2.one;
-                anchorMin[0] = anchorMax[0] = (reverseValue ? (1 - normalizedValue.x) : normalizedValue.x);
-                anchorMin[1] = anchorMax[1] = (reverseValue ? (1 - normalizedValue.y) : normalizedValue.y);
+                anchorMin[0] = anchorMax[0] = (reverseValueX ? (1 - normalizedValue.x) : normalizedValue.x);
+                anchorMin[1] = anchorMax[1] = (reverseValueY ? (1 - normalizedValue.y) : normalizedValue.y);
                 m_HandleRect.anchorMin = anchorMin;
                 m_HandleRect.anchorMax = anchorMax;
             }
@@ -503,7 +392,15 @@ namespace YH.UI
                 localCursor -= clickRect.rect.position;
 
                 Vector2 val =new Vector2( Mathf.Clamp01((localCursor.x - m_Offset.x) / clickRect.rect.size.x),Mathf.Clamp01((localCursor.y - m_Offset.y)/ clickRect.rect.size.y));
-                normalizedValue = (reverseValue ? new Vector2(1.0f,1.0f) - val : val);
+                if (reverseValueX)
+                {
+                    val.x = 1.0f - val.x;
+                }
+                if (reverseValueY)
+                {
+                    val.y = 1.0f - val.y;
+                }
+                normalizedValue = val;
             }
         }
 
@@ -553,16 +450,16 @@ namespace YH.UI
             switch (eventData.moveDir)
             {
                 case MoveDirection.Left:
-                    dir.x = reverseValue ? 1 : -1;
+                    dir.x = reverseValueX ? 1 : -1;
                     break;
                 case MoveDirection.Right:
-                    dir.x = reverseValue ? -1 : 1;
+                    dir.x = reverseValueX ? -1 : 1;
                     break;
                 case MoveDirection.Up:
-                    dir.y = reverseValue ? -1 :1;
+                    dir.y = reverseValueX ? -1 :1;
                     break;
                 case MoveDirection.Down:
-                    dir.y = reverseValue ? 1 : -1;
+                    dir.y = reverseValueX ? 1 : -1;
                     break;
             }
 
@@ -570,45 +467,45 @@ namespace YH.UI
             base.OnMove(eventData);
         }
 
-        /// <summary>
-        /// See Selectable.FindSelectableOnLeft
-        /// </summary>
-        public override Selectable FindSelectableOnLeft()
-        {
-            if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Horizontal)
-                return null;
-            return base.FindSelectableOnLeft();
-        }
+        ///// <summary>
+        ///// See Selectable.FindSelectableOnLeft
+        ///// </summary>
+        //public override Selectable FindSelectableOnLeft()
+        //{
+        //    if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Horizontal)
+        //        return null;
+        //    return base.FindSelectableOnLeft();
+        //}
 
-        /// <summary>
-        /// See Selectable.FindSelectableOnRight
-        /// </summary>
-        public override Selectable FindSelectableOnRight()
-        {
-            if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Horizontal)
-                return null;
-            return base.FindSelectableOnRight();
-        }
+        ///// <summary>
+        ///// See Selectable.FindSelectableOnRight
+        ///// </summary>
+        //public override Selectable FindSelectableOnRight()
+        //{
+        //    if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Horizontal)
+        //        return null;
+        //    return base.FindSelectableOnRight();
+        //}
 
-        /// <summary>
-        /// See Selectable.FindSelectableOnUp
-        /// </summary>
-        public override Selectable FindSelectableOnUp()
-        {
-            if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Vertical)
-                return null;
-            return base.FindSelectableOnUp();
-        }
+        ///// <summary>
+        ///// See Selectable.FindSelectableOnUp
+        ///// </summary>
+        //public override Selectable FindSelectableOnUp()
+        //{
+        //    if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Vertical)
+        //        return null;
+        //    return base.FindSelectableOnUp();
+        //}
 
-        /// <summary>
-        /// See Selectable.FindSelectableOnDown
-        /// </summary>
-        public override Selectable FindSelectableOnDown()
-        {
-            if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Vertical)
-                return null;
-            return base.FindSelectableOnDown();
-        }
+        ///// <summary>
+        ///// See Selectable.FindSelectableOnDown
+        ///// </summary>
+        //public override Selectable FindSelectableOnDown()
+        //{
+        //    if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Vertical)
+        //        return null;
+        //    return base.FindSelectableOnDown();
+        //}
 
         public virtual void OnInitializePotentialDrag(PointerEventData eventData)
         {
@@ -637,20 +534,20 @@ namespace YH.UI
         /// }
         /// </code>
         /// </example>
-        public void SetDirection(Direction direction, bool includeRectLayouts)
+        public void SetDirection(Origin direction, bool includeRectLayouts)
         {
-            Axis oldAxis = axis;
-            bool oldReverse = reverseValue;
+            bool oldReverseX = reverseValueX;
+            bool oldReverseY = reverseValueY;
             this.direction = direction;
 
             if (!includeRectLayouts)
                 return;
 
-            if (axis != oldAxis)
-                RectTransformUtility.FlipLayoutAxes(transform as RectTransform, true, true);
+            if (reverseValueX != oldReverseX)
+                RectTransformUtility.FlipLayoutOnAxis(transform as RectTransform, 0, true, true);
 
-            if (reverseValue != oldReverse)
-                RectTransformUtility.FlipLayoutOnAxis(transform as RectTransform, (int)axis, true, true);
+            if (reverseValueY != oldReverseY)
+                RectTransformUtility.FlipLayoutOnAxis(transform as RectTransform, 1, true, true);
         }
     }
 }
