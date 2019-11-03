@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 namespace YH.UI.Mvc
@@ -52,10 +53,26 @@ namespace YH.UI.Mvc
         }
 
         #region View Operate
+
+        public event Action<IView> OnViewDidLoad;
+
         public virtual void LoadView()
         {
             //Load from asset file
             LoadFromAsset();
+        }
+
+        public virtual void LoadViewIfNeed()
+        {
+            if (m_View == null)
+            {
+                //Load from asset file
+                LoadFromAsset();
+            }
+            else
+            {
+                ViewDidLoad();
+            }
         }
 
         protected void LoadFromAsset()
@@ -99,7 +116,10 @@ namespace YH.UI.Mvc
 
         public virtual void ViewDidLoad()
         {
-
+            if (OnViewDidLoad!=null)
+            {
+                OnViewDidLoad.Invoke(m_View);
+            }
         }
 
         public virtual void UnloadView()
@@ -189,6 +209,7 @@ namespace YH.UI.Mvc
                 m_Parent = value;
             }
         }
+
 
         public virtual void AddChildController(IController controller)
         {

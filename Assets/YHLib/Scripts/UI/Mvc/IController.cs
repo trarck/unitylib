@@ -12,8 +12,9 @@ namespace YH.UI.Mvc
         void Init();
         void Init(string viewAsset);
         void Dispose();
-
+        //view
         void LoadView();
+        void LoadViewIfNeed();
         void ViewDidLoad();
         void UnloadView();
         bool isViewLoaded { get; }
@@ -22,12 +23,14 @@ namespace YH.UI.Mvc
         void ViewDidAppear();
         void ViewWillDisappear();
         void ViewDidDisappear();
-
+        //view event
+        event Action<IView> OnViewDidLoad;
+        //unity event
         void OnViewEnable();
         void OnViewDisable();
         void OnViewAwake();
         void OnViewDestroy();
-
+        //container
         List<IController> children { get; set; }
         IController parent { get; set; }
         void AddChildController(IController controller);

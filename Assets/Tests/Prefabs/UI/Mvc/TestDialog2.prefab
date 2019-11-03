@@ -169,8 +169,6 @@ GameObject:
   - component: {fileID: 5862558026688785578}
   - component: {fileID: 5862558026688785580}
   - component: {fileID: 5862558026688785581}
-  - component: {fileID: 2976190464941155713}
-  - component: {fileID: 557539449074182795}
   m_Layer: 5
   m_Name: TestDialog2
   m_TagString: Untagged
@@ -238,31 +236,6 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
---- !u!114 &2976190464941155713
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5862558026688785579}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36fc02c3025e3854ba77297278e1a498, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Depth: 2
---- !u!114 &557539449074182795
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5862558026688785579}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 37a74fb9faf7a9849ab3f376411888fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &5862558026806507402
 GameObject:
   m_ObjectHideFlags: 0
@@ -537,7 +510,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 557539449074182795}
+      - m_Target: {fileID: 0}
         m_MethodName: Confirm
         m_Mode: 1
         m_Arguments:
@@ -666,7 +639,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 557539449074182795}
+      - m_Target: {fileID: 0}
         m_MethodName: Cancel
         m_Mode: 1
         m_Arguments:
