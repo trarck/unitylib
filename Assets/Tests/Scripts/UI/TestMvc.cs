@@ -28,7 +28,7 @@ public class TestMvc : MonoBehaviour
     {
         MainController mainController = new MainController();
         mainController.Init("Assets/Tests/Prefabs/UI/Mvc/MainPanel.prefab");
-        mainController.OnViewDidLoad += (view) =>
+        mainController.viewDidLoadHandle = (view) =>
         {
             m_Root.AddSubView(view);
         };

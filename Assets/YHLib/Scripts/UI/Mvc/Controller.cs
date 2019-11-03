@@ -54,7 +54,7 @@ namespace YH.UI.Mvc
 
         #region View Operate
 
-        public event Action<IView> OnViewDidLoad;
+        public Action<IView> viewDidLoadHandle { get; set; }
 
         public virtual void LoadView()
         {
@@ -116,9 +116,9 @@ namespace YH.UI.Mvc
 
         public virtual void ViewDidLoad()
         {
-            if (OnViewDidLoad!=null)
+            if (viewDidLoadHandle != null)
             {
-                OnViewDidLoad.Invoke(m_View);
+                viewDidLoadHandle.Invoke(m_View);
             }
         }
 

@@ -45,7 +45,7 @@ namespace Test.UI.Mvc
 
             SubAController subA = new SubAController();
             subA.Init("Assets/Tests/Prefabs/UI/Mvc/SubAPanel.prefab");
-            subA.OnViewDidLoad += (subAView) =>
+            subA.viewDidLoadHandle= (subAView) =>
             {
                 root.AddSubView(subAView);
                 Dispose();
@@ -60,7 +60,7 @@ namespace Test.UI.Mvc
 
             DialogController dialog = new DialogController();
             dialog.Init("Assets/Tests/Prefabs/UI/Mvc/TestDialog1.prefab");
-            dialog.OnViewDidLoad += (dialogView) =>
+            dialog.viewDidLoadHandle = (dialogView) =>
             {
                 root.AddSubView(dialogView);
             };

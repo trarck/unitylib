@@ -24,7 +24,7 @@ namespace YH.UI.Mvc
         void ViewWillDisappear();
         void ViewDidDisappear();
         //view event
-        event Action<IView> OnViewDidLoad;
+        Action<IView> viewDidLoadHandle { get; set; }
         //unity event
         void OnViewEnable();
         void OnViewDisable();

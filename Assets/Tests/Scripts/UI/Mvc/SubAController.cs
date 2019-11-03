@@ -42,7 +42,7 @@ namespace Test.UI.Mvc
 
             SubBController subB= new SubBController();
             subB.Init("Assets/Tests/Prefabs/UI/Mvc/SubBPanel.prefab");
-            subB.OnViewDidLoad += (subBView) =>
+            subB.viewDidLoadHandle = (subBView) =>
             {
                 root.AddSubView(subBView);
                 Dispose();
