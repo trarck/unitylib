@@ -239,7 +239,17 @@ namespace YHEditor
             expressionNames = names;
             if (keep)
             {
-                CheckExpressionNames(names,m_Root,m_Root);
+                if (names == null || names.Length == 0)
+                {
+                    if (m_Root != null)
+                    {
+                        m_Root.Clear();
+                    }
+                }
+                else
+                {
+                    CheckExpressionNames(names, m_Root, m_Root);
+                }
             }
             else
             {

@@ -19,9 +19,13 @@ namespace YH
         {
             //project runtimes
             LoadAssembly("Assembly-CSharp");
+            //project editor
+            LoadAssembly("Assembly-CSharp-Editor");
 
             //unity runtime
             LoadAssembly("UnityEngine");
+            //unity editor
+            LoadAssembly("UnityEditor");
         }
 
         public Assembly LoadAssembly(string name)

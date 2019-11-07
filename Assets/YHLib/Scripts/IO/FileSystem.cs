@@ -414,5 +414,51 @@ namespace YH
                 }
             }
         }
+        
+        public List<string> SearchFiles(string path, string pattern = null)
+        {
+            DirectoryInfo startInfo = new DirectoryInfo(path);
+            if (!startInfo.Exists)
+            {
+                return null;
+            }
+
+            List<string> result = new List<string>();
+
+            Stack<DirectoryInfo> dirs = new Stack<DirectoryInfo>();
+            dirs.Push(startInfo);
+
+            DirectoryInfo dir;
+
+            bool haveFilter = false;
+            System.Text.RegularExpressions.Regex reg = null;
+            if (!string.IsNullOrEmpty(pattern))
+            {
+                haveFilter = true;
+                reg = new System.Text.RegularExpressions.Regex(pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            }
+
+            while (dirs.Count > 0)
+            {
+                dir = dirs.Pop();
+
+                foreach (FileInfo fi in dir.GetFiles())
+                {
+                    if (!haveFilter || reg.IsMatch(fi.FullName))
+                    {
+                        result.Add(fi.FullName);
+                    }
+                }
+
+                foreach (DirectoryInfo subDir in dir.GetDirectories())
+                {
+                    if (!subDir.Name.StartsWith("."))
+                    {
+                        dirs.Push(subDir);
+                    }
+                }
+            }
+            return result;
+        }
     }
 }

@@ -25,32 +25,39 @@ namespace YHEditor
         {
             var window = GetWindow<BatchMain>();
             window.titleContent = new GUIContent("AssetBatch");
-            window.Init();
             window.Show();
+        }
+
+        void OnEnable()
+        {
+            Init();
         }
 
         public override void Init()
         {
-            base.Init();
+            if (!m_Inited)
+            {
+                base.Init();
 
-            m_Batch = new Batch();
-            m_Batch.Init();
+                m_Batch = new Batch();
+                m_Batch.Init();
 
-            FindTab findTab = new FindTab();
-            findTab.name = "Find";
-            findTab.Init(this);
-            AddTab(findTab);
+                FindTab findTab = new FindTab();
+                findTab.name = "Find";
+                findTab.Init(this);
+                AddTab(findTab);
 
 
-            ResultTab resultTab = new ResultTab();
-            resultTab.name = "Result";
-            resultTab.Init(this);
-            AddTab(resultTab);
+                ResultTab resultTab = new ResultTab();
+                resultTab.name = "Result";
+                resultTab.Init(this);
+                AddTab(resultTab);
 
-            ModifyTab modifyTab = new ModifyTab();
-            modifyTab.name = "Modify";
-            modifyTab.Init(this);
-            AddTab(modifyTab);
+                ModifyTab modifyTab = new ModifyTab();
+                modifyTab.name = "Modify";
+                modifyTab.Init(this);
+                AddTab(modifyTab);
+            }
         }
 
     }

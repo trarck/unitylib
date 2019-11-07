@@ -85,6 +85,52 @@ namespace YHEditor
             }
             return null;
         }
+
+        public string[] GetMethodNames(bool inhert = true)
+        {
+            List<string> names =YH.Pool.ListPool<string>.Get();
+            foreach (MethodInfo m in type.GetMethods())
+            {
+                if (inhert || m.DeclaringType == type)
+                {
+                    names.Add(m.ToString());
+                }
+            }
+            
+            string[] ret= names.ToArray();
+            YH.Pool.ListPool<string>.Release(names);
+            return ret;
+        }
+
+        public string[] GetMethodNames(ref List<MethodInfo> methods, bool inhert = true)
+        {
+            List<string> names = YH.Pool.ListPool<string>.Get();
+            foreach (MethodInfo m in type.GetMethods())
+            {
+                if (inhert || m.DeclaringType == type)
+                {
+                    names.Add(m.ToString());
+                    methods.Add(m);
+                }
+            }
+            string[] ret = names.ToArray();
+            YH.Pool.ListPool<string>.Release(names);
+            return ret;
+        }
+
+        public string[] GetStaticMethodNames(ref List<MethodInfo> methods, bool inhert = true)
+        {
+            List<string> names = new List<string>();
+            foreach (MethodInfo m in type.GetMethods())
+            {
+                if (m.IsStatic && (inhert || m.DeclaringType == type))
+                {
+                    names.Add(m.ToString());
+                    methods.Add(m);
+                }
+            }
+            return names.ToArray();
+        }
     }
 
 
@@ -170,6 +216,9 @@ namespace YHEditor
     public class Batch
     {
         public ClassInfo findClassInfo=new ClassInfo();
+        public ClassInfo searchClassInfo = null;
+        public ClassInfo modifyClassInfo = null;
+
         public List<FindResult> findResults=null;
 
 
@@ -201,6 +250,11 @@ namespace YHEditor
         public void RefreshFindClassInfo(string className,bool inherit)
         {
             findClassInfo = GetClassInfo(className, inherit);
+        }
+
+        public void RefreshModifyClassInfo(string className, bool inherit)
+        {
+            modifyClassInfo = GetClassInfo(className, inherit);
         }
 
         public static ClassInfo GetClassInfo(string className,bool inherit)
@@ -353,7 +407,7 @@ namespace YHEditor
             return pass;
         }
 
-        public List<FindResult> FindComponents(string searchPath, string filter, ClassInfo classInfo, List<BatchExpression> conditions,bool isAny=true)
+        public List<FindResult> FindComponents(string searchPath, string filter, bool useFileSystem, ClassInfo classInfo, List<BatchExpression> conditions,bool isAny=true)
         {
             List<FindResult> results = new List<FindResult>();
 
@@ -385,7 +439,7 @@ namespace YHEditor
         }
 
 
-        public List<FindResult> FindComponents(string searchPath, string filter, ClassInfo classInfo, BatchExpressionGroup root)
+        public List<FindResult> FindComponents(string searchPath, string filter, bool useFileSystem, ClassInfo classInfo, BatchExpressionGroup root)
         {
             List<FindResult> results = new List<FindResult>();
 
@@ -418,7 +472,7 @@ namespace YHEditor
 
         public int Modify(List<BatchExpression> expresstions)
         {
-            return ModifyComponents(findResults, findClassInfo, expresstions);
+            return ModifyComponents(findResults, modifyClassInfo, expresstions);
         }
 
         public int Modify(List<BatchExpression> expresstions, List<FindResult> results, ClassInfo classInfo)
@@ -476,7 +530,7 @@ namespace YHEditor
             return n;
         }
 
-        public List<FindResult> FindRefrences(string searchPath, string filter, string asset)
+        public List<FindResult> FindRefrences(string searchPath, string filter, bool useFileSystem, string asset)
         {
             List<FindResult> results = new List<FindResult>();
 
@@ -494,7 +548,7 @@ namespace YHEditor
             return results;
         }
 
-        public List<FindResult> FindResources(string searchPath, string filter, ClassInfo classInfo, List<BatchExpression> conditions,bool isAny=true)
+        public List<FindResult> FindAssets(string searchPath, string filter, bool useFileSystem, ClassInfo classInfo, List<BatchExpression> conditions,bool isAny=true)
         {
             List<FindResult> results = new List<FindResult>();
 
@@ -504,7 +558,15 @@ namespace YHEditor
 
             for (int i = 0; i < assets.Count; ++i)
             {
-                UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath(assets[i],classInfo.type);
+                UnityEngine.Object obj = null;
+                if (classInfo.type.IsSubclassOf(typeof(AssetImporter)))
+                {
+                    obj = AssetImporter.GetAtPath(assets[i]);
+                }
+                else
+                {
+                    obj = AssetDatabase.LoadAssetAtPath(assets[i], classInfo.type);
+                }
 
                 if (obj!=null)
                 {
@@ -518,28 +580,48 @@ namespace YHEditor
             return results;
         }
 
-        public List<FindResult> FindResources(string searchPath, string filter, ClassInfo classInfo, BatchExpressionGroup root)
+        public List<FindResult> FindAssets(string searchPath, string filter,bool useFileSystem, ClassInfo classInfo, BatchExpressionGroup root)
         {
             List<FindResult> results = new List<FindResult>();
 
-            List<string> assets = FindAsset.FindAllAssets(searchPath, filter);
+            List<string> assets = useFileSystem? FindAsset.SearchAllAssets(searchPath, filter) : FindAsset.FindAllAssets(searchPath, filter);
 
-            FixExpressionsValue(classInfo, root);
-
-            for (int i = 0; i < assets.Count; ++i)
+            if (classInfo != null)
             {
-                UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath(assets[i], classInfo.type);
+                FixExpressionsValue(classInfo, root);
 
-                if (obj != null)
+                for (int i = 0; i < assets.Count; ++i)
                 {
-                    if (CheckConditions(classInfo, obj, root))
+                    UnityEngine.Object obj = null;
+                    if (classInfo.type.IsSubclassOf(typeof(AssetImporter)))
                     {
-                        results.Add(new FindResult(assets[i], obj));
+                        obj = AssetImporter.GetAtPath(assets[i]);
                     }
+                    else
+                    {
+                        obj = AssetDatabase.LoadAssetAtPath(assets[i], classInfo.type);
+                    }
+
+                    if (obj != null)
+                    {
+                        if (CheckConditions(classInfo, obj, root))
+                        {
+                            results.Add(new FindResult(assets[i], obj));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < assets.Count; ++i)
+                {
+                    UnityEngine.Object obj = AssetDatabase.LoadMainAssetAtPath(assets[i]);
+                    results.Add(new FindResult(assets[i], obj));
                 }
             }
 
             return results;
         }
+
     }
 }

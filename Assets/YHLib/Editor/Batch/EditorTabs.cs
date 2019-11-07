@@ -17,14 +17,19 @@ namespace YHEditor
         string name { get; set; }
     }
 
+    [System.Serializable]
     public class EditorTabs : EditorWindow
     {
         const float k_ToolbarPadding = 15;
         const float k_MenubarPadding = 32;
 
+        [SerializeField]
         List<IEditorTab> m_Tabs=new List<IEditorTab>();
+
+        [SerializeField]
         int m_SelectIndex=0;
 
+        protected bool m_Inited=false;
         //[MenuItem("Window/EditorTabTest", priority = 2050)]
         //static void ShowWindow()
         //{
@@ -36,7 +41,10 @@ namespace YHEditor
 
         public virtual void Init()
         {
-
+            if (!m_Inited)
+            {
+                m_Inited = true;
+            }
         }
 
         void OnGUI()
