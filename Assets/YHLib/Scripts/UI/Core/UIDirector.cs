@@ -7,57 +7,103 @@ namespace YH.UI
 {
     public class UIDirector : IDirector
     {
-        public class StackInfo
-        {
-            //public string asset;
-            public UIPanel panel;
-            public object data;
-
-            public StackInfo(UIPanel panel, object data)
-            {
-                this.panel = panel;
-                this.data = data;
-            }
-        }
-
         //panel的记录。为了性能只记录panel的资源路径。
-        Stack<StackInfo> m_Stack = new Stack<StackInfo>();
+        Stack<PanelInfo> m_Stack = new Stack<PanelInfo>();
 
         UIManager m_Manager = null;
 
-        List<StackInfo> m_TempInfos;
+        List<PanelInfo> m_TempInfos;
 
         public UIDirector(UIManager manage)
         {
             m_Manager = manage;
         }
+        
+        void HidePanel(PanelInfo panelStack)
+        {
+            if (panelStack.IsLoaded)
+            {
+                if (panelStack.panel)
+                {
+                    panelStack.panel.Hide();
+                }
+            }
+            else
+            {
+                panelStack.visible = false;
+            }
+        }
+
+        void ClosePanel(PanelInfo panelStack)
+        {
+            if (panelStack.IsLoaded)
+            {
+                if (panelStack.panel)
+                {
+                    panelStack.panel.Close();
+                }
+            }
+            else
+            {
+                panelStack.closble = true;
+            }
+        }
+
+        void LoadPanel(PanelInfo panelStack, Transform parent,System.Action callback)
+        {
+            panelStack.state = PanelInfo.State.Loading;
+            m_Manager.LoadPanel(panelStack.asset, (panel) =>
+            {
+                panelStack.state = PanelInfo.State.Loaded;
+
+                if (panel != null)
+                {
+                    panelStack.panel = panel;
+
+                    panel.Init(panelStack.data);
+
+                    if (panelStack.closble)
+                    {
+                        m_Manager.ClosePanel(panel);
+                    }
+                    else  if (panelStack.visible)
+                    {
+                        panel.Show();
+                    }
+                    else
+                    {
+                        m_Manager.HidePanel(panel);
+                    }
+
+                    if (callback != null)
+                    {
+                        callback();
+                    }
+                }
+            }, parent);
+        }
+
 
         public void Push(string panelAsset, object data = null)
         {
-            m_Manager.LoadPanel(panelAsset, (panel) =>
+            PanelInfo old = null;
+            if (m_Stack.Count > 0)
             {
-                if (panel != null)
+                old = m_Stack.Peek();
+            }
+            
+            PanelInfo current = new PanelInfo(panelAsset,data);
+            LoadPanel(current, m_Manager.root,() =>
+            {
+                if (old!=null)
                 {
-                    panel.Init(data);
-
-                    panel.Show();
-
-                    m_Manager.AddPanel(panel);
-
-                    //add to stack
-                    if (m_Stack.Count > 0)
+                    if (old.asset != current.asset)
                     {
-                        StackInfo old = m_Stack.Peek();
-
-                        if (old.panel != panel)
-                        {
-                            old.panel.Hide();
-                        }
+                        HidePanel(old);
                     }
-
-                    m_Stack.Push(new StackInfo(panel, data));
                 }
-            }, m_Manager.root);
+            });
+            m_Stack.Push(current);
         }
 
         public void Pop()
@@ -68,63 +114,57 @@ namespace YH.UI
                 return;
             }
 
-            StackInfo old = m_Stack.Pop();
+            PanelInfo old = m_Stack.Pop();
 
-            StackInfo info = m_Stack.Peek();
+            PanelInfo info = m_Stack.Peek();
             //先show,后close
-            info.panel.Show();
-
-            if (IsUsing(old.panel))
+            if (info.IsLoaded)
             {
-                if (old.panel != info.panel)
+                //已经加载过。则直接显示。否则会在加载完成后默认显示。
+                info.panel.Show();
+            }
+
+            //检查在不在使用
+            if (IsUsing(old.asset))
+            {
+                if (old.asset != info.asset)
                 {
-                    old.panel.Hide();
+                    HidePanel(old);
                 }
             }
             else
             {
-                m_Manager.ClosePanel(old.panel);
+                ClosePanel(old);
             }
         }
 
         public void Replace(string panelAsset, object data = null)
         {
-            StackInfo old = null;
+            PanelInfo old = null;
             if (m_Stack.Count > 0)
             {
                 old = m_Stack.Pop();
             }
 
-
-            m_Manager.LoadPanel(panelAsset, (panel) =>
-            {
-                if (panel != null)
+            PanelInfo current = new PanelInfo(panelAsset, data);
+            LoadPanel(current, m_Manager.root, () => {
+                if (old != null)
                 {
-                    panel.Init(data);
-
-                    panel.Show();
-
-                    m_Manager.AddPanel(panel);
-
-                    if (old != null)
+                    if (IsUsing(old.asset))
                     {
-                        if (IsUsing(old.panel))
+                        if (old.asset != current.asset)
                         {
-                            if (old.panel != panel)
-                            {
-                                old.panel.Hide();
-                            }
-                        }
-                        else
-                        {
-                            m_Manager.ClosePanel(old.panel);
+                            HidePanel(old);
                         }
                     }
-
-                    m_Stack.Push(new StackInfo(panel, data));
+                    else
+                    {
+                        ClosePanel(old);
+                    }
                 }
-            }, m_Manager.root);
+            });
 
+            m_Stack.Push(current);
         }
 
         public void PopToStackLevel(int level)
@@ -144,7 +184,7 @@ namespace YH.UI
 
             if (m_TempInfos == null)
             {
-                m_TempInfos = new List<StackInfo>();
+                m_TempInfos = new List<PanelInfo>();
             }
 
             while (c-- > level)
@@ -152,16 +192,19 @@ namespace YH.UI
                 m_TempInfos.Add(m_Stack.Pop());
             }
 
-            StackInfo info = m_Stack.Peek();
+            PanelInfo info = m_Stack.Peek();
             //先show，后remove
-            info.panel.Show();
+            if (info.IsLoading)
+            {
+                info.panel.Show();
+            }
 
             for (int i = 0; i < m_TempInfos.Count; ++i)
             {
                 info = m_TempInfos[i];
-                if (!IsUsing(info.panel))
+                if (!IsUsing(info.asset))
                 {
-                    m_Manager.ClosePanel(info.panel);
+                    ClosePanel(info);
                 }
             }
             m_TempInfos.Clear();
@@ -177,6 +220,19 @@ namespace YH.UI
             foreach (var iter in m_Stack)
             {
                 if (iter.panel == panel)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        bool IsUsing(string panelAsset)
+        {
+            foreach (var iter in m_Stack)
+            {
+                if (iter.asset == panelAsset)
                 {
                     return true;
                 }

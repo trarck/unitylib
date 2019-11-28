@@ -10,8 +10,7 @@ namespace YH.UI
         [SerializeField]
         RectTransform m_Root;
         List<UIPanel> m_Chidren = new List<UIPanel>();
-
-        Dictionary<string, UIPanel> m_Actives = new Dictionary<string, UIPanel>();
+        Dictionary<string, PanelInfo> m_PanelInfos = new Dictionary<string, PanelInfo>();
 
         //panel管理。
         IDirector m_Director=null;
@@ -122,9 +121,7 @@ namespace YH.UI
             }
             return TempPanels.ToArray();
         }
-        #endregion
 
-        #region Hierarchy
         public void LoadPanel(string path, System.Action<UIPanel> callback, Transform parent = null)
         {
             //get from asset
@@ -164,7 +161,7 @@ namespace YH.UI
 
         public void LoadPanel(string panelPath, System.Action<UIPanel> callback)
         {
-            LoadPanel(panelPath,callback, root);
+            LoadPanel(panelPath, callback, root);
         }
 
         protected UIPanel InstantiatePanel(GameObject prefab, Transform parent)
@@ -190,65 +187,132 @@ namespace YH.UI
             }
             return null;
         }
-    
+        #endregion
+
+        #region Visible
         public void ShowPanel(string panelPath, object data=null,int depth=0)
         {
-            UIPanel activePanel = null;
-            if (m_Actives.TryGetValue(panelPath, out activePanel))
+            PanelInfo panelInfo =null;
+            if (m_PanelInfos.TryGetValue(panelPath, out panelInfo))
             {
-                if (depth > 0 && activePanel.depth < depth)
+                if (panelInfo.IsLoaded)
                 {
-                    activePanel.depth = depth;
-                    RemovePanel(activePanel);
-                    AddPanel(activePanel);
+                    if (depth > 0 && panelInfo.panel.depth < depth)
+                    {
+                        panelInfo.panel.depth = depth;
+                        RemovePanel(panelInfo.panel);
+                        AddPanel(panelInfo.panel);
+                    }
+                    panelInfo.panel.Show();
+                    return;
                 }
-                activePanel.Show();
+                else if (panelInfo.IsLoading)
+                {
+                    panelInfo.visible = true;
+                    return;
+                }
             }
-            else
+
+            //load and create new
+            panelInfo = new PanelInfo(panelPath,  data);
+            panelInfo.state = PanelInfo.State.Loading;
+            LoadPanel(panelPath, (panel) =>
             {
-                //load and create new
-                LoadPanel(panelPath, (panel) =>
-                 {
-                     if (panel != null)
-                     {
-                         panel.Init(data);
-                         panel.Show();
-                         if (depth > 0)
-                         {
-                             panel.depth = depth;
-                         }
-                         AddPanel(panel);
-                     }
-                 });
-            }
+                panelInfo.state = PanelInfo.State.Loaded;
+                if (panel != null)
+                {
+                    panelInfo.panel = panel;
+
+                    panel.Init(data);
+                    if (depth > 0)
+                    {
+                         panel.depth = depth;
+                    }
+                     AddPanel(panel);
+                         
+                    if (panelInfo.closble)
+                    {
+                        ClosePanel(panel);
+                    }
+                    else if (panelInfo.visible)
+                    {
+                        panel.Show();
+                    }
+                    else
+                    {
+                        HidePanel(panel);
+                    }
+                }
+            });
+            m_PanelInfos[panelPath] = panelInfo;
         }
 
         public void ClosePanel(UIPanel panel)
         {
-            RemovePanel(panel);
-            panel.Close();
+            if (panel)
+            {
+                if (m_PanelInfos.ContainsKey(panel.path))
+                {
+                    m_PanelInfos.Remove(panel.path);
+                }
+                RemovePanel(panel);
+                panel.Close();            
+            }
         }
 
         public void ClosePanel(string panelPath)
         {
-            UIPanel panel = GetPanel(panelPath);
-            if(panel!=null)
+            PanelInfo panelInfo = null;
+            if (m_PanelInfos.TryGetValue(panelPath, out panelInfo))
             {
-                ClosePanel(panel);
+                ClosePanel(panelInfo);
+            }
+        }
+        
+        void ClosePanel(PanelInfo panelInfo)
+        {
+            if (panelInfo.IsLoaded)
+            {
+                if (panelInfo.panel)
+                {
+                    ClosePanel(panelInfo.panel);
+                }
+            }
+            else
+            {
+                panelInfo.closble = true;
             }
         }
 
         public void HidePanel(UIPanel panel)
         {
-            panel.Hide();
+            if (panel)
+            {
+                panel.Hide();
+            }
         }
 
         public void HidePanel(string panelPath)
         {
-            UIPanel panel = GetPanel(panelPath);
-            if (panel != null)
+            PanelInfo panelInfo = null;
+            if (m_PanelInfos.TryGetValue(panelPath, out panelInfo))
             {
-                HidePanel(panel);
+                HidePanel(panelInfo);
+            }
+        }
+
+        void HidePanel(PanelInfo panelStack)
+        {
+            if (panelStack.IsLoaded)
+            {
+                if (panelStack.panel)
+                {
+                    panelStack.panel.Hide();
+                }
+            }
+            else
+            {
+                panelStack.visible = false;
             }
         }
         #endregion

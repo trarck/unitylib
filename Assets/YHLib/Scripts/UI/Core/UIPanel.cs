@@ -12,6 +12,8 @@ namespace YH.UI
         [SerializeField]
         protected int m_Depth=0;
 
+        public string path { get; set; }
+
         bool m_Visible = false;
 
         public virtual void Init(object data)
@@ -68,9 +70,5 @@ namespace YH.UI
             get { return m_Depth; }
             set { m_Depth = value; }
         }
-
-        public string path { get; set; }
-
-       
     }
 }
