@@ -60,19 +60,22 @@ namespace YH.UI
                 {
                     panelStack.panel = panel;
 
-                    panel.Init(panelStack.data);
-
                     if (panelStack.closble)
                     {
                         m_Manager.ClosePanel(panel);
                     }
-                    else  if (panelStack.visible)
-                    {
-                        panel.Show();
-                    }
                     else
                     {
-                        m_Manager.HidePanel(panel);
+                        panel.Init(panelStack.data);
+                        m_Manager.AddPanel(panel);
+                        if (panelStack.visible)
+                        {
+                            panel.Show();
+                        }
+                        else
+                        {
+                            m_Manager.HidePanel(panel);
+                        }
                     }
 
                     if (callback != null)
@@ -194,7 +197,7 @@ namespace YH.UI
 
             PanelInfo info = m_Stack.Peek();
             //先show，后remove
-            if (info.IsLoading)
+            if (info.IsLoaded)
             {
                 info.panel.Show();
             }

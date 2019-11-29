@@ -7,11 +7,12 @@ public class TestDialogPanel : UIPanel
 {
     public void Cancel()
     {
-        Close();
+        //通过UIManager的ShowPanel显示的Panel要用UIManager的Close来关闭。不能直接调用UIPanel的Close.
+        UIManager.Instance.ClosePanel(this);
     }
 
     public void Confirm()
     {
-        Close();
+        UIManager.Instance.ClosePanel(this);
     }
 }

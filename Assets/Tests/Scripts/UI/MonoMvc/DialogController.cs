@@ -12,13 +12,13 @@ namespace Test.UI.MonoMvc
         public void Cancel()
         {
             UIPanel panel = GetComponent<UIPanel>();
-            panel.Close();
+            UIManager.Instance.ClosePanel(panel);
         }
 
         public void Confirm()
         {
             UIPanel panel = GetComponent<UIPanel>();
-            panel.Close();
+            UIManager.Instance.ClosePanel(panel);
         }
     }
 }

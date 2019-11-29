@@ -11,7 +11,7 @@ namespace Test.UI.MonoMvc
     {
         public void GotoB()
         {
-            UIManager.Instance.director.Replace("Assets/Tests/Prefabs/UI/Mvc/SubBPanel.prefab");
+            UIManager.Instance.director.Replace("Assets/Tests/Prefabs/UI/MonoMvc/SubBPanel.prefab");
         }
     }
 }

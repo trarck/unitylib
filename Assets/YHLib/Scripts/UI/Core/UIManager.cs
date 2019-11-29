@@ -56,7 +56,7 @@ namespace YH.UI
                     //check hierarchy
                     if (panel.transform.parent != transform)
                     {
-                        panel.transform.SetParent(transform);
+                        panel.transform.SetParent(transform,false);
                     }
                     //set SiblingIndex
                     panel.transform.SetSiblingIndex(i);
@@ -130,10 +130,9 @@ namespace YH.UI
                 if (assetRef != null)
                 {
                     UIPanel panel = InstantiatePanel(assetRef.asset as GameObject, parent);
-                    panel.path = path;
-
                     if (panel != null)
                     {
+                        panel.path = path;
                         assetRef.Monitor(panel.gameObject);
 
                         if (callback != null)
@@ -167,14 +166,7 @@ namespace YH.UI
         protected UIPanel InstantiatePanel(GameObject prefab, Transform parent)
         {
             GameObject panelObj = null;
-            if (parent != null)
-            {
-                panelObj = GameObject.Instantiate<GameObject>(prefab, parent);
-            }
-            else
-            {
-                panelObj = GameObject.Instantiate<GameObject>(prefab);
-            }
+            panelObj = GameObject.Instantiate<GameObject>(prefab, parent, false);
 
             if (panelObj != null)
             {
@@ -218,29 +210,32 @@ namespace YH.UI
             panelInfo.state = PanelInfo.State.Loading;
             LoadPanel(panelPath, (panel) =>
             {
+                Debug.LogFormat("{0} loaded", panelPath);
                 panelInfo.state = PanelInfo.State.Loaded;
                 if (panel != null)
                 {
                     panelInfo.panel = panel;
-
-                    panel.Init(data);
-                    if (depth > 0)
-                    {
-                         panel.depth = depth;
-                    }
-                     AddPanel(panel);
                          
                     if (panelInfo.closble)
                     {
                         ClosePanel(panel);
                     }
-                    else if (panelInfo.visible)
-                    {
-                        panel.Show();
-                    }
                     else
                     {
-                        HidePanel(panel);
+                        panel.Init(data);
+                        if (depth > 0)
+                        {
+                            panel.depth = depth;
+                        }
+                        AddPanel(panel);
+                        if (panelInfo.visible)
+                        {
+                            panel.Show();
+                        }
+                        else
+                        {
+                            HidePanel(panel);
+                        }
                     }
                 }
             });

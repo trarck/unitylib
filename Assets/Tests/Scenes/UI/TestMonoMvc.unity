@@ -214,7 +214,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Root: {fileID: 538464409}
-  m_DefaultPanel: Assets/Tests/Prefabs/UI/Mvc/MainPanel.prefab
+  m_DefaultPanel: Assets/Tests/Prefabs/UI/MonoMvc/MainPanel.prefab
 --- !u!114 &538464406
 MonoBehaviour:
   m_ObjectHideFlags: 0
