@@ -105,7 +105,8 @@ namespace YH.Update
         
         public void GetRemoteVersion()
         {
-            string remoteVersionUrl = m_UpdateUrl + "/version.txt";
+            System.DateTime now = System.DateTime.Now;
+            string remoteVersionUrl = m_UpdateUrl + "/version.txt?t="+ now.Ticks;
             TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Get remote version", 0);
 
             HttpClient httpClient = GetHttpClient();
@@ -122,6 +123,7 @@ namespace YH.Update
                 {
                     //获取远程版本信息成功
                     TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Get remote version", 0.2f);
+                    YH.Log.YHDebug.LogFormat("Remove version:{0}", httpClient.request.downloadHandler.text);
                     RemoteVersions remoteVersions = new RemoteVersions();
                     if (remoteVersions.Parse(httpClient.request.downloadHandler.text))
                     {
@@ -133,8 +135,6 @@ namespace YH.Update
                         TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.ParseRemoteVersionError, "Parse remote version fail:" + httpClient.request.downloadHandler.text, 1);
                     }
                 }
-                //release client request
-                httpClient.Clear();
             };
 
             httpClient.Get(remoteVersionUrl);
@@ -170,7 +170,7 @@ namespace YH.Update
             InitLocalVersion();
 
             //check host version and native version
-            //1.m_HostVersion==m_NativeHostVersion                        same install package or no temp HostVersion file.
+            //1.m_HostVersion==m_NativeHostVersion                        same install package or no local HostVersion file.
             //    when m_CurrentVersion < m_NativeHostVersion        Update from NativeHostVersion
             //2.m_HostVersion<m_NativeHostVersion                         user remove install package and reinstall new version package.
             //   when m_CurrentVersion < m_NativeHostVersion        Update from NativeHostVersion.Others use currentVersion for update.
@@ -233,10 +233,11 @@ namespace YH.Update
 
             //do update
             string patchPath = GetPatchPath(m_CurrentVersion, remoteVersions.LatestVersion);
+            string allPatch = remoteVersions.LatestVersion.ToString();
             //TODO download the manifest file.
             //GetManifestHeaderFile(patchPath);
             //download the pack file            
-            DownLoadPatchPack(patchPath);//Step
+            DownLoadPatchPack(patchPath, allPatch);//Step
 
             //更新当前版本号，但不保存到文件.等所有补丁执行完成才保存到本地文件。
             m_CurrentVersion = remoteVersions.LatestVersion;
@@ -275,9 +276,6 @@ namespace YH.Update
                         }
                     }
                 }
-
-                //release client request
-                httpClient.Clear();
             };
 
             httpClient.Get(manifestUrl);
@@ -288,11 +286,14 @@ namespace YH.Update
         /// 由于使用www下载，无法获取下载进度。
         /// </summary>
         /// <param name="patchPath"></param>
-        public void DownLoadPatchPack(string patchPath)
+        public void DownLoadPatchPack(string patchPath,string allPatch)
         {
             string patchPacktUrl = m_UpdateUrl + "/" + patchPath + ".zip";
 
+            YH.Log.YHDebug.LogFormat("patch pack url:{0}", patchPacktUrl);
             TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "Download patch pack", 0);
+
+            bool loadPatchAll = false;
 
             HttpClient httpClient = GetHttpClient();
             //makesure the client is clean
@@ -301,8 +302,18 @@ namespace YH.Update
             {
                 if (httpClient.request.error != null)
                 {
-                    //获取manifest信息失败
-                    TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadPatchPackError, "Download patch pack " + patchPacktUrl + " fail:" + httpClient.request.error, 1);
+                    if (!loadPatchAll)
+                    {
+                        loadPatchAll = true;
+                        string allPatchPacktUrl = m_UpdateUrl + "/" + patchPath + ".zip";
+                        YH.Log.YHDebug.LogFormat("download patch pack fail download all:{0}", allPatchPacktUrl);
+                        httpClient.Get(allPatchPacktUrl);
+                    }
+                    else
+                    {
+                        //获取manifest信息失败
+                        TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadPatchPackError, "Download patch pack " + patchPacktUrl + " fail:" + httpClient.request.error, 1);
+                    }
                 }
                 else
                 {
