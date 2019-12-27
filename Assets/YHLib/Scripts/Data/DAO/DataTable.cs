@@ -1,8 +1,7 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
+using YH.Data.Driver;
 
-namespace YH
+namespace YH.Data.Dao
 {
     /// <summary>
     /// 通用数据访问

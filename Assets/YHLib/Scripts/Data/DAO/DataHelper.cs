@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-namespace YH
+namespace YH.Data.Dao
 {
     /// <summary>
     /// 任意类型数据访问
