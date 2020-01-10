@@ -7,11 +7,10 @@ namespace YH
 	{
 		public static void SaveScreenshot(string file)
 		{
-#if UNITY_2017_OR_NEWER
-            ScreenCapture.CaptureScreenshot(file);
-#else
-            ScreenCapture.CaptureScreenshot(file);
-#endif
+            var texture = ScreenCapture.CaptureScreenshotAsTexture();
+            System.IO.File.WriteAllBytes(file, texture.EncodeToPNG());
+            // cleanup
+            UnityEngine.Object.Destroy(texture);
         }
 
         /// <summary>
