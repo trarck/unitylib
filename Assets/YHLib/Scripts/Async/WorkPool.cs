@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace YH.Async
 {
@@ -13,12 +14,11 @@ namespace YH.Async
         public const int UnknowError = -1;
 
         static int TaskId=0;
-
-        int m_Id;
         int m_Limit;
         Queue<Task> m_PendingTasks = null;
         Dictionary<int,Task> m_RunningTasks = null;
         bool m_Running = true;
+        bool m_Finished = false;
         bool m_Completed = false;
         bool m_StopOnError = false;
         bool m_Joined = false;
@@ -26,9 +26,13 @@ namespace YH.Async
 
         public event Action<int> onComplete;
 
-        public WorkPool(int limit, int id)
+        public WorkPool():this(4)
         {
-            m_Id = id;
+
+        }
+
+        public WorkPool(int limit)
+        {
             m_Limit = limit;
             m_PendingTasks = new Queue<Task>();
             m_RunningTasks = new Dictionary<int, Task>();
@@ -159,7 +163,7 @@ namespace YH.Async
             if (m_StopOnError)
             {
                 m_ErrorCode = errorCode;
-                Complete();
+                Finish();
             }
             else
             {
@@ -173,9 +177,9 @@ namespace YH.Async
         public void Join()
         {
             m_Joined = true;
-            if (m_Completed)
+            if (m_Finished)
             {
-                TriggerCompleteEvent();
+                Complete();
             }
         }
 
@@ -184,7 +188,7 @@ namespace YH.Async
             //check is finish
             if (m_RunningTasks.Count == 0 && m_PendingTasks.Count == 0)
             {
-                Complete();
+                Finish();
             }
 
             //check is runable.
@@ -206,15 +210,21 @@ namespace YH.Async
             }
         }
 
-        protected void Complete()
+        protected void Finish()
         {
-            m_Completed = true;
+            m_Finished = true;
             m_Running = false;
 
             if (m_Joined)
             {
-                TriggerCompleteEvent();
+                Complete();
             }
+        }
+
+        protected virtual void Complete()
+        {
+            m_Completed = true;
+            TriggerCompleteEvent();
         }
 
         protected void TriggerCompleteEvent()
@@ -223,6 +233,20 @@ namespace YH.Async
             {
                 onComplete(m_ErrorCode);
             }
+        }
+
+        public void Clean()
+        {
+            m_Limit = 0;
+            m_PendingTasks = null;
+            m_RunningTasks = null;
+            m_Running = true;
+            m_Finished = false;
+            m_Completed = false;
+            m_StopOnError = false;
+            m_Joined = false;
+            m_ErrorCode = 0;
+            onComplete = null;
         }
 
         public bool stopOnError
@@ -247,6 +271,68 @@ namespace YH.Async
             {
                 m_Completed = value;
             }
+        }
+    }
+
+
+
+    public class WorkPoolFactory
+    {
+        private static readonly Stack<WorkPool> m_Stack = new Stack<WorkPool>();
+
+        class WorkPoolEx : WorkPool
+        {
+            public WorkPoolEx()
+            {
+
+            }
+
+            public WorkPoolEx(int limit) : base(limit)
+            {
+
+            }
+
+            protected override void Complete()
+            {
+                base.Complete();
+                WorkPoolFactory.Release(this);
+            }
+        }
+
+        public static WorkPool Get()
+        {
+            WorkPool element;
+            if (m_Stack.Count == 0)
+            {
+                element = new WorkPoolEx();
+            }
+            else
+            {
+                element = m_Stack.Pop();
+            }
+            return element;
+        }
+
+        public static WorkPool Get(int limit)
+        {
+            WorkPool element;
+            if (m_Stack.Count == 0)
+            {
+                element = new WorkPoolEx(limit);
+            }
+            else
+            {
+                element = m_Stack.Pop();
+            }
+            return element;
+        }
+
+        public static void Release(WorkPool element)
+        {
+            if (m_Stack.Count > 0 && ReferenceEquals(m_Stack.Peek(), element))
+                Debug.LogError("Internal error. Trying to destroy object that is already released to pool.");
+            element.Clean();
+            m_Stack.Push(element);
         }
     }
 }
