@@ -1,10 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace YH.Update
 {
     public class Version
     {
+        static Regex VerRegex = new Regex("(\\d)+(\\.\\d+)*");
+
         public ushort major=0;
         public ushort minor =0;
         public ushort patch =0;
@@ -28,26 +31,40 @@ namespace YH.Update
         /// <param name="ver"></param>
         public void Parse(string ver)
         {
-            string[] items = ver.Split('.');
-
-            //major version must have
-            major = ushort.Parse(items[0]);
-
-            if(items.Length>1)
+            Match m = VerRegex.Match(ver);
+            if (m != Match.Empty)
             {
-                minor = ushort.Parse(items[1]);
+                ver = m.Groups[0].Captures[0].Value;
 
-                if(items.Length>2)
+                string[] items = ver.Split('.');
+
+                //major version must have
+                if (ushort.TryParse(items[0], out major))
                 {
-                    patch = ushort.Parse(items[2]);
-                }
-                else
-                {
-                    patch = 0;
+                    if (items.Length > 1)
+                    {
+                        if (ushort.TryParse(items[1], out minor))
+                        {
+                            if (items.Length > 2)
+                            {
+                                ushort.TryParse(items[2], out patch);
+                            }
+                            else
+                            {
+                                patch = 0;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        minor = 0;
+                        patch = 0;
+                    }
                 }
             }
             else
             {
+                major = 0;
                 minor = 0;
                 patch = 0;
             }
@@ -65,20 +82,20 @@ namespace YH.Update
 
         public static bool IsVersionFormat(string version)
         {
-            if (string.IsNullOrEmpty(version))
-            {
-                return false;
-            }
+            //if (string.IsNullOrEmpty(version))
+            //{
+            //    return false;
+            //}
 
-            foreach (char c in version)
-            {
-                if (!char.IsNumber(c) && c != '.')
-                {
-                    return false;
-                }
-            }
+            //foreach (char c in version)
+            //{
+            //    if (!char.IsNumber(c) && c != '.')
+            //    {
+            //        return false;
+            //    }
+            //}
 
-            return true;
+            return VerRegex.IsMatch(version);
         }
 
         //==================overload compare operator=====================//

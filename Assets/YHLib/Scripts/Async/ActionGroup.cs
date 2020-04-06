@@ -60,10 +60,15 @@ namespace YH.Async
         {
             if (m_FinishedCount >= m_ActionCount && m_Joined)
             {
-                if (completeHandle != null)
-                {
-                    completeHandle();
-                }
+                DoComplete();
+            }
+        }
+
+        protected virtual void DoComplete()
+        {
+            if (completeHandle != null)
+            {
+                completeHandle();
             }
         }
 

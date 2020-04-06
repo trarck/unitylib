@@ -1,12 +1,15 @@
-using UnityEngine;
-using System.Collections.Generic;
+using YH.Data.Driver;
 
-
-namespace YH
+namespace YH.Data.Dao
 {
-    public class Dao
+    public class Dao:IDao
     {
-        public virtual bool Init()
+        public virtual bool Init(IDataDriver dataDriver)
+        {
+            return true;
+        }
+
+        public bool Init(IDataDriver dataDriver, string tableName)
         {
             return true;
         }

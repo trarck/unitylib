@@ -75,6 +75,8 @@ namespace YH.Update
 
         bool m_IsInitLocalVersion = false;
 
+
+
         public delegate void UpdatingHandle(UpdateSegment segment, UpdateError err, string msg, float percent);
         public event UpdatingHandle OnUpdating;
 
@@ -90,66 +92,52 @@ namespace YH.Update
             return 0;
         }
 
-        IEnumerator HandleProgress(UnityWebRequest request, System.Action<float> progressCallback,float progressInterval=0.1f)
+
+        HttpClient GetHttpClient()
         {
-            while (!request.isDone)
+            HttpClient httpClient = GetComponent<HttpClient>();
+            if (!httpClient)
             {
-                progressCallback(request.downloadProgress);
-                yield return new WaitForSeconds(progressInterval); // WaitForEndOfFrame();
+                httpClient = gameObject.AddComponent<HttpClient>();
             }
-            //这里不需要再调用百分白时候的回调,在这以前已经执行RequestCallback的回调.可以在RequestCallback里把显示进度设置成100%
-            //progressCallback(1.0f);
+            return httpClient;
         }
-
-        IEnumerator HttpGet(string url, System.Action<UnityWebRequest> callback)
-        {
-            UnityWebRequest webRequest = UnityWebRequest.Get(url);
-#if SSH_ACCEPT_ALL
-            webRequest.certificateHandler = new AcceptAllCertificatesSignedHandler();
-#endif
-            yield return webRequest.SendWebRequest();
-            callback(webRequest);
-        }
-
-        IEnumerator HttpGet(string url, System.Action<UnityWebRequest> callback, System.Action<float> progressCallback)
-        {
-            UnityWebRequest webRequest = UnityWebRequest.Get(url);
-#if SSH_ACCEPT_ALL
-            webRequest.certificateHandler = new AcceptAllCertificatesSignedHandler();
-#endif
-            StartCoroutine(HandleProgress(webRequest, progressCallback));
-            yield return webRequest.SendWebRequest();
-            callback(webRequest);
-        }
-
+        
         public void GetRemoteVersion()
         {
-            string remoteVersionUrl = m_UpdateUrl + "/version.txt";
+            System.DateTime now = System.DateTime.Now;
+            string remoteVersionUrl = m_UpdateUrl + "/version.txt?t="+ now.Ticks;
             TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Get remote version", 0);
 
-            StartCoroutine(HttpGet(remoteVersionUrl, (request) =>
+            HttpClient httpClient = GetHttpClient();
+            //makesure the client is clean
+            httpClient.Clear();
+            httpClient.onComplete += (_) =>
             {
-                if (request.error != null)
+                if (httpClient.request.error != null)
                 {
                     //获取远程版本信息失败
-                    TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.DownloadRemoteVersionError, "Download remote version "+ remoteVersionUrl + " fail:" + request.error, 1);
+                    TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.DownloadRemoteVersionError, "Download remote version " + remoteVersionUrl + " fail:" + httpClient.request.error, 1);
                 }
                 else
                 {
                     //获取远程版本信息成功
                     TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.OK, "Get remote version", 0.2f);
+                    YH.Log.YHDebug.LogFormat("Remove version:{0}", httpClient.request.downloadHandler.text);
                     RemoteVersions remoteVersions = new RemoteVersions();
-                    if (remoteVersions.Parse(request.downloadHandler.text))
+                    if (remoteVersions.Parse(httpClient.request.downloadHandler.text))
                     {
                         //比较版本
                         CompareVersion(remoteVersions); //Step
                     }
                     else
                     {
-                        TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.ParseRemoteVersionError, "Parse remote version fail:" + request.downloadHandler.text, 1);
+                        TriggerUpdating(UpdateSegment.CompareVersion, UpdateError.ParseRemoteVersionError, "Parse remote version fail:" + httpClient.request.downloadHandler.text, 1);
                     }
                 }
-            }));
+            };
+
+            httpClient.Get(remoteVersionUrl);
         }
 
         public void InitLocalVersion()
@@ -182,7 +170,7 @@ namespace YH.Update
             InitLocalVersion();
 
             //check host version and native version
-            //1.m_HostVersion==m_NativeHostVersion                        same install package or no temp HostVersion file.
+            //1.m_HostVersion==m_NativeHostVersion                        same install package or no local HostVersion file.
             //    when m_CurrentVersion < m_NativeHostVersion        Update from NativeHostVersion
             //2.m_HostVersion<m_NativeHostVersion                         user remove install package and reinstall new version package.
             //   when m_CurrentVersion < m_NativeHostVersion        Update from NativeHostVersion.Others use currentVersion for update.
@@ -245,10 +233,11 @@ namespace YH.Update
 
             //do update
             string patchPath = GetPatchPath(m_CurrentVersion, remoteVersions.LatestVersion);
+            string allPatch = remoteVersions.LatestVersion.ToString();
             //TODO download the manifest file.
             //GetManifestHeaderFile(patchPath);
             //download the pack file            
-            DownLoadPatchPack(patchPath);//Step
+            DownLoadPatchPack(patchPath, allPatch);//Step
 
             //更新当前版本号，但不保存到文件.等所有补丁执行完成才保存到本地文件。
             m_CurrentVersion = remoteVersions.LatestVersion;
@@ -258,25 +247,28 @@ namespace YH.Update
         {
             string manifestUrl = m_UpdateUrl + "/" + patchPath + ".manifest";
 
-            StartCoroutine(HttpGet(manifestUrl, (request) =>
+            HttpClient httpClient = GetHttpClient();
+            //makesure the client is clean
+            httpClient.Clear();
+            httpClient.onComplete += (_) =>
             {
-                if (request.error != null)
+                if (httpClient.request.error != null)
                 {
                     //获取manifest信息失败
-                    TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "Download manifest "+ manifestUrl + " fail:" + request.error, 1);
+                    TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "Download manifest " + manifestUrl + " fail:" + httpClient.request.error, 1);
                 }
                 else
                 {
-                    if (string.IsNullOrEmpty(request.downloadHandler.text))
+                    if (string.IsNullOrEmpty(httpClient.request.downloadHandler.text))
                     {
                         TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "Manifest file is empty:" + manifestUrl, 1);
                     }
                     else
                     {
-                        ManifestHeader manifestHeader = JsonUtility.FromJson<ManifestHeader>(request.downloadHandler.text);
+                        ManifestHeader manifestHeader = JsonUtility.FromJson<ManifestHeader>(httpClient.request.downloadHandler.text);
                         if (manifestHeader == null)
                         {
-                            TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "Parse manifest fail:" + request.downloadHandler.text, 1);
+                            TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadManifestError, "Parse manifest fail:" + httpClient.request.downloadHandler.text, 1);
                         }
                         else
                         {
@@ -284,7 +276,9 @@ namespace YH.Update
                         }
                     }
                 }
-            }));
+            };
+
+            httpClient.Get(manifestUrl);
         }
 
         /// <summary>
@@ -292,17 +286,34 @@ namespace YH.Update
         /// 由于使用www下载，无法获取下载进度。
         /// </summary>
         /// <param name="patchPath"></param>
-        public void DownLoadPatchPack(string patchPath)
+        public void DownLoadPatchPack(string patchPath,string allPatch)
         {
             string patchPacktUrl = m_UpdateUrl + "/" + patchPath + ".zip";
 
+            YH.Log.YHDebug.LogFormat("patch pack url:{0}", patchPacktUrl);
             TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "Download patch pack", 0);
-            StartCoroutine(HttpGet(patchPacktUrl, (request) =>
+
+            bool loadPatchAll = false;
+
+            HttpClient httpClient = GetHttpClient();
+            //makesure the client is clean
+            httpClient.Clear();
+            httpClient.onComplete += (_) =>
             {
-                if (request.error != null)
+                if (httpClient.request.error != null)
                 {
-                    //获取manifest信息失败
-                    TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadPatchPackError, "Download patch pack "+ patchPacktUrl + " fail:" + request.error, 1);
+                    if (!loadPatchAll)
+                    {
+                        loadPatchAll = true;
+                        string allPatchPacktUrl = m_UpdateUrl + "/" + patchPath + ".zip";
+                        YH.Log.YHDebug.LogFormat("download patch pack fail download all:{0}", allPatchPacktUrl);
+                        httpClient.Get(allPatchPacktUrl);
+                    }
+                    else
+                    {
+                        //获取manifest信息失败
+                        TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.DownloadPatchPackError, "Download patch pack " + patchPacktUrl + " fail:" + httpClient.request.error, 1);
+                    }
                 }
                 else
                 {
@@ -314,19 +325,23 @@ namespace YH.Update
                         Directory.CreateDirectory(Path.GetDirectoryName(localPackFile));
                     }
 
-                    MemoryStream stream = new MemoryStream(request.downloadHandler.data);
+                    MemoryStream stream = new MemoryStream(httpClient.request.downloadHandler.data);
                     StartCoroutine(ApplayPatch(stream));
-                    
+
                     if (!m_DeletePatchPack)
                     {
-                        File.WriteAllBytes(localPackFile, request.downloadHandler.data);
-                    }                    
+                        File.WriteAllBytes(localPackFile, httpClient.request.downloadHandler.data);
+                    }
                 }
-            },
-            (percent) =>
+                //release request
+                httpClient.Clear();
+            };
+
+            httpClient.onProgress += (percent) =>
             {
                 TriggerUpdating(UpdateSegment.DownloadAssets, UpdateError.OK, "Downloading", percent);
-            }));
+            };
+            httpClient.Get(patchPacktUrl);
         }
 
         /// <summary>

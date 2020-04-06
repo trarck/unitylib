@@ -1,35 +1,30 @@
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
+using YH.Data.Driver;
 
-
-namespace YH
+namespace YH.Data.Dao
 {
 
     /// <summary>
     /// 任意类型数据访问
     /// 目前只有查询功能
     /// </summary>
-    public class DataDao : Dao
+    public class DataDao : IDao
     {
-        protected DataDriver m_DataDriver;
+        protected IDataDriver m_DataDriver;
 
         protected string m_DataName;
 
-        public DataDao()
-        {
-
-        }
-
-        public DataDao(DataDriver dataDriver)
+        public virtual bool Init(IDataDriver dataDriver)
         {
             m_DataDriver = dataDriver;
+            return true;
         }
 
-        public DataDao(DataDriver dataDriver,string dataName)
+        public virtual bool Init(IDataDriver dataDriver,string dataName)
         {
             m_DataDriver = dataDriver;
             m_DataName = dataName;
+            return true;
         }
 
         public Dictionary<string, object> GetDictionaryData(object key)
@@ -66,7 +61,27 @@ namespace YH
             return default(T);
         }
 
-        public DataDriver dataDriver
+        public List<T> FetchListData<T>()
+        {
+            return FetchData<T>();
+        }
+
+        public List<T> FetchData<T>()
+        {
+            return m_DataDriver.FetchData<T>(m_DataName);
+        }
+
+        public Dictionary<K,T> FetchDictData<K,T>()
+        {
+            return m_DataDriver.FetchDict<K, T>(m_DataName);
+        }
+
+        public T FetchObject<T>()
+        {
+            return m_DataDriver.FetchObject<T>(m_DataName);
+        }
+
+        public IDataDriver dataDriver
         {
             set
             {

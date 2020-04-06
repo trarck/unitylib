@@ -1,5 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace YH.Async
 {
@@ -9,12 +13,12 @@ namespace YH.Async
         //if method is static target is null
         object m_Target;
         MethodInfo m_Method;
-        TaskPool m_WorkPool;
+        WorkPool m_WorkPool;
         object[] m_Args;
 
         IEnumerator m_Enumerator;
 
-        public Task(int id, TaskPool workPool, object target, MethodInfo method, params object[] args)
+        public Task(int id, WorkPool workPool, object target, MethodInfo method, params object[] args)
         {
             this.id = id;
             m_WorkPool = workPool;
@@ -24,11 +28,11 @@ namespace YH.Async
             SetArgs(args);
         }
 
-        public Task(int id, TaskPool workPool, IEnumerator enumerator)
+        public Task(int id, WorkPool workPool, IEnumerator enumerator)
         {
             this.id = id;
             m_WorkPool = workPool;
-
+            m_Enumerator = enumerator;
         }
 
         public void Run()
@@ -41,6 +45,10 @@ namespace YH.Async
                     m_WorkPool.StartCoroutine(ret);
                 }
             }
+            else if (m_Enumerator != null)
+            {
+                m_WorkPool.StartCoroutine(m_Enumerator);
+            }
         }
 
         public void Done()
@@ -48,9 +56,20 @@ namespace YH.Async
             m_WorkPool.FinishTask(this);
         }
 
-        public void Error()
+        public void Error(int errorCode)
         {
-            m_WorkPool.ErrorTask(this);
+            m_WorkPool.ErrorTask(this, errorCode);
+        }
+
+        public void Clear()
+        {
+            id = 0;
+            m_Target = null;
+            m_Method = null;
+            m_WorkPool = null;
+            m_Args = null;
+
+            m_Enumerator = null;
         }
 
         void SetArgs(object[] args)
