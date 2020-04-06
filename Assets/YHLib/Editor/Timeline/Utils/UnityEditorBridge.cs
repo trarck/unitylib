@@ -8,15 +8,18 @@ namespace YHEditor.Timeline
 {
     public class UnityEditorBridge
     {
-        
+
+        static Type[] s_EmptyTypes=new Type[]{};
+
+        static BindingFlags s_BindingFlagsAll = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;       
 
         public static void ApplyWireMaterial()
         {
             Type t = typeof(HandleUtility);
-            MethodInfo m= t.GetMethod("ApplyWireMaterial");
-            if (m!=null)
+            MethodInfo m = t.GetMethod("ApplyWireMaterial",s_BindingFlagsAll,null,s_EmptyTypes,null);
+            if (m != null)
             {
-                m.Invoke(null,null);
+                m.Invoke(null, null);
             }
         }
 
@@ -37,7 +40,7 @@ namespace YHEditor.Timeline
         public static int GetPermanentControlID()
         {
             Type t = typeof(GUIUtility);
-            MethodInfo m = t.GetMethod("GetPermanentControlID");
+            MethodInfo m = t.GetMethod("GetPermanentControlID", s_BindingFlagsAll);
             if (m != null)
             {
                return (int) m.Invoke(null, null);
@@ -55,7 +58,7 @@ namespace YHEditor.Timeline
             if (s_DoFloatFieldMI == null)
             {
                 Type editorGUIType = typeof(EditorGUI);
-                MemberInfo[] members = editorGUIType.GetMember("DoFloatField");
+                MemberInfo[] members = editorGUIType.GetMember("DoFloatField", s_BindingFlagsAll);
                 foreach (var m in members)
                 {
                     MethodInfo mi = m as MethodInfo;
@@ -78,7 +81,7 @@ namespace YHEditor.Timeline
                 if (s_DoFloatFieldArgs == null)
                 {
                     s_DoFloatFieldArgs = new object[8];
-                    FieldInfo fieldInfo= editorGUIType.GetField("s_RecycledEditor");
+                    FieldInfo fieldInfo= editorGUIType.GetField("s_RecycledEditor", s_BindingFlagsAll);
                     s_DoFloatFieldArgs[0]=fieldInfo.GetValue(null);
                     s_DoFloatFieldArgs[2] = new Rect(0, 0, 0, 0);
                     s_DoFloatFieldArgs[5] = "g7";
@@ -100,7 +103,7 @@ namespace YHEditor.Timeline
             if (s_DoIntFieldMI == null)
             {
                 Type editorGUIType = typeof(EditorGUI);
-                MemberInfo[] members = editorGUIType.GetMember("DoIntField");
+                MemberInfo[] members = editorGUIType.GetMember("DoIntField", s_BindingFlagsAll);
                 foreach (var m in members)
                 {
                     MethodInfo mi = m as MethodInfo;
@@ -123,7 +126,7 @@ namespace YHEditor.Timeline
                 if (s_DoIntFieldArgs == null)
                 {
                     s_DoIntFieldArgs = new object[9];
-                    FieldInfo fieldInfo = editorGUIType.GetField("s_RecycledEditor");
+                    FieldInfo fieldInfo = editorGUIType.GetField("s_RecycledEditor", s_BindingFlagsAll);
                     s_DoIntFieldArgs[0] = fieldInfo.GetValue(null);
                     s_DoIntFieldArgs[2] = new Rect(0, 0, 0, 0);
                     s_DoIntFieldArgs[5] = "#######0";
@@ -146,7 +149,7 @@ namespace YHEditor.Timeline
             if (s_DoTextFieldMI == null)
             {
                 Type editorGUIType = typeof(EditorGUI);
-                MemberInfo[] members = editorGUIType.GetMember("DoIntField");
+                MemberInfo[] members = editorGUIType.GetMember("DoTextField", s_BindingFlagsAll);
                 foreach (var m in members)
                 {
                     MethodInfo mi = m as MethodInfo;
@@ -170,7 +173,7 @@ namespace YHEditor.Timeline
                 if (s_DoTextFieldArgs == null)
                 {
                     s_DoTextFieldArgs = new object[10];
-                    FieldInfo fieldInfo = editorGUIType.GetField("s_RecycledEditor");
+                    FieldInfo fieldInfo = editorGUIType.GetField("s_RecycledEditor", s_BindingFlagsAll);
                     s_DoTextFieldArgs[0] = fieldInfo.GetValue(null);
                     s_DoTextFieldArgs[4] = EditorStyles.numberField;
                     s_DoTextFieldArgs[7] = false;
