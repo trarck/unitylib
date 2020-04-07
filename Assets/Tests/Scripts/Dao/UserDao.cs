@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using YH;
+using YH.Data.Dao;
+using YH.Data.Driver;
 
 public class UserDao : DataDao
 {
