@@ -28,25 +28,25 @@ namespace YH.Log
             Debug.LogWarningFormat(format, args);
         }
 
-        [System.Diagnostics.Conditional("YHLOG_ERROR_ON")]
+        [System.Diagnostics.Conditional("YHLOG_ON"),System.Diagnostics.Conditional("YHLOG_ERROR_ON")]
         public static void LogError(object message)
         {
             Debug.LogError(message);
         }
 
-        [System.Diagnostics.Conditional("YHLOG_ERROR_ON")]
+        [System.Diagnostics.Conditional("YHLOG_ON"),System.Diagnostics.Conditional("YHLOG_ERROR_ON")]
         public static void LogErrorFormat(string format, params object[] args)
         {
             Debug.LogErrorFormat(format, args);
         }
 
-        [System.Diagnostics.Conditional("YHLOG_ERROR_ON")]
+        [System.Diagnostics.Conditional("YHLOG_ON"),System.Diagnostics.Conditional("YHLOG_ERROR_ON")]
         public static void LogException(System.Exception exception, Object context)
         {
             Debug.LogException(exception, context);
         }
 
-        [System.Diagnostics.Conditional("YHLOG_ERROR_ON")]
+        [System.Diagnostics.Conditional("YHLOG_ON"),System.Diagnostics.Conditional("YHLOG_ERROR_ON")]
         public static void LogException(System.Exception exception)
         {
             Debug.LogException(exception);
