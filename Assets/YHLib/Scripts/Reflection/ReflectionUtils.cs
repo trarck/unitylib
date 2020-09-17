@@ -30,7 +30,7 @@ namespace YH
 
         public Assembly LoadAssembly(string name)
         {
-            Assembly assembly = Assembly.Load(name);
+            Assembly assembly = Assembly.ReflectionOnlyLoad(name);
             if (assembly != null)
             {
                 m_Assemblies[name] = assembly;
