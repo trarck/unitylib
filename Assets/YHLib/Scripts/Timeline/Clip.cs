@@ -39,5 +39,6 @@ namespace YH.Timeline
                 return m_End - m_Start;
             }
         }
+
     }
 }

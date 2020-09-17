@@ -10,6 +10,6 @@ namespace YH.Timeline
     {
         double start { get; set; }
         double end { get; set; }
-        double duration { get; set; }
+        double duration { get;  }
     }
 }
