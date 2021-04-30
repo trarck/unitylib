@@ -4,22 +4,22 @@ using System.Text;
 
 namespace YH.Async
 {
-    public class ActionGroup
+    public class ParallelSignal
     {
         public Action completeHandle;
 
-        int m_ActionCount=0;
+        int m_TaskCount=0;
         int m_FinishedCount = 0;
         bool m_Joined = false;
 
-        public ActionGroup()
+        public ParallelSignal()
         {
-            m_ActionCount = 0;
+            m_TaskCount = 0;
         }
 
-        public ActionGroup(int total)
+        public ParallelSignal(int total)
         {
-            m_ActionCount = total;
+            m_TaskCount = total;
         }
 
         public void DoActionFinish()
@@ -31,22 +31,22 @@ namespace YH.Async
 
         public void Increase()
         {
-            ++m_ActionCount;
+            ++m_TaskCount;
         }
 
         public void Increase(int count)
         {
-            m_ActionCount+=count;
+            m_TaskCount+=count;
         }
 
         public void Decrease()
         {
-            --m_ActionCount;
+            --m_TaskCount;
         }
 
         public void Decrease(int count)
         {
-            m_ActionCount-=count;
+            m_TaskCount-=count;
         }
 
         public void Join()
@@ -58,7 +58,7 @@ namespace YH.Async
 
         void CheckFinished()
         {
-            if (m_FinishedCount >= m_ActionCount && m_Joined)
+            if (m_FinishedCount >= m_TaskCount && m_Joined)
             {
                 DoComplete();
             }
@@ -74,7 +74,7 @@ namespace YH.Async
 
         public void Clean()
         {
-            m_ActionCount = 0;
+            m_TaskCount = 0;
             m_FinishedCount = 0;
             m_Joined = false;
             completeHandle = null;

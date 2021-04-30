@@ -4,22 +4,22 @@ using YH.Pool;
 
 namespace YH.Async
 {
-    public class ActionGroupPool
+    public class ParallelSignalPool
     {
-        private static readonly Stack<ActionGroup> m_Stack = new Stack<ActionGroup>();
+        private static readonly Stack<ParallelSignal> m_Stack = new Stack<ParallelSignal>();
 
-        public class ActionGroupEx : ActionGroup
+        public class ActionGroupEx : ParallelSignal
         {
             protected override void DoComplete()
             {
                 base.DoComplete();
-                ActionGroupPool.Release(this);
+                ParallelSignalPool.Release(this);
             }
         }
 
-        public static ActionGroup Get()
+        public static ParallelSignal Get()
         {
-            ActionGroup element;
+            ParallelSignal element;
             if (m_Stack.Count == 0)
             {
                 element = new ActionGroupEx();
@@ -31,7 +31,7 @@ namespace YH.Async
             return element;
         }
 
-        public static void Release(ActionGroup element)
+        public static void Release(ParallelSignal element)
         {
             if (m_Stack.Count > 0 && ReferenceEquals(m_Stack.Peek(), element))
                 Debug.LogError("Internal error. Trying to destroy object that is already released to pool.");
