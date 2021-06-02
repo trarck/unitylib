@@ -10,13 +10,13 @@ namespace YH.Async
     public class Task
     {
         public int id;
+        public bool breakOnError = false;
         //if method is static target is null
-        object m_Target;
-        MethodInfo m_Method;
-        WorkPool m_WorkPool;
-        object[] m_Args;
-
-        IEnumerator m_Enumerator;
+        private object m_Target;
+        private MethodInfo m_Method;
+        private WorkPool m_WorkPool;
+        private object[] m_Args;
+        private IEnumerator m_Enumerator;
 
         public Task(int id, WorkPool workPool, object target, MethodInfo method, params object[] args)
         {

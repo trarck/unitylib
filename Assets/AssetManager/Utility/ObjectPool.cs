@@ -9,6 +9,7 @@ namespace YH.AssetManager
         private readonly Stack<T> m_Stack = new Stack<T>();
         private readonly UnityAction<T> m_ActionOnGet;
         private readonly UnityAction<T> m_ActionOnRelease;
+        private readonly UnityAction<T> m_ActionOnDispose;
 
         public int countAll { get; private set; }
         public int countActive { get { return countAll - countInactive; } }
@@ -18,6 +19,13 @@ namespace YH.AssetManager
         {
             m_ActionOnGet = actionOnGet;
             m_ActionOnRelease = actionOnRelease;
+        }
+
+        public ObjectPool(UnityAction<T> actionOnGet, UnityAction<T> actionOnRelease, UnityAction<T> actionOnDispose)
+        {
+            m_ActionOnGet = actionOnGet;
+            m_ActionOnRelease = actionOnRelease;
+            m_ActionOnDispose = actionOnDispose;
         }
 
         public T Get()
@@ -44,6 +52,21 @@ namespace YH.AssetManager
             if (m_ActionOnRelease != null)
                 m_ActionOnRelease(element);
             m_Stack.Push(element);
+        }
+
+        public void Dispose()
+        {
+            foreach (T t in m_Stack)
+            {
+                if (m_ActionOnDispose != null)
+                {
+                    m_ActionOnDispose(t);
+                }
+                else if (t is System.IDisposable)
+                {
+                    (t as System.IDisposable).Dispose();
+                }
+            }
         }
     }
 }

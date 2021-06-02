@@ -10,6 +10,8 @@ namespace YH
     {
 
         public static string dataPath = Application.dataPath;
+        
+        public static string applicationPath = Path.GetDirectoryName(Application.dataPath);
 
         public static string streamingAssetsPath = Application.streamingAssetsPath;
 
@@ -204,11 +206,11 @@ namespace YH
         /// <summary>
         /// 归一化路径
         /// </summary>
-        /// <param name="filename"></param>
+        /// <param name="path"></param>
         /// <returns></returns>
-        public static string NormalizeFilename(string filename)
+        public static string NormalizePath(string path)
         {
-            return filename.Replace("\\", "/");
+            return path.Replace("\\", "/");
         }
 
         /// <summary>
