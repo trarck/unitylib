@@ -10,6 +10,7 @@ namespace YH.Async
     public class Task
     {
         public int id;
+        //出错则终止整个工作队列
         public bool breakOnError = false;
         //if method is static target is null
         private object m_Target;
