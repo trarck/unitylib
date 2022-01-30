@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 
@@ -416,7 +417,88 @@ namespace YH
                 }
             }
         }
-        
+
+        private struct StackInfo
+        {
+            public DirectoryInfo dir;
+            public string relativePath;
+        }
+
+        public static void CopyDirectory(string sourceDirName, string destDirName, bool copySubDirs, string pattern)
+        {
+            bool haveFilter = !string.IsNullOrEmpty(pattern);
+            Regex reg = haveFilter ? new Regex(pattern, RegexOptions.IgnoreCase) : null;
+
+            // If the destination directory doesn't exist, create it.
+            if (!Directory.Exists(destDirName))
+            {
+                Directory.CreateDirectory(destDirName);
+            }
+
+            if (copySubDirs)
+            {
+                StackInfo root;
+                Stack<StackInfo> visitStack = new Stack<StackInfo>();
+                StackInfo fol;
+
+                root = new StackInfo()
+                {
+                    dir = new DirectoryInfo(sourceDirName),
+                    relativePath = "",
+                };
+
+                visitStack.Push(root);
+
+                while (visitStack.Count > 0)
+                {
+                    fol = visitStack.Pop();
+                    string outPath = Path.Combine(destDirName, fol.relativePath);
+                    if (!Directory.Exists(outPath))
+                    {
+                        Directory.CreateDirectory(outPath);
+                    }
+
+                    foreach (FileInfo f in fol.dir.GetFiles())
+                    {
+                        if (!haveFilter || reg.IsMatch(f.Name))
+                        {
+                            string outFile = Path.Combine(outPath, f.Name);
+                            File.Copy(f.FullName, outFile, true);
+                        }
+                    }
+
+                    DirectoryInfo[] subs = fol.dir.GetDirectories();
+                    if (subs.Length > 0)
+                    {
+                        foreach (DirectoryInfo d in subs)
+                        {
+                            visitStack.Push(new StackInfo()
+                            {
+                                dir = d,
+                                relativePath = Path.Combine(fol.relativePath, d.Name)
+                            });
+                        }
+                    }
+                }
+            }
+            else
+            {
+                DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+
+                // Get the files in the directory and copy them to the new location.
+                FileInfo[] files = dir.GetFiles();
+                foreach (FileInfo file in files)
+                {
+                    if (!haveFilter || reg.IsMatch(file.Name))
+                    {
+                        string temppath = Path.Combine(destDirName, file.Name);
+                        file.CopyTo(temppath, true);
+                    }
+                }
+            }
+        }
+
+
         public List<string> SearchFiles(string path, string pattern = null)
         {
             DirectoryInfo startInfo = new DirectoryInfo(path);
