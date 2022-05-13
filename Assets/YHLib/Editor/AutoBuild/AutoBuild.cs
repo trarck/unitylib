@@ -82,7 +82,10 @@ namespace YHEditor
 				parameters[0] = options;
 				method.Invoke(null, parameters);
 			}
-		}
+
+            //windows create vs project
+            //EditorUserBuildSettings.SetPlatformSettings("Standalone", "CreateSolution", "true");
+        }
 
 		void SetCommonSettings(Dictionary<string,string> options)
         {
