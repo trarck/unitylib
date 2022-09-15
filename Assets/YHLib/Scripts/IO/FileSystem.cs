@@ -257,7 +257,6 @@ namespace YH
             else
             {
                 System.Text.StringBuilder result = new System.Text.StringBuilder();
-                System.Text.StringBuilder toSB = new System.Text.StringBuilder();
 
                 for (int j = i; j < froms.Length; ++j)
                 {
