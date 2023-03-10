@@ -319,11 +319,11 @@ namespace YH
             {
                 fol = fols.Pop();
                 fol.Attributes = fol.Attributes & ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
-                foreach (DirectoryInfo d in fol.GetDirectories())
+                foreach (DirectoryInfo d in fol.EnumerateDirectories())
                 {
                     fols.Push(d);
                 }
-                foreach (FileInfo f in fol.GetFiles())
+                foreach (FileInfo f in fol.EnumerateFiles())
                 {
                     f.Attributes = f.Attributes & ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
                     f.Delete();
@@ -349,7 +349,7 @@ namespace YH
                 fol = fols.Peek();
                 fol.Attributes = fol.Attributes & ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
 
-                foreach (FileInfo f in fol.GetFiles())
+                foreach (FileInfo f in fol.EnumerateFiles())
                 {
                     f.Attributes = f.Attributes & ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
                     f.Delete();
@@ -358,7 +358,7 @@ namespace YH
                 DirectoryInfo[] subs = fol.GetDirectories();
                 if (subs.Length > 0)
                 {
-                    foreach (DirectoryInfo d in fol.GetDirectories())
+                    foreach (DirectoryInfo d in subs)
                     {
                         fols.Push(d);
                     }
@@ -393,7 +393,7 @@ namespace YH
             while (fols.Count > 0)
             {
                 fol = fols.Peek();
-                foreach (FileInfo f in fol.GetFiles())
+                foreach (FileInfo f in fol.EnumerateFiles())
                 {
                     if (reg.IsMatch(f.Name))
                     {
@@ -405,7 +405,7 @@ namespace YH
                 DirectoryInfo[] subs = fol.GetDirectories();
                 if (subs.Length > 0)
                 {
-                    foreach (DirectoryInfo d in fol.GetDirectories())
+                    foreach (DirectoryInfo d in subs)
                     {
                         fols.Push(d);
                     }
@@ -457,7 +457,7 @@ namespace YH
                         Directory.CreateDirectory(outPath);
                     }
 
-                    foreach (FileInfo f in fol.dir.GetFiles())
+                    foreach (FileInfo f in fol.dir.EnumerateFiles())
                     {
                         if (!haveFilter || reg.IsMatch(f.Name))
                         {
@@ -466,18 +466,14 @@ namespace YH
                         }
                     }
 
-                    DirectoryInfo[] subs = fol.dir.GetDirectories();
-                    if (subs.Length > 0)
-                    {
-                        foreach (DirectoryInfo d in subs)
-                        {
-                            visitStack.Push(new StackInfo()
-                            {
-                                dir = d,
-                                relativePath = Path.Combine(fol.relativePath, d.Name)
-                            });
-                        }
-                    }
+					foreach (DirectoryInfo d in fol.dir.EnumerateDirectories())
+					{
+						visitStack.Push(new StackInfo()
+						{
+							dir = d,
+							relativePath = Path.Combine(fol.relativePath, d.Name)
+						});
+					}
                 }
             }
             else
@@ -485,8 +481,7 @@ namespace YH
                 DirectoryInfo dir = new DirectoryInfo(sourceDirName);
 
                 // Get the files in the directory and copy them to the new location.
-                FileInfo[] files = dir.GetFiles();
-                foreach (FileInfo file in files)
+                foreach (FileInfo file in dir.EnumerateFiles)
                 {
                     if (!haveFilter || reg.IsMatch(file.Name))
                     {
@@ -525,7 +520,7 @@ namespace YH
             {
                 dir = dirs.Pop();
 
-                foreach (FileInfo fi in dir.GetFiles())
+                foreach (FileInfo fi in dir.EnumerateFiles())
                 {
                     if (!haveFilter || reg.IsMatch(fi.FullName))
                     {
@@ -533,7 +528,7 @@ namespace YH
                     }
                 }
 
-                foreach (DirectoryInfo subDir in dir.GetDirectories())
+                foreach (DirectoryInfo subDir in dir.EnumerateDirectories())
                 {
                     if (!subDir.Name.StartsWith("."))
                     {
