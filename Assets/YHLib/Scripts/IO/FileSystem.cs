@@ -9,7 +9,6 @@ namespace YH
 {
     public class FileSystem
     {
-
         public static string dataPath = Application.dataPath;
         
         public static string applicationPath = Path.GetDirectoryName(Application.dataPath);
@@ -481,7 +480,7 @@ namespace YH
                 DirectoryInfo dir = new DirectoryInfo(sourceDirName);
 
                 // Get the files in the directory and copy them to the new location.
-                foreach (FileInfo file in dir.EnumerateFiles)
+                foreach (FileInfo file in dir.EnumerateFiles())
                 {
                     if (!haveFilter || reg.IsMatch(file.Name))
                     {
