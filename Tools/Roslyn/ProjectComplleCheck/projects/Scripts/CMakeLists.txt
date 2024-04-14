@@ -2,7 +2,7 @@
 project(Assembly-CSharp LANGUAGES CSharp)
 
 file(GLOB_RECURSE SRC_FILES 
-    ${UNITY_PROJECT_PATH}/Assets/Scripts/*.cs
+    ${UNITY_PROJECT_PATH}/Assets/YHLib/Scripts/*.cs
 )
 
 list(FILTER SRC_FILES EXCLUDE REGEX ".*/(Editor)/.*")
@@ -18,15 +18,11 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DOTNET_REFERENCES
     ${PLUGIN_DLLS}
 )
 
-SET(CMAKE_CSharp_FLAGS "/langversion:default /unsafe")
 
-set_charp_defines(${WINDOWS_EDITOR_DEFINE})
-
-#message(${CMAKE_CSharp_FLAGS})
 
 assign_source_group(${SRC_FILES})
 
 # Define dependencies.
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} 
-    PUBLIC Assembly-CSharp-firstpass
-)
+# TARGET_LINK_LIBRARIES(${PROJECT_NAME} 
+    # PUBLIC Assembly-CSharp-firstpass
+# )

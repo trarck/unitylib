@@ -10,24 +10,27 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 
 #set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+
+include(SetupConfigurations)
 enable_language(CSharp)
 
 # 项目名
 project(ProjectComplleCheck LANGUAGES CSharp)
 
 include(Common)
+include(ProjectDefines)
+include(FindReferences)
+
+set_project_defines_all()
 
 # plugin runtime
-add_subdirectory(projects/Firstpass)
+# add_subdirectory(projects/Firstpass)
 
 # plugin editor
-add_subdirectory(projects/FirstpassEditor)
+# add_subdirectory(projects/FirstpassEditor)
 
 # mobascripts runtime
-add_subdirectory(projects/MobaScripts)
-
-# toolscripts runtime
-add_subdirectory(projects/NormalScripts)
+add_subdirectory(projects/Scripts)
 
 # toolscripts runtime
 add_subdirectory(projects/Editor)

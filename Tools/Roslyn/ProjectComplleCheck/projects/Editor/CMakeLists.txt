@@ -2,7 +2,7 @@
 project(Assembly-CSharp-Editor LANGUAGES CSharp)
 
 file(GLOB_RECURSE SRC_FILES 
-    ${UNITY_PROJECT_PATH}/Assets/Editor/*.cs
+    ${UNITY_PROJECT_PATH}/Assets/YHLib/Editor/*.cs
 )
 
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
@@ -19,13 +19,9 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DOTNET_REFERENCES
 
 SET(CMAKE_CSharp_FLAGS "/langversion:default /unsafe")
 
-set_charp_defines(${WINDOWS_EDITOR_DEFINE})
-
-#message(${CMAKE_CSharp_FLAGS})
-
 assign_source_group(${SRC_FILES})
 
 # Define dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} 
-    PUBLIC Assembly-CSharp-firstpass Assembly-CSharp-Editor-firstpass Assembly-CSharp-MobaScripts Assembly-CSharp-ToolScripts
+    PUBLIC Assembly-CSharp #Assembly-CSharp-firstpass Assembly-CSharp-Editor-firstpass Assembly-CSharp
 )
