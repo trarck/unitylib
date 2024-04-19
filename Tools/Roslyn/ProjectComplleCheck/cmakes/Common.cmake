@@ -1,5 +1,3 @@
-set(CSHARP_FRAMEWORK "v4.7.1")
-
 # system name
 set(SYSTEM_NAME_WIN "WIN")
 set(SYSTEM_NAME_MAC "MAC")

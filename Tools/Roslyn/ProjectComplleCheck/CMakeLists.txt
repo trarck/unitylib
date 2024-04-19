@@ -1,7 +1,6 @@
-# ./CMakeLists.txt，工程总配置文件
-
 # 最低版本要求，必须
 cmake_minimum_required(VERSION 3.8 )
+set(CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.1")
 
 # set cmake search file
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmakes")
