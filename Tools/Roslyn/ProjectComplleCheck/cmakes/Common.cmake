@@ -1,5 +1,3 @@
-set(CSHARP_FRAMEWORK "v4.7.1")
-
 # system name
 set(SYSTEM_NAME_WIN "WIN")
 set(SYSTEM_NAME_MAC "MAC")
@@ -13,7 +11,29 @@ set(PLATFORM_NAME_IOS "iOS")
 set(CHECK_TYPE_RUNTIME "Runtime")
 set(CHECK_TYPE_EDITOR "Editor")
 
-function(set_charp_defines)
+# flag
+function(set_csharp_flags)
+    foreach(_define IN ITEMS ${ARGN})
+        set(_CSharp_FLAGS "${_CSharp_FLAGS} ${_define}")
+    endforeach()
+    # message("_CSharp_FLAGS:${_CSharp_FLAGS}")
+    set(CMAKE_CSharp_FLAGS "${CMAKE_CSharp_FLAGS} ${_CSharp_FLAGS}" CACHE STRING "" FORCE)
+    message("CMAKE_CSharp_FLAGS:${CMAKE_CSharp_FLAGS}")
+endfunction()
+
+function(set_csharp_config_flags _config)
+    foreach(_define IN ITEMS ${ARGN})
+        set(_CSharp_FLAGS "${_CSharp_FLAGS} ${_define}")
+    endforeach()
+    # message("[Common]"_CSharp_FLAGS:${_CSharp_FLAGS})
+    string(TOUPPER ${_config} _upper_config)
+    # message("[Common]CMAKE_CSharp_FLAGS_${_upper_config}:${CMAKE_CSharp_FLAGS_${_upper_config}}")
+    set(CMAKE_CSharp_FLAGS_${_upper_config} "${CMAKE_CSharp_FLAGS_${_upper_config}} ${_CSharp_FLAGS}" CACHE STRING "" FORCE)
+    message("[Common]CMAKE_CSharp_FLAGS_${_upper_config}:${CMAKE_CSharp_FLAGS_${_upper_config}}")
+endfunction()
+
+# defines
+function(set_csharp_defines)
     foreach(_define IN ITEMS ${ARGN})
         set(_CSharp_FLAGS "${_CSharp_FLAGS} /define:${_define}")
     endforeach()
@@ -22,13 +42,27 @@ function(set_charp_defines)
     message("CMAKE_CSharp_FLAGS:${CMAKE_CSharp_FLAGS}")
 endfunction()
 
-function(set_charp_config_defines _config)
+function(set_csharp_config_defines _config)
     foreach(_define IN ITEMS ${ARGN})
         set(_CSharp_FLAGS "${_CSharp_FLAGS} /define:${_define}")
     endforeach()
     # message("[Common]"_CSharp_FLAGS:${_CSharp_FLAGS})
     string(TOUPPER ${_config} _upper_config)
-    set(CMAKE_CSharp_FLAGS_${_upper_config} "${CMAKE_CSharp_FLAGS_${_config}} ${_CSharp_FLAGS}" CACHE STRING "" FORCE)
+    # message("[Common]CMAKE_CSharp_FLAGS_${_upper_config}:${CMAKE_CSharp_FLAGS_${_upper_config}}")
+    set(CMAKE_CSharp_FLAGS_${_upper_config} "${CMAKE_CSharp_FLAGS_${_upper_config}} ${_CSharp_FLAGS}" CACHE STRING "" FORCE)
+    message("[Common]CMAKE_CSharp_FLAGS_${_upper_config}:${CMAKE_CSharp_FLAGS_${_upper_config}}")
+endfunction()
+
+# nowarn
+function(set_csharp_nowarns)
+    set(CMAKE_CSharp_FLAGS "${CMAKE_CSharp_FLAGS} /nowarn:${ARGN}" CACHE STRING "" FORCE)
+    message("CMAKE_CSharp_FLAGS:${CMAKE_CSharp_FLAGS}")
+endfunction()
+
+function(set_csharp_config_nowarns _config)
+    string(TOUPPER ${_config} _upper_config)
+    # message("[Common]CMAKE_CSharp_FLAGS_${_upper_config}:${CMAKE_CSharp_FLAGS_${_upper_config}}")
+    set(CMAKE_CSharp_FLAGS_${_upper_config} "${CMAKE_CSharp_FLAGS_${_upper_config}} /nowarn:${ARGN}" CACHE STRING "" FORCE)
     message("[Common]CMAKE_CSharp_FLAGS_${_upper_config}:${CMAKE_CSharp_FLAGS_${_upper_config}}")
 endfunction()
 
