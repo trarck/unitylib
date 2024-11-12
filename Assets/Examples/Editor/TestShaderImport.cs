@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using UnityEditor;
+
 public class TestShaderImport{
     public static void GetShaderImporterTextureNames(ShaderImporter shaderImporter,ref List<string> names)
     {
