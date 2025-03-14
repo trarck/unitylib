@@ -15,9 +15,14 @@ namespace FastFileSystem
         /// <param name="fileExtension"></param>
         /// <param name="files"></param>
         /// <returns>文件全路径列表</returns>
-        public static int GetFilesNative(string searchDir, string fileExtension, ICollection<string> files)
+        public static int GetFilesNative(string searchDir, string fileExtension, bool recursive, ICollection<string> files)
         {
-            foreach(var file in Directory.EnumerateFiles(searchDir, fileExtension, SearchOption.AllDirectories))
+            if (!Directory.Exists(searchDir))
+            {
+                return 0;
+            }
+            foreach (var file in Directory.EnumerateFiles(searchDir, fileExtension, 
+                recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
             {
                 files.Add(file.Replace("\\", "/"));
             }
@@ -32,10 +37,15 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int GetFilesNative(string searchDir, string fileExtension, string relativePath, ICollection<string> files)
+        public static int GetFilesNative(string searchDir, string fileExtension, string relativePath,bool recursive,  ICollection<string> files)
         {
+            if (!Directory.Exists(searchDir))
+            {
+                return 0;
+            }
             int searchDirLen = searchDir.Length;
-            foreach(var filePath in Directory.EnumerateFiles(searchDir, fileExtension, SearchOption.AllDirectories))
+            foreach(var filePath in Directory.EnumerateFiles(searchDir, fileExtension, 
+                recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
             {
                 string fileRelativePath = string.Concat(relativePath, filePath.Substring(searchDirLen));
                 files.Add(fileRelativePath.Replace("\\", "/"));
@@ -51,10 +61,15 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int SearchFilesNative(string searchDir, string searchPattern, string relativePath, ICollection<string> files)
+        public static int SearchFilesNative(string searchDir, string searchPattern, string relativePath, bool recursive, ICollection<string> files)
         {
+            if (!Directory.Exists(searchDir))
+            {
+                return 0;
+            }
             int searchDirLen = searchDir.Length;
-            foreach (var filePath in Directory.EnumerateFiles(searchDir, "*", SearchOption.AllDirectories))
+            foreach (var filePath in Directory.EnumerateFiles(searchDir, "*",
+                recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
             {
                 if (!filePath.Contains(searchPattern))
                 {
@@ -74,10 +89,15 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int SearchFilesNative(string searchDir, Func<string, string, bool> filterFun, string relativePath, ICollection<string> files)
+        public static int SearchFilesNative(string searchDir, Func<string, string, bool> filterFun, string relativePath, bool recursive, ICollection<string> files)
         {
+            if (!Directory.Exists(searchDir))
+            {
+                return 0;
+            }
             int searchDirLen = searchDir.Length;
-            foreach (var filePath in Directory.EnumerateFiles(searchDir, "*", SearchOption.AllDirectories))
+            foreach (var filePath in Directory.EnumerateFiles(searchDir, "*", 
+                recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
             {
                 if (!filterFun(filePath,null))
                 {
@@ -97,18 +117,49 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int SearchFilesRegexNative(string searchDir, string regexPattern, string relativePath, ICollection<string> files)
+        public static int SearchFilesRegexNative(string searchDir, string namePattern, string pathPattern, string relativePath, bool recursive, ICollection<string> files)
         {
-            int searchDirLen = searchDir.Length;
-            Regex regex = new Regex(regexPattern);
-            foreach (var filePath in Directory.EnumerateFiles(searchDir, "*", SearchOption.AllDirectories))
+            if (!Directory.Exists(searchDir))
             {
-                if (!regex.IsMatch(filePath))
+                return 0;
+            }
+
+            int searchDirLen = searchDir.Length;
+
+            Regex regexName = null;
+            if (!string.IsNullOrEmpty(namePattern))
+            {
+                regexName = new Regex(namePattern, RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+            }
+
+            Regex regexPath = null;
+            if (!string.IsNullOrEmpty(pathPattern))
+            {
+                regexPath = new Regex(pathPattern, RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+            }
+
+            foreach (var filePath in Directory.EnumerateFiles(searchDir, "*", 
+                recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
+            {
+
+                if (regexName!=null)
                 {
-                    continue;
+                    string fileName = GetFileName(filePath);
+                    if (!regexName.IsMatch(fileName))
+                    {
+                        continue;
+                    }
                 }
-                string fileRelativePath = string.Concat(relativePath, filePath.Substring(searchDirLen));
-                files.Add(fileRelativePath.Replace("\\", "/"));
+                string fileRelativePath = string.Concat(relativePath, filePath.Substring(searchDirLen).Replace("\\","/"));
+                if(regexPath!=null)
+                {
+                     if(!regexPath.IsMatch(fileRelativePath))
+                    {
+                        continue;
+                    }
+                }
+
+                files.Add(fileRelativePath);
             }
             return 0;
         }

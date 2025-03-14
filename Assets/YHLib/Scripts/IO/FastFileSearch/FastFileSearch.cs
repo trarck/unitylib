@@ -307,9 +307,9 @@ namespace FastFileSystem
         /// <param name="fileExtension"></param>
         /// <param name="files"></param>
         /// <returns>文件全路径列表</returns>
-        public static int GetFiles(string searchDir, string fileExtension, ICollection<string> files)
+        public static int GetFiles(string searchDir, string fileExtension, bool recursive, ICollection<string> files)
         {
-            return GetFilesNative(searchDir, fileExtension,files);
+            return GetFilesNative(searchDir, fileExtension, recursive, files);
         }
 
         /// <summary>
@@ -320,9 +320,9 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int GetFiles(string searchDir, string fileExtension, string relativePath, ICollection<string> files)
+        public static int GetFiles(string searchDir, string fileExtension, string relativePath, bool recursive, ICollection<string> files)
         {
-           return GetFilesNative(searchDir, fileExtension, relativePath, files);
+           return GetFilesNative(searchDir, fileExtension, relativePath, recursive, files);
         }
 
         /// <summary>
@@ -333,9 +333,9 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int SearchFiles(string searchDir, string searchPattern, string relativePath, ICollection<string> files)
+        public static int SearchFiles(string searchDir, string searchPattern, string relativePath, bool recursive, ICollection<string> files)
         {
-            return SearchFilesNative(searchDir, searchPattern, relativePath, files);
+            return SearchFilesNative(searchDir, searchPattern, relativePath, recursive, files);
         }
 
         /// <summary>
@@ -346,9 +346,9 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int SearchFiles(string searchDir, Func<string, string, bool> filterFun, string relativePath, ICollection<string> files)
+        public static int SearchFiles(string searchDir, Func<string, string, bool> filterFun, string relativePath, bool recursive, ICollection<string> files)
         {
-            return SearchFilesNative(searchDir, filterFun, relativePath, files);
+            return SearchFilesNative(searchDir, filterFun, relativePath, recursive, files);
         }
 
         /// <summary>
@@ -359,9 +359,9 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int SearchFilesRegex(string searchDir, string regexPattern, string relativePath, ICollection<string> files)
+        public static int SearchFilesRegex(string searchDir, string namePattern, string pathPattern, string relativePath, bool recursive, ICollection<string> files)
         {
-            return SearchFilesRegexNative(searchDir, regexPattern, relativePath, files);
+            return SearchFilesRegexNative(searchDir, namePattern, pathPattern, relativePath, recursive, files);
         }
 
     }

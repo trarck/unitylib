@@ -48,7 +48,7 @@ namespace FastFileSystem
         /// <param name="fileExtension"></param>
         /// <param name="files"></param>
         /// <returns>文件全路径列表</returns>
-        public static int GetFilesNative(string searchDir, string fileExtension, ICollection<string> files)
+        public static int GetFilesNative(string searchDir, string fileExtension, bool recursive, ICollection<string> files)
         {
             Kernel32FileApi.WIN32_FIND_DATAW ffd;
             IntPtr hFind = Kernel32FileApi.INVALID_HANDLE_VALUE;
@@ -90,7 +90,8 @@ namespace FastFileSystem
 
                     if ((ffd.dwFileAttributes & Kernel32FileApi.FILE_ATTRIBUTE_DIRECTORY)!=0)
                     {
-                        tempDirs.Push(string.Concat(currentDir, "/", ffd.cFileName));
+                        if(recursive)
+                            tempDirs.Push(string.Concat(currentDir, "/", ffd.cFileName));
                     }
                     else
                     {
@@ -118,7 +119,7 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int GetFilesNative(string searchDir, string fileExtension, string relativePath, ICollection<string> files)
+        public static int GetFilesNative(string searchDir, string fileExtension, string relativePath, bool recursive, ICollection<string> files)
         {
             Kernel32FileApi.WIN32_FIND_DATAW ffd;
             IntPtr hFind = Kernel32FileApi.INVALID_HANDLE_VALUE;
@@ -159,10 +160,14 @@ namespace FastFileSystem
 
                     if ((ffd.dwFileAttributes & Kernel32FileApi.FILE_ATTRIBUTE_DIRECTORY) != 0)
                     {
-                        SearchItem item = new SearchItem(
-                            string.Concat(currentDir.dirPath, "/", ffd.cFileName),
-                            string.IsNullOrEmpty(currentDir.relativePath) ? ffd.cFileName : string.Concat(currentDir.relativePath, "/", ffd.cFileName));
-                        tempDirs.Push(item);
+                        if (recursive)
+                        {
+                            SearchItem item = new SearchItem(
+                                string.Concat(currentDir.dirPath, "/", ffd.cFileName),
+                                string.IsNullOrEmpty(currentDir.relativePath) ? ffd.cFileName : string.Concat(currentDir.relativePath, "/", ffd.cFileName)
+                            );
+                            tempDirs.Push(item);
+                        }
                     }
                     else
                     {
@@ -190,7 +195,7 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int SearchFilesNative(string searchDir, string searchPattern, string relativePath, ICollection<string> files)
+        public static int SearchFilesNative(string searchDir, string searchPattern, string relativePath, bool recursive, ICollection<string> files)
         {
             Kernel32FileApi.WIN32_FIND_DATAW ffd;
             IntPtr hFind = Kernel32FileApi.INVALID_HANDLE_VALUE;
@@ -233,15 +238,18 @@ namespace FastFileSystem
 
                     if ((ffd.dwFileAttributes & Kernel32FileApi.FILE_ATTRIBUTE_DIRECTORY) != 0)
                     {
-                        SearchItem item = new SearchItem(
-                            string.Concat(currentDir.dirPath, "/", ffd.cFileName),
-                            string.Concat(currentRelativePath, ffd.cFileName)
-                        );
-                        tempDirs.Push(item);
+                        if (recursive)
+                        {
+                            SearchItem item = new SearchItem(
+                                string.Concat(currentDir.dirPath, "/", ffd.cFileName),
+                                string.Concat(currentRelativePath, ffd.cFileName)
+                            );
+                            tempDirs.Push(item);
+                        }
                     }
                     else
                     {
-                        if (ffd.cFileName.Contains(searchPattern))
+                        if (ffd.cFileName.Contains(searchPattern) || currentRelativePath.Contains(searchPattern))
                         {
                             files.Add(string.Concat(currentRelativePath, ffd.cFileName));
                         }
@@ -265,7 +273,7 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int SearchFilesNative(string searchDir, Func<string, string, bool> filterFun, string relativePath, ICollection<string> files)
+        public static int SearchFilesNative(string searchDir, Func<string, string, bool> filterFun, string relativePath, bool recursive, ICollection<string> files)
         {
             Kernel32FileApi.WIN32_FIND_DATAW ffd;
             IntPtr hFind = Kernel32FileApi.INVALID_HANDLE_VALUE;
@@ -301,10 +309,14 @@ namespace FastFileSystem
 
                     if ((ffd.dwFileAttributes & Kernel32FileApi.FILE_ATTRIBUTE_DIRECTORY) != 0)
                     {
-                        SearchItem item = new SearchItem(
-                            string.Concat(currentDir.dirPath, "/", ffd.cFileName),
-                            string.Concat(currentRelativePath, ffd.cFileName));
-                        tempDirs.Push(item);
+                        if (recursive)
+                        {
+                            SearchItem item = new SearchItem(
+                                string.Concat(currentDir.dirPath, "/", ffd.cFileName),
+                                string.Concat(currentRelativePath, ffd.cFileName)
+                            );
+                            tempDirs.Push(item);
+                        }
                     }
                     else
                     {
@@ -332,7 +344,7 @@ namespace FastFileSystem
         /// <param name="relativePath"></param>
         /// <param name="files"></param>
         /// <returns>文件相对路径列表</returns>
-        public static int SearchFilesRegexNative(string searchDir, string regexPattern, string relativePath, ICollection<string> files)
+        public static int SearchFilesRegexNative(string searchDir, string namePattern, string pathPattern, string relativePath, bool recursive, ICollection<string> files)
         {
             Kernel32FileApi.WIN32_FIND_DATAW ffd;
             IntPtr hFind = Kernel32FileApi.INVALID_HANDLE_VALUE;
@@ -343,7 +355,17 @@ namespace FastFileSystem
 
             Stack<SearchItem> needSearchDirs = new Stack<SearchItem>();
             needSearchDirs.Push(new SearchItem(searchDir, relativePath));
-            Regex regex = new Regex(regexPattern, RegexOptions.IgnoreCase);
+            Regex regexName = null;
+            if (!string.IsNullOrEmpty(namePattern))
+            {
+                regexName = new Regex(namePattern, RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+            }
+
+            Regex regexPath = null;
+            if (!string.IsNullOrEmpty(pathPattern))
+            {
+                regexPath = new Regex(pathPattern, RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+            }
 
             Stack<SearchItem> tempDirs = new Stack<SearchItem>();
 
@@ -370,14 +392,18 @@ namespace FastFileSystem
 
                     if ((ffd.dwFileAttributes & Kernel32FileApi.FILE_ATTRIBUTE_DIRECTORY) != 0)
                     {
-                        SearchItem item = new SearchItem(
-                            string.Concat(currentDir.dirPath, "/", ffd.cFileName),
-                            string.Concat(currentRelativePath, ffd.cFileName));
-                        tempDirs.Push(item);
+                        if (recursive)
+                        {
+                            SearchItem item = new SearchItem(
+                                string.Concat(currentDir.dirPath, "/", ffd.cFileName),
+                                string.Concat(currentRelativePath, ffd.cFileName)
+                            );
+                            tempDirs.Push(item);
+                        }
                     }
                     else
                     {
-                        if (regex.IsMatch(ffd.cFileName))
+                        if ((regexName==null || regexName.IsMatch(ffd.cFileName)) && (regexPath==null || regexPath.IsMatch(currentRelativePath)))
                         {
                             files.Add(string.Concat(currentRelativePath, ffd.cFileName));
                         }
